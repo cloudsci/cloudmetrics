@@ -1,0 +1,4 @@
+Data/
+__pyache__/
+*.py[cod]
+.DS_Store
