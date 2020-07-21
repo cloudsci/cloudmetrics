@@ -13,7 +13,7 @@ import seaborn.utils
 
 from .utils import stand, plotCorr, rainbowArrow, plot2dClusters, \
                    plotClusteredImages, getGrids, plotEmbedding, plotArrow, \
-                   plotMetricSurf
+                   plotMetricSurf, rotFlip
 
 def loadMetrics(dirPath, metrics, ext='', sort=False, standardise=True, 
                 return_data=True, return_images=True):
@@ -143,14 +143,17 @@ def regimeAnalysis(X_pca, imgarr, savePath):
     ## Clustering - Results ##
     nc   = 7 # Just set it
     nDim = 4
+    rot2rad = -49*np.pi/180
     
     Xpl = X_pca[:,:nDim] / np.std(X_pca[:,:nDim],axis=0)
-    Xpl[:,2] = -Xpl[:,2] # To make directional alignment positive along this axis
+    Xpl = rotFlip(Xpl, 0, flipAx=2, rotAxes=None)       # Flip PC 3 (clarity)
     lab = ['Scale','Void','Directional alignment','Cloud top height variance']
     
     co = np.arange(nc)
     cl = KMeans(n_clusters=nc,random_state=100)
     cl.fit(Xpl) # In the full, high-dimensional space
+    
+    Xpl = rotFlip(Xpl, rot2rad, flipAx=None, rotAxes=[2,3]) # Rotate (clarity)
     
     # Find the modal point from histograms
     mode = np.zeros(nDim)
@@ -182,10 +185,10 @@ def regimeAnalysis(X_pca, imgarr, savePath):
                 ax.annotate('Fi',(0.52,0.41), xycoords=af, fontsize=19)
                 ax.annotate('Fl',(0.82,0.43), xycoords=af, fontsize=19)
             elif i==gs00.get_geometry()[1]-1 and j==gs00.get_geometry()[0]-1:
-                ax.annotate('S', (0.4,0.15),  xycoords=af, fontsize=19)
-                ax.annotate('G', (0.27,0.68), xycoords=af, fontsize=19)  
-                ax.annotate('Fi',(0.34,0.52), xycoords=af, fontsize=19)  
-                ax.annotate('Fl',(0.075,0.43),xycoords=af, fontsize=19)
+                ax.annotate('S', (0.52,0.2),  xycoords=af, fontsize=19)
+                ax.annotate('G', (0.15,0.43), xycoords=af, fontsize=19)  
+                ax.annotate('Fi',(0.4,0.4),   xycoords=af, fontsize=19)  
+                ax.annotate('Fl',(0.27,0.2),  xycoords=af, fontsize=19)
             if j == 0:
                 ax.set_ylabel(lab[i+1],fontsize=19)
             if i == gs00.get_geometry()[0]-1:
@@ -205,6 +208,8 @@ def pcaDistribution(pca, X_pca, savePath):
     # Visualise how the PCs compare to each other
     ncomp = 4
     lim   = 6
+    rot2rad = -49*np.pi/180
+    X_pca = rotFlip(X_pca, rot2rad, flipAx=2, rotAxes=[2,3])
     df_pca = pd.DataFrame(data=X_pca[:,:ncomp])
     sns.set_context("paper", rc={"font.size":18,"axes.labelsize":18})  
     g = sns.PairGrid(df_pca, corner=True, diag_sharey=False)
@@ -274,11 +279,13 @@ def plotPCASurfs(ndata, imgarr, ndDfMet, metrics, metLab, pca, X_pca, savePath):
     fac     = 1.3     # Scale of interpretation arrows
     zoom    = 0.15    # Zoom of images
     distMin = 1.5e-3  # Minimum distance between images
+    rot2rad = -49*np.pi/180 # Rotation angle
     
-    # Project point onto plane spanned by first principal components
+    # Flip and rotate for clarity
+    X_pca = rotFlip(X_pca, rot2rad, flipAx=2, rotAxes=[2,3])
+    
+    # Project points onto plane spanned by first principal components
     comp  = [0,1]
-    
-    X_pca[:,2] = -X_pca[:,2] # To make directional alignment positive along this axis
     
     pax = pca.components_[comp,:] 
     proj = np.dot(np.dot(pax,ndata.transpose()).transpose(),pax) # No need to normalise, projection, as pca components are already orthonormal

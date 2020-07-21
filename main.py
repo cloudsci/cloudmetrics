@@ -153,6 +153,10 @@ metricDirs = [rootDir+'/Data/Metrics']
 makeNewDirs(metricDirs)
 
 # Main metrics. Various accompanying metrics will be appended to this list
+# Network metrics (e.g. netVarDeg) are not by default included in this code
+# repository, as they derive from an external, private package. Please contact
+# Franziska Glassmeier at f.glassmeier@tudelft.nl for access. Copy this package
+# into the Metrics subfolder for use.
 metrics = [
           'cf',        # Cloud fraction
           'cwp',       # Total cloud water path
@@ -166,7 +170,7 @@ metrics = [
           'scai',      # Simple Convective Aggregation Index Tobin et al. (2012)
           'nClouds',   # Number of clouds in scene
           'rdfMax',    # Max of the radial distribution function of objects
-          'netVarDeg', # Degree variance of nearest-neighbour network of objects
+          # 'netVarDeg', # Degree variance of nearest-neighbour network of objects
           'iOrgPoiss', # Organisation index as used in Tompkins & Semie (2017)
           'fracDim',   # Minkowski-Bouligand dimension
           'iOrg',      # Organisation index as modified by Benner & Curry (1998)
@@ -231,6 +235,7 @@ plotDirs = [rootDir+'/Data/Plots']
 makeNewDirs(plotDirs)
 
 # Subset of metrics to be analysed
+# netVarDeg can be included upon request (see Metric Computation section above)
 metricsPP = [
              'cf',        
              'cwp',       
@@ -244,7 +249,7 @@ metricsPP = [
              'scai',
              'nClouds',
              'rdfMax',
-             'netVarDeg',
+             # 'netVarDeg',
              'iOrgPoiss',
              'fracDim',
              'iOrg',
@@ -268,7 +273,7 @@ metLab    = [
             r'SCAI',
              'Cloud number',
              'Max RDF',
-             'Degree var',
+             # 'Degree var',
             r'Poisson $I_{org}$',
              'Fractal dim.', 
             r'$I_{org}$',
@@ -285,7 +290,7 @@ dfMetrics, data, imgArr = analysis.loadMetrics(metricDirs[0], metricsPP,
                                                return_data=True,
                                                return_images=True)
 
-#%% Analysis
+#%% Analysis - Specific analysis routines for plots that appear in the paper.
 
 # Correlation matrix (fig. S2)
 analysis.correlate(data, metricsPP, metLab, plotDirs[0])
