@@ -60,7 +60,7 @@ class IOrgPoisson():
             self.areaMin  = mpar['areaMin']
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
-            self.fields   = mpar['fields']['cm']
+            self.field    = mpar['fields']['cm']
 
     def metric(self,field):
         '''
