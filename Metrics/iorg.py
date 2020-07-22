@@ -54,7 +54,7 @@ class IOrg():
     
     Parameters
     ----------
-    mpar : Dict
+    mpar : Dict (optional, but necessary for using the compute method)
        Specifies the following parameters:
            loadPath : Path to load .h5 files that contain a pandas dataframe
                       with a cloud mask field as one of the columns.
@@ -70,24 +70,36 @@ class IOrg():
            areaMin  : Minimum cloud size considered in computing metric
            fMin     : First scene to load
            fMax     : Last scene to load. If None, is last scene in set.
+           fields   : Naming convention for fields, used to set the internal
+                      field to be used to compute each metric. Must be of the 
+                      form:
+                           {'cm'  : CloudMaskName, 
+                            'im'  : imageName, 
+                            'cth' : CloudTopHeightName,
+                            'cwp' : CloudWaterPathName}
                      
     '''
-    def __init__(self, mpar):
-        # General parameters
-        self.loadPath = mpar['loadPath']
-        self.savePath = mpar['savePath']
-        self.save     = mpar['save']
-        self.saveExt  = mpar['saveExt']
-        self.resFac   = mpar['resFac']
-        self.plot     = mpar['plot']
-        self.con      = mpar['con']
-        self.areaMin  = mpar['areaMin']
-        self.fMin     = mpar['fMin']
-        self.fMax     = mpar['fMax']
-
+    def __init__(self, mpar=None):
         # Metric-specific parameters
         self.field    = 'Cloud_Mask_1km'
         self.maxTries = 100         # How many placement attempts per object
+        self.plot     = False
+        self.con      = 1
+        self.areaMin  = 4
+        
+        if mpar is not None:
+            # General parameters
+            self.loadPath = mpar['loadPath']
+            self.savePath = mpar['savePath']
+            self.save     = mpar['save']
+            self.saveExt  = mpar['saveExt']
+            self.resFac   = mpar['resFac']
+            self.plot     = mpar['plot']
+            self.con      = mpar['con']
+            self.areaMin  = mpar['areaMin']
+            self.fMin     = mpar['fMin']
+            self.fMax     = mpar['fMax']
+            self.field    = mpar['fields']['cm']
 
     def metric(self,field):
         '''

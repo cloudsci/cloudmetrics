@@ -5,7 +5,9 @@ import pandas as pd
 import numpy as np
 from .utils import findFiles, anyInList, uniqueAppend
 
-def createMetricDF(loadPath, metrics, savePath, saveExt=''):
+def getAllMetrics(metricList):
+    metrics = metricList.copy()
+    
     scaiList = ['scai', 'd0']
     if anyInList(metrics,scaiList):
         metrics = uniqueAppend(metrics,scaiList)
@@ -38,6 +40,11 @@ def createMetricDF(loadPath, metrics, savePath, saveExt=''):
     woiList = ['woi1', 'woi2', 'woi3', 'woi']
     if anyInList(metrics,woiList):
         metrics = uniqueAppend(metrics,woiList)
+        
+    return metrics
+
+def createMetricDF(loadPath, metrics, savePath, saveExt=''):
+    metrics = getAllMetrics(metrics)
     
     _,dates = findFiles(loadPath)    
     df = pd.DataFrame(columns=metrics, index=dates)

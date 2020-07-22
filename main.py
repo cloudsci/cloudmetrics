@@ -170,7 +170,7 @@ metrics = [
           'scai',      # Simple Convective Aggregation Index Tobin et al. (2012)
           'nClouds',   # Number of clouds in scene
           'rdfMax',    # Max of the radial distribution function of objects
-          # 'netVarDeg', # Degree variance of nearest-neighbour network of objects
+          'netVarDeg', # Degree variance of nearest-neighbour network of objects
           'iOrgPoiss', # Organisation index as used in Tompkins & Semie (2017)
           'fracDim',   # Minkowski-Bouligand dimension
           'iOrg',      # Organisation index as modified by Benner & Curry (1998)
@@ -189,6 +189,10 @@ createDataFrame.createMetricDF(filteredDirs[0], metrics, metricDirs[0])
 createDataFrame.createImageArr(filteredDirs[0], metricDirs[0])
 
 # Specify general parameters for metric computation
+fields = {'cm'  : 'Cloud_Mask_1km',
+          'im'  : 'image',
+          'cth' : 'Cloud_Top_Height',
+          'cwp' : 'Cloud_Water_Path'}
 mpar = {
         'loadPath' : filteredDirs[0],
         'savePath' : metricDirs[0],
@@ -200,10 +204,10 @@ mpar = {
         'areaMin'  : 4,     # Minimum cloud size considered for object metrics
         'fMin'     : 0,     # First scene to load
         'fMax'     : None,  # Last scene to load. If None, is last scene in set
+        'fields'   : fields # Field naming convention
        }
 
 #%% Compute
-
 
 # Compute metrics in specified list and store them in the DataFrame. Each
 # metric is implemented as a class with a method (metric) that operates
@@ -216,6 +220,37 @@ mpar = {
 # (This may take a very long time depending on which metrics should be computed
 # and the size of the dataset)
 computeMetrics.computeMetrics(metrics,mpar)
+
+# An alternative way to compute the metrics is to handle the dataframes
+# outside the Metric objects and only use their metric() methods. This may be
+# more flexible if one only wishes to compute a metric and have it in memory
+# immediately, or works with field names that are different from those used 
+# here. This method can also be called without passing mpar to the metric 
+# object upon instantiation. However, this will set the parameters plot, con 
+# and areaMin to their defaults (False, 1 and 4). For all metrics to be
+# computable, one must at least have the field names 'cm' (cloud mask), 'im'
+# (image), 'cwp' (cloud water path) and 'cth' (cloud-top height) available.
+# The following snippet can then build a metric  dataframe (assuming the input 
+# data uses our storage structure/naming - modify this as appropriate):
+
+# # 1. Find data
+# from Metrics.utils import findFiles
+# files, dates = findFiles(filteredDirs[0])
+
+# # 2. Create a dataframe to store in
+# from Metrics.createDataFrame import getAllMetrics
+# columns = getAllMetrics(metrics)
+# dfMetrics = pd.DataFrame(index=dates,columns=columns)
+
+# # 3. Loop over data, computing a set of metrics for each scene
+# for i in range(len(files)):
+#     data = pd.read_hdf(files[i])
+#     fields = {'cm'  : data['Cloud_Mask_1km'].values[0],
+#               'im'  : data['image'].values[0],
+#               'cth' : data['Cloud_Top_Height'].values[0],
+#               'cwp' : data['Cloud_Water_Path'].values[0]}
+#     dfout = computeMetrics.evaluateMetrics(metrics,fields)
+#     dfMetrics.loc[dates[i]] = dfout.values
 
 # computeMetrics might fail to compute a metric on a scene, if that scene is
 # for any reason not suitable (e.g. if there are very few detected clouds).
