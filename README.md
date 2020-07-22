@@ -7,6 +7,6 @@ Follow process stream in main.py to:
   3. Compute 36 metrics of the cloud fields using the Metrics module
   4. Analyse several components of the resulting metric dataset with PCA, clustering and plotting routines.
 
-The Metrics module also serves well as a stand-alone product. Given any square input field with a shape that is a power of 2, each metric object has a method (metric) that facilitates quick computation of that particular metric.
+The Metrics module also serves well as a stand-alone product. Given any square input field with a shape that is a power of 2, each metric object has a method (metric) that facilitates quick computation of that particular metric. Wrapper functions for computing ranges of metrics are also included, for quick, out-of-the-box use.
 
 To use cloudmetrics, it is easiest to clone this repository and follow the commented guidelines in main.py. Make sure to update the package dependencies to those listed in requirements.txt.
