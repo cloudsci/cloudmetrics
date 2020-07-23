@@ -50,18 +50,18 @@ def createMetricDF(loadPath, metrics, savePath, saveExt=''):
     df = pd.DataFrame(columns=metrics, index=dates)
     df.to_hdf(savePath+'/Metrics'+saveExt+'.h5','Metrics',mode='w')
 
-def createImageArr(loadPath, savePath):
+def createImageArr(loadPath, savePath,imageTag='image'):
     files,dates = findFiles(loadPath)
     
     # Test field size
     df = pd.read_hdf(files[0])
-    img = df['image'].values[0].copy()
+    img = df[imageTag].values[0].copy()
     npx = img.shape[0] # Explicitly assumes square subset
     
     dfImgs = np.zeros((len(dates),npx,npx))
     for f in range(len(files)):
         df = pd.read_hdf(files[f])
-        img = df['image'].values[0].copy()
+        img = df[imageTag].values[0].copy()
         dfImgs[f,:,:] = img
         if f%100 == 0:
             print('Loaded',f,'of',len(files),'images')

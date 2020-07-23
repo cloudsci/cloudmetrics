@@ -267,20 +267,60 @@ def pcaDistribution(pca, X_pca, savePath):
     plt.savefig(savePath+'/pairgrid.pdf',bbox_inches='tight')
     plt.show()
 
-def plotPCASurfs(ndata, imgarr, ndDfMet, metrics, metLab, pca, X_pca, savePath):
-    # Combined plot for PC (0,1) and PC (2,3) with surfaces underneath
-    nPts    = 20      # Points to interpolate over
-    ncols   = 6       # Columns of subplots under the main plot
-    thr     = 0.181   # Gradient threshold in plane
-    fs      = 24      # Font size
-    thr2d   = 2.75    # Distance-from-plane threshold for gradient estimates
-    offs    = 0.05    # Image offset from the plot boundary
-    lw      = 0.004   # Line width of interpretation arrows
-    fac     = 1.3     # Scale of interpretation arrows
-    zoom    = 0.15    # Zoom of images
-    distMin = 1.5e-3  # Minimum distance between images
-    rot2rad = -49*np.pi/180 # Rotation angle
-    
+def plotPCASurfs(ndata, imgarr, ndDfMet, metrics, metLab, pca, X_pca, savePath,
+                 nPts=20, ncols=6, thr=0.181, fs=24, thr2d=2.75, offs = 0.05,
+                 lw=0.004, fac=1.3, zoom=0.15, distMin=1.5e-3, 
+                 rot2rad=-49*np.pi/180):
+    '''
+    Combined plot for PC (0,1) and PC (2,3) with surfaces underneath
+
+    Parameters
+    ----------
+    ndata : TYPE
+        DESCRIPTION.
+    imgarr : TYPE
+        DESCRIPTION.
+    ndDfMet : TYPE
+        DESCRIPTION.
+    metrics : TYPE
+        DESCRIPTION.
+    metLab : TYPE
+        DESCRIPTION.
+    pca : TYPE
+        DESCRIPTION.
+    X_pca : TYPE
+        DESCRIPTION.
+    savePath : TYPE
+        DESCRIPTION.
+    nPts : float, optional
+        Points to interpolate over. The default is 20.
+    ncols : int, optional
+        Columns of subplots under the main plot. The default is 6.
+    thr : float, optional
+        Gradient threshold in plane. The default is 0.181.
+    fs : float, optional
+        font size in plots. The default is 24.
+    thr2d : float, optional
+        Distance-from-plane threshold for gradient estimates. The default is 
+        2.75.
+    offs : float, optional
+        Image offset from the plot boundary. The default is 0.05.
+    lw : float, optional
+       Line width of interpretation arrows. The default is 0.004.
+    fac : float, optional
+        Scale of interpretation arrows. The default is 1.3.
+    zoom : float, optional
+        Zoom of images. The default is 0.15.
+    distMin : float, optional
+        Minimum distance between images. The default is 1.5e-3.
+    rot2rad : float, optional
+        Rotation angle in radians. The default is -49*np.pi/180.
+
+    Returns
+    -------
+    None.
+
+    '''
     # Flip and rotate for clarity
     X_pca = rotFlip(X_pca, rot2rad, flipAx=2, rotAxes=[2,3])
     
