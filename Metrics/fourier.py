@@ -146,10 +146,10 @@ class FourierMetrics():
         # Metric-specific parameters
         self.field  = 'Cloud_Mask_1km'
         self.window = 'Planck'         # Choose in [Planck, Welch, Hann, None] 
-        self.dl0    = 4                # Zero bin length
-        self.kMax   = 128              # Max wavenumber
+        self.k0     = 0                # Zero bin length
+        self.kMax   = 8                # Max wavenumber
         self.nBin   = 10
-        self.bins   = np.logspace(0,7,self.nBin+1,base=2)
+        self.bins   = np.logspace(self.k0,self.kMax,self.nBin+1,base=2)
         self.binsA  = np.exp((np.log(self.bins[1:]) + np.log(self.bins[:-1]))/2)
         self.plot   = False
         
@@ -232,8 +232,12 @@ class FourierMetrics():
         # Average over bins
         mns = np.zeros(len(self.bins)-1); sts = np.zeros(len(self.bins-1))
         for i in range(len(self.bins)-1):
-            imax   = np.where(k1d < self.bins[i+1])[0][-1]
-            imin   = np.where(k1d >= self.bins[i])[0][0]
+            imax   = np.where(k1d <  self.bins[i+1])[0][-1]
+            imin   = np.where(k1d >= self.bins[i])[0]
+            if len(imin) == 0:
+                continue # You have gone beyond the available wavenumbers
+            else:
+                imin = imin[0]
             if imin == imax:
                 psdi = psd1[imin]
             else:
@@ -241,9 +245,12 @@ class FourierMetrics():
             mns[i] = np.mean(psdi)
             sts[i] = np.std (psdi)
         
+        binsA = self.binsA[mns!=0]
+        mns   = mns[mns!=0]
+        
         # betaa
-        betaa,b0a = np.polyfit(np.log(self.binsA[1:-1]),np.log(mns[1:-1]),1)        # Spectral slope beta
-        rSqba = rSquared(np.log(self.binsA[1:-1]),np.log(mns[1:-1]),[betaa,b0a])    # rSquared of the fit
+        betaa,b0a = np.polyfit(np.log(binsA[1:-1]),np.log(mns[1:-1]),1)        # Spectral slope beta
+        rSqba = rSquared(np.log(binsA[1:-1]),np.log(mns[1:-1]),[betaa,b0a])    # rSquared of the fit
         
         # Spectral length scale as de Roode et al. (2004), using true median
         sumps = np.cumsum(psd1); sumps/=sumps[-1]
@@ -259,8 +266,8 @@ class FourierMetrics():
             axs[1].set_title('2D PSD - Anisotropy: %.3f' %azVar)
             axs[2].scatter(np.log(k1d),np.log(psd1),s=2.5,c='k')
             axs[2].plot(np.log(k1d),b0+beta*np.log(k1d),c='k')
-            axs[2].scatter(np.log(self.binsA),np.log(mns),s=2.5,c='C1')
-            axs[2].plot(np.log(self.binsA),b0a+betaa*np.log(self.binsA),c='C1')
+            axs[2].scatter(np.log(binsA),np.log(mns),s=2.5,c='C1')
+            axs[2].plot(np.log(binsA),b0a+betaa*np.log(binsA),c='C1')
             axs[2].annotate('Direct',(0.7,0.9), xycoords='axes fraction')
             axs[2].annotate(r'$R^2$='+str(round(rSqb,3)),(0.7,0.8), 
                             xycoords='axes fraction')
@@ -301,7 +308,7 @@ class FourierMetrics():
         
         ## Main loop over files
         for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
+            cm = getField(files[f], self.field, self.resFac, binary=False)
             print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
             
             beta, betaa, azVar, lSpec  = self.metric(cm)

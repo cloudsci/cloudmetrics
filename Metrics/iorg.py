@@ -83,6 +83,7 @@ class IOrg():
         # Metric-specific parameters
         self.field    = 'Cloud_Mask_1km'
         self.maxTries = 100         # How many placement attempts per object
+        self.numCalcs = 1           # How many times to do the placement
         self.plot     = False
         self.con      = 1
         self.areaMin  = 4
@@ -135,104 +136,108 @@ class IOrg():
         
         print('Number of regions: ',posScene.shape[0],'/',num)
         
-        # Attempt to randomly place all circles in scene without ovelapping
-        i=0; placedCircles = []; placeCount = 0
-        while i < len(cr) and placeCount < self.maxTries:
-            new = circle(cr[i],field)
-            placeable = True
+        iOrgs = np.zeros(self.numCalcs)
+        for c in range(self.numCalcs):
+            # Attempt to randomly place all circles in scene without ovelapping
+            i=0; placedCircles = []; placeCount = 0
+            while i < len(cr) and placeCount < self.maxTries:
+                new = circle(cr[i],field)
+                placeable = True
+                
+                # If the circles overlap -> Place again
+                if checkOverlap(new,placedCircles):
+                    placeable = False; placeCount += 1
+                
+                if placeable:
+                    placedCircles.append(new)
+                    i+=1; placeCount = 0
             
-            # If the circles overlap -> Place again
-            if checkOverlap(new,placedCircles):
-                placeable = False; placeCount += 1
-            
-            if placeable:
-                placedCircles.append(new)
-                i+=1; placeCount = 0
+            if placeCount == self.maxTries:
+                # FIXME should ideally start over again automatically
+                print('Unable to place circles in this image') 
+            else:
+                if self.plot:
+                    fig1 = plt.figure(figsize=(5,5)); ax = plt.gca()
+                    ax.set_xlim((0,field.shape[1]));ax.set_ylim((0,field.shape[0]))
+                    for i in range(len(placedCircles)):
+                        circ = plt.Circle((placedCircles[i].xm,placedCircles[i].yp)
+                                          ,placedCircles[i].r); ax.add_artist(circ)
+                        circ = plt.Circle((placedCircles[i].x ,placedCircles[i].yp)
+                                          ,placedCircles[i].r); ax.add_artist(circ)
+                        circ = plt.Circle((placedCircles[i].xp,placedCircles[i].yp)
+                                          ,placedCircles[i].r); ax.add_artist(circ)
+                        circ = plt.Circle((placedCircles[i].xm,placedCircles[i].y )
+                                          ,placedCircles[i].r); ax.add_artist(circ)
+                        circ = plt.Circle((placedCircles[i].x ,placedCircles[i].y )
+                                          ,placedCircles[i].r); ax.add_artist(circ)
+                        circ = plt.Circle((placedCircles[i].xp,placedCircles[i].y )
+                                          ,placedCircles[i].r); ax.add_artist(circ)
+                        circ = plt.Circle((placedCircles[i].xm,placedCircles[i].ym)
+                                          ,placedCircles[i].r); ax.add_artist(circ)
+                        circ = plt.Circle((placedCircles[i].x ,placedCircles[i].ym)
+                                          ,placedCircles[i].r); ax.add_artist(circ)
+                        circ = plt.Circle((placedCircles[i].xp,placedCircles[i].ym)
+                                          ,placedCircles[i].r); ax.add_artist(circ)
+                    ax.grid(which='both')
+                    plt.show()
         
-        if placeCount == self.maxTries:
-            # FIXME should ideally start over again automatically
-            print('Unable to place circles in this image') 
-        else:
-            if self.plot:
-                fig1 = plt.figure(figsize=(5,5)); ax = plt.gca()
-                ax.set_xlim((0,field.shape[1]));ax.set_ylim((0,field.shape[0]))
+                ## Compute the nearest neighbour distances ##
+                
+                # Gather positions in array
+                posRand = np.zeros((len(placedCircles),2))
                 for i in range(len(placedCircles)):
-                    circ = plt.Circle((placedCircles[i].xm,placedCircles[i].yp)
-                                      ,placedCircles[i].r); ax.add_artist(circ)
-                    circ = plt.Circle((placedCircles[i].x ,placedCircles[i].yp)
-                                      ,placedCircles[i].r); ax.add_artist(circ)
-                    circ = plt.Circle((placedCircles[i].xp,placedCircles[i].yp)
-                                      ,placedCircles[i].r); ax.add_artist(circ)
-                    circ = plt.Circle((placedCircles[i].xm,placedCircles[i].y )
-                                      ,placedCircles[i].r); ax.add_artist(circ)
-                    circ = plt.Circle((placedCircles[i].x ,placedCircles[i].y )
-                                      ,placedCircles[i].r); ax.add_artist(circ)
-                    circ = plt.Circle((placedCircles[i].xp,placedCircles[i].y )
-                                      ,placedCircles[i].r); ax.add_artist(circ)
-                    circ = plt.Circle((placedCircles[i].xm,placedCircles[i].ym)
-                                      ,placedCircles[i].r); ax.add_artist(circ)
-                    circ = plt.Circle((placedCircles[i].x ,placedCircles[i].ym)
-                                      ,placedCircles[i].r); ax.add_artist(circ)
-                    circ = plt.Circle((placedCircles[i].xp,placedCircles[i].ym)
-                                      ,placedCircles[i].r); ax.add_artist(circ)
-                ax.grid(which='both')
-                plt.show()
-    
-            ## Compute the nearest neighbour distances ##
-            
-            # Gather positions in array
-            posRand = np.zeros((len(placedCircles),2))
-            for i in range(len(placedCircles)):
-                posRand[i,0] = placedCircles[i].x
-                posRand[i,1] = placedCircles[i].y
-            
-            nndRand   = cKDTreeMethod(posRand,field)
-            nndScene  = cKDTreeMethod(posScene,field)
-            
-            nbins = len(nndRand)+1
-            bmin = np.min([np.min(nndRand),np.min(nndScene)])
-            bmax = np.max([np.max(nndRand),np.max(nndScene)])
-            bins = np.linspace(bmin,bmax,nbins)
-            
-            nndcdfRan = np.cumsum(np.histogram(nndRand, bins)[0])/len(nndRand)
-            nndcdfSce = np.cumsum(np.histogram(nndScene,bins)[0])/len(nndScene)
+                    posRand[i,0] = placedCircles[i].x
+                    posRand[i,1] = placedCircles[i].y
+                
+                nndRand   = cKDTreeMethod(posRand,field)
+                nndScene  = cKDTreeMethod(posScene,field)
+                
+                nbins = len(nndRand)+1
+                bmin = np.min([np.min(nndRand),np.min(nndScene)])
+                bmax = np.max([np.max(nndRand),np.max(nndScene)])
+                bins = np.linspace(bmin,bmax,nbins)
+                
+                nndcdfRan = np.cumsum(np.histogram(nndRand, bins)[0])/len(nndRand)
+                nndcdfSce = np.cumsum(np.histogram(nndScene,bins)[0])/len(nndScene)
+                        
+                ## Compute Iorg ##
+                iOrg = np.trapz(nndcdfSce,nndcdfRan)  
+                iOrgs[c] = iOrg
+                
+                if self.plot:
+                    fig,axs=plt.subplots(ncols=4,figsize=(20,5))
                     
-            ## Compute Iorg ##
-            iOrg = np.trapz(nndcdfSce,nndcdfRan)         
-            
-            if self.plot:
-                fig,axs=plt.subplots(ncols=4,figsize=(20,5))
-                
-                axs[0].imshow(field,'gray')
-                axs[0].set_title('Cloud mask of scene')
-                
-                axs[1].scatter(posScene[:,0],field.shape[0] - posScene[:,1],
-                               color='k',s=5)
-                axs[1].set_title('Scene centroids')
-                axs[1].set_xlim((0,field.shape[1]))
-                axs[1].set_ylim((0,field.shape[0]))
-                asp = np.diff(axs[1].get_xlim())[0] / \
-                      np.diff(axs[1].get_ylim())[0]
-                axs[1].set_aspect(asp)
-                
-                axs[2].scatter(posRand[:,0],posRand[:,1],color='k',s=5)
-                axs[2].set_title('Random field centroids')
-                asp = np.diff(axs[2].get_xlim())[0] / \
-                      np.diff(axs[2].get_ylim())[0]
-                axs[2].set_aspect(asp)
-                
-                axs[3].plot(nndcdfRan,nndcdfSce,'-',color='k')
-                axs[3].plot(nndcdfRan,nndcdfRan,'--',color='k')
-                axs[3].set_title('Nearest neighbour distribution')
-                axs[3].set_xlabel('Random field nearest neighbour CDF')
-                axs[3].set_ylabel('Scene nearest neighbour CDF')
-                axs[3].annotate(r'$I_{org} = $'+str(round(iOrg,3)),(0.7,0.1),
-                                xycoords='axes fraction')
-                asp = np.diff(axs[3].get_xlim())[0] / \
-                      np.diff(axs[3].get_ylim())[0]
-                axs[3].set_aspect(asp)
-                plt.show()
-        
+                    axs[0].imshow(field,'gray')
+                    axs[0].set_title('Cloud mask of scene')
+                    
+                    axs[1].scatter(posScene[:,0],field.shape[0] - posScene[:,1],
+                                   color='k',s=5)
+                    axs[1].set_title('Scene centroids')
+                    axs[1].set_xlim((0,field.shape[1]))
+                    axs[1].set_ylim((0,field.shape[0]))
+                    asp = np.diff(axs[1].get_xlim())[0] / \
+                          np.diff(axs[1].get_ylim())[0]
+                    axs[1].set_aspect(asp)
+                    
+                    axs[2].scatter(posRand[:,0],posRand[:,1],color='k',s=5)
+                    axs[2].set_title('Random field centroids')
+                    asp = np.diff(axs[2].get_xlim())[0] / \
+                          np.diff(axs[2].get_ylim())[0]
+                    axs[2].set_aspect(asp)
+                    
+                    axs[3].plot(nndcdfRan,nndcdfSce,'-',color='k')
+                    axs[3].plot(nndcdfRan,nndcdfRan,'--',color='k')
+                    axs[3].set_title('Nearest neighbour distribution')
+                    axs[3].set_xlabel('Random field nearest neighbour CDF')
+                    axs[3].set_ylabel('Scene nearest neighbour CDF')
+                    axs[3].annotate(r'$I_{org} = $'+str(round(iOrg,3)),(0.7,0.1),
+                                    xycoords='axes fraction')
+                    asp = np.diff(axs[3].get_xlim())[0] / \
+                          np.diff(axs[3].get_ylim())[0]
+                    axs[3].set_aspect(asp)
+                    plt.show()
+        print(iOrgs)
+        iOrg = np.mean(iOrgs)        
         return iOrg
         
     def verify(self):
