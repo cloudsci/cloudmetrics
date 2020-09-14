@@ -64,13 +64,13 @@ def plotSortedScenes(ndata, imgarr, metLab, savePath):
     # Colour scheme: 0 - field statistic; 1 - object metric; 2 - field transform
     legLabs = ['Field statistics',
                 'Object metrics',
-                'Field transform metrics']
+                'Scaling properties']
     colors = [cs[0], # cf
               cs[0], # cwp
               cs[1], # lMax
               cs[1], # periSum
               cs[0], # cth
-              cs[1], # sizeExp
+              cs[2], # sizeExp
               cs[1], # lMean
               cs[2], # beta
               cs[1], # COP
@@ -79,7 +79,7 @@ def plotSortedScenes(ndata, imgarr, metLab, savePath):
               cs[1], # rdfMax
               cs[1], # netVarDeg
               cs[1], # iorgTomp
-              cs[0], # fracDim
+              cs[2], # fracDim
               cs[1], # Iorg
               cs[0], # os
               cs[0], # twpVar
@@ -103,7 +103,7 @@ def plotSortedScenes(ndata, imgarr, metLab, savePath):
         
     lbwh = [0.1, 0.89, 0.82, 0.01]
     arax = fig.add_axes(lbwh); arax.axis('off')
-    rainbowArrow(arax, (lbwh[0],lbwh[1]), (lbwh[0]+lbwh[2],lbwh[1]), 
+    rainbowArrow(arax, (lbwh[0],lbwh[1]), (lbwh[0]+lbwh[2],lbwh[1]-lbwh[3]), 
                  cmap="Blues",  n=200,lw=lbwh[3])
     laboffs = 0.0075
     labax = fig.add_axes([lbwh[0]-0.05,lbwh[1]+laboffs,lbwh[2]+0.15,laboffs])
@@ -114,7 +114,7 @@ def plotSortedScenes(ndata, imgarr, metLab, savePath):
                 Line2D([0], [0], color=cs[1], lw=1),
                 Line2D([0], [0], color=cs[2],lw=1)]
     fig.legend(legLines, legLabs,fontsize=fs,frameon=False, loc='lower center',
-                bbox_to_anchor=(0.55, 0.055),
+                bbox_to_anchor=(0.51, 0.1),
                 ncol=3)
     plt.subplots_adjust(wspace=0.001)
     plt.savefig(savePath+'/sort.png',dpi=600,bbox_inches='tight')
@@ -134,6 +134,7 @@ def relateMetricPCA(pca, X_pca, metrics, metLab, savePath):
     
     # Correlation plot
     plotCorr(rVD, xlabel='Principal component', ylabel='Metric', 
+             xticklabels=np.arange(1,X_pca.shape[1]+1),
              yticklabels=metLab, maxSquares=False, size='pca', pca=pca,
               cbLab='Fraction of variance explained')
     plt.savefig(savePath+'/corrMetricPCA.pdf',bbox_inches='tight')
@@ -346,9 +347,9 @@ def plotPCASurfs(ndata, imgarr, ndDfMet, metrics, metLab, pca, X_pca, savePath,
                         distMin=distMin,ax=ax1,offs=offs)
                         
     # Plot interpretable directions as arrows
-    metricsArrow = ['cf', 'iOrg','beta','os','iOrgPoiss','cwp']
-    metLabArrow  = ['Coverage','Concentration','Scale distribution','Void',
-                    'Clustering/aggregation','Cloud water']
+    metricsArrow = ['cf', 'iOrg','beta','os','iOrgPoiss']
+    metLabArrow  = ['Coverage','Space filling','Scaling','Void',
+                    'Clustering/aggregation']
     metPlot      = met_2d[metricsArrow]
     clrs         = cm.get_cmap(plt.get_cmap('cubehelix'))(
                     np.linspace(0.05,0.95,len(metricsArrow)))[:, :3]

@@ -96,11 +96,17 @@ class SCAI():
         pos = np.vstack((np.asarray(xC),np.asarray(yC))).T
         
         print('Number of regions: ',pos.shape[0],'/',num)
-        
+              
         di   = sd.pdist(pos)
         D0   = gmean(di)
         Nmax = field.shape[0]*field.shape[1]/2
         scai = num / Nmax * D0 / self.L * 1000
+        
+        # Force SCAI to zero if there is only 1 region (completely aggregated)
+        # This is not strictly consistent with the metric (as D0 is 
+        # objectively undefined), but is consistent with its spirit
+        if pos.shape[0] == 1:
+            scai = 0
         
         if self.plot:
             plt.imshow(field,'gray')

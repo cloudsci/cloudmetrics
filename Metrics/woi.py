@@ -46,6 +46,7 @@ class WOI():
         self.field    = 'Cloud_Water_Path'
         self.fieldRef = 'Cloud_Mask_1km'
         self.plot     = False
+        self.pad      = 0
         
         # General parameters
         if mpar is not None:
@@ -75,14 +76,17 @@ class WOI():
 
         Returns
         -------
-        D0 : float
-            Mean geometric nearest neighbour distance between objects.
-        scai : float
-            Simple Convective Aggregation Index.
+        woi1 : float
+           First wavelet organisation index (scale distribution).
+        woi2 : float
+            Second wavelet organisation index (total amount of stuff).
+        woi3 : float
+            Third wavelet organisation index (directional alignment).
 
         '''
         
         # STATIONARY/UNDECIMATED Direct Wavelet Transform
+        field = pywt.pad(field, self.pad, 'periodic')
         scaleMax = int(np.log(field.shape[0])/np.log(2))
         coeffs = pywt.swt2(field,'haar',scaleMax,norm=True,trim_approx=True)
         # Bug in pywt -> trim_approx=False does opposite of its intention

@@ -284,7 +284,7 @@ metricsPP = [
              'scai',
              'nClouds',
              'rdfMax',
-             # 'netVarDeg',
+              'netVarDeg',
              'iOrgPoiss',
              'fracDim',
              'iOrg',
@@ -308,10 +308,10 @@ metLab    = [
             r'SCAI',
              'Cloud number',
              'Max RDF',
-             # 'Degree var',
-            r'Poisson $I_{org}$',
-             'Fractal dim.', 
+               'Degree var',
             r'$I_{org}$',
+             'Fractal dim.', 
+            r'$I_{org}^*$',
              'Open sky',
              'CWP var ratio',
             r'St(CTH)',
@@ -320,7 +320,7 @@ metLab    = [
             ]
 
 # Load, order and standardise data
-dfMetrics, data, imgArr = analysis.loadMetrics(metricDirs[0], metricsPP,
+dfMetrics, data, imgArr = analysis.loadMetrics(metricDirs[0], metricsPP, 
                                                sort=True, standardise=True, 
                                                return_data=True,
                                                return_images=True)
@@ -334,7 +334,7 @@ analysis.correlate(data, metricsPP, metLab, plotDirs[0])
 analysis.plotSortedScenes(data, imgArr, metLab, plotDirs[0])
 
 # Compute PCA
-pca = PCA();  xPca = pca.fit_transform(data) 
+pca = PCA();  xPca = pca.fit_transform(data)
 
 # Relate metrics to PCs (fig. S3)
 analysis.relateMetricPCA(pca, xPca, metricsPP, metLab, plotDirs[0])

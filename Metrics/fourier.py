@@ -145,7 +145,8 @@ class FourierMetrics():
     def __init__(self, mpar=None):
         # Metric-specific parameters
         self.field  = 'Cloud_Mask_1km'
-        self.window = 'Planck'         # Choose in [Planck, Welch, Hann, None] 
+        self.window = 'Planck'         # Choose in [Planck, Welch, Hann, None]
+        self.detrend= True
         self.k0     = 0                # Zero bin length
         self.kMax   = 8                # Max wavenumber
         self.nBin   = 10
@@ -201,7 +202,8 @@ class FourierMetrics():
                             np.arange(field.shape[1]), indexing='ij')
         
         # Detrend
-        field,bDt  = detrend(field,[X,Y])   
+        if self.detrend:
+            field,bDt  = detrend(field,[X,Y])
         
         # Windowing
         if self.window == 'Planck':
@@ -261,28 +263,29 @@ class FourierMetrics():
         if self.plot:
             fig,axs = plt.subplots(ncols=3,figsize=(12,4))
             axs[0].imshow(field,'gray'); axs[0].axis('off')
-            axs[0].set_title('Cloud mask')
+            axs[0].set_title('Clouds')
             axs[1].imshow(np.log(psd2)); axs[1].axis('off')
             axs[1].set_title('2D PSD - Anisotropy: %.3f' %azVar)
             axs[2].scatter(np.log(k1d),np.log(psd1),s=2.5,c='k')
             axs[2].plot(np.log(k1d),b0+beta*np.log(k1d),c='k')
             axs[2].scatter(np.log(binsA),np.log(mns),s=2.5,c='C1')
             axs[2].plot(np.log(binsA),b0a+betaa*np.log(binsA),c='C1')
-            axs[2].annotate('Direct',(0.7,0.9), xycoords='axes fraction')
+            axs[2].annotate('Direct',(0.7,0.9), xycoords='axes fraction',
+                            fontsize=10)
             axs[2].annotate(r'$R^2$='+str(round(rSqb,3)),(0.7,0.8), 
-                            xycoords='axes fraction')
+                            xycoords='axes fraction',fontsize=10)
             axs[2].annotate(r'$\beta=$'+str(round(beta,3)),(0.7,0.7), 
-                            xycoords='axes fraction')
+                            xycoords='axes fraction',fontsize=10)
             axs[2].annotate(r'$\Lambda=$'+str(round(lSpec,3)),(0.7,0.6), 
-                            xycoords='axes fraction')
+                            xycoords='axes fraction',fontsize=10)
             axs[2].annotate('Bin-averaged',(0.4,0.9), xycoords='axes fraction',
-                            color='C1')
+                            color='C1',fontsize=10)
             axs[2].annotate(r'$R^2$='+str(round(rSqba,3)),(0.4,0.8), 
-                            xycoords='axes fraction',color='C1')
+                            xycoords='axes fraction',color='C1',fontsize=10)
             axs[2].annotate(r'$\beta_a=$'+str(round(betaa,3)),(0.4,0.7), 
-                            xycoords='axes fraction',color='C1')
-            axs[2].set_xlabel(r'$\ln k$')
-            axs[2].set_ylabel(r'$\ln E(k)$')
+                            xycoords='axes fraction',color='C1',fontsize=10)
+            axs[2].set_xlabel(r'$\ln k$',fontsize=10)
+            axs[2].set_ylabel(r'$\ln E(k)$',fontsize=10)
             axs[2].grid()
             axs[2].set_title('1D Spectrum')
             plt.tight_layout()
