@@ -165,7 +165,7 @@ metrics = [
           'cth',       # Mean cloud top height
           'sizeExp',   # Exponent of cloud size distribution (power law fit)
           'lMean',     # Mean length of cloud object in scene
-          'beta',      # Slope of 1D Fourier spectrum of cloud water
+          'specLMom',  # Spectral length scale (Jonker et al. 1999)
           'cop',       # Convective Organisation Potential White et al. (2018)
           'scai',      # Simple Convective Aggregation Index Tobin et al. (2012)
           'nClouds',   # Number of clouds in scene
@@ -174,7 +174,7 @@ metrics = [
           'iOrgPoiss', # Organisation index as used in Tompkins & Semie (2017)
           'fracDim',   # Minkowski-Bouligand dimension
           'iOrg',      # Organisation index as modified by Benner & Curry (1998)
-          'os',        # Contiguous open sky area estimate (Antonissen, 2019)
+          'os',        # Contiguous clear sky area estimate (Antonissen, 2019)
           'twpVar',    # Variance in CWP anomaly on scales larger than 16 km (Bretherton & Blossey, 2017)
           'cthVar',    # Variance in cloud top height
           'cwpVarCl',  # Variance in cloud water path
@@ -196,7 +196,7 @@ fields = {'cm'  : 'Cloud_Mask_1km',
 mpar = {
         'loadPath' : filteredDirs[0],
         'savePath' : metricDirs[0],
-        'save'     : True, 
+        'save'     : True,
         'saveExt'  : '',    # Extension to filename to save in
         'resFac'   : 1,     # Resolution factor (e.g. 0.5)
         'plot'     : False, # Plot with details on each metric computation
@@ -279,12 +279,12 @@ metricsPP = [
              'cth',
              'sizeExp',
              'lMean',
-             'beta',
+             'specLMom',
              'cop',
              'scai',
              'nClouds',
              'rdfMax',
-              'netVarDeg',
+             'netVarDeg',
              'iOrgPoiss',
              'fracDim',
              'iOrg',
@@ -303,16 +303,16 @@ metLab    = [
             r'$\overline{CTH}$',
              'Size exponent',
              'Mean length', 
-             'Spec. slope', 
+             'Spectral length', 
              'COP',
             r'SCAI',
              'Cloud number',
              'Max RDF',
-               'Degree var',
+             'Degree var',
             r'$I_{org}$',
              'Fractal dim.', 
             r'$I_{org}^*$',
-             'Open sky',
+             'Clear sky',
              'CWP var ratio',
             r'St(CTH)',
             r'St(CWP)',
@@ -450,7 +450,7 @@ spca.sensitivity(data, metLab, nComp, plotDirs[0])
 # amount of variance.
 
 # Optimal 4D choice
-inds = [7,  # beta
+inds = [7,  # specLMom
         16, # os
         20, # woi3
         18  # St(CTH)
@@ -458,8 +458,8 @@ inds = [7,  # beta
 evrO = spca.orthogonalMetricVar(data, inds)
 
 # 2D choices
-inds = [0,  # beta
-        14, # os
+inds = [7,  # specLMom
+        16, # os
         ]
 evr2O = spca.orthogonalMetricVar(data, inds)
 
@@ -476,6 +476,12 @@ evr22 = spca.orthogonalMetricVar(data, inds)
 # Other choices in literature
 # Bony et al. (2020)
 inds = [10, # nClouds
+        13  # iorgTomp
+        ]
+evrB = spca.orthogonalMetricVar(data, inds)
+
+# Seifert & Heus (2013)
+inds = [7,  # specLMom
         13  # iorgTomp
         ]
 evrB = spca.orthogonalMetricVar(data, inds)

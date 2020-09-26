@@ -12,7 +12,7 @@ def getAllMetrics(metricList):
     if anyInList(metrics,scaiList):
         metrics = uniqueAppend(metrics,scaiList)
     
-    fourList = ['beta', 'betaa','specL','psdAzVar']
+    fourList = ['beta', 'betaa','specL','specLMom','psdAzVar']
     if anyInList(metrics,fourList):
         metrics = uniqueAppend(metrics,fourList)
         

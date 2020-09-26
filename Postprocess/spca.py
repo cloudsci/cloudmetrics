@@ -30,7 +30,7 @@ def sensitivity(ndata, metLab, nComp ,savePath):
             else:
                 lamb = 0.01
             if j == 1:
-                nTr[:,6] = 0 # Remove lMean
+                nTr[:,9] = 0 # Remove SCAI
                 
             cbax = fig.add_axes([1.0, 0.35, 0.01, 0.6])
             

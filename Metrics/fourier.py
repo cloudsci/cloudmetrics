@@ -25,9 +25,10 @@ def getPsd1D(psd2D):
     # SUM all psd2D pixels with label 'r' for 0<=r<=wc
     # Will miss power contributions in 'corners' r>wc
     rran    = np.arange(1, sh+1)
+    rk      = np.flip(-(fftpack.fftfreq(int(2*sh),1))[sh:])
     psd1D   = ndimage.sum(psd2D, r, index=rran)
     Ns      = ndimage.sum(N    , r, index=rran)
-    psd1D   = psd1D/Ns*rran*2*np.pi
+    psd1D   = psd1D/Ns*rk*2*np.pi
 
     return psd1D
 
@@ -147,12 +148,13 @@ class FourierMetrics():
         self.field  = 'Cloud_Mask_1km'
         self.window = 'Planck'         # Choose in [Planck, Welch, Hann, None]
         self.detrend= True
-        self.k0     = 0                # Zero bin length
-        self.kMax   = 8                # Max wavenumber
+        self.dx     = 1                # Grid spacing (for making correct k)
+        self.k0     = np.log10(1/(512*self.dx))  # FIXME hardcoded shape (0 wavenumber)
+        self.kMax   = np.log10(self.dx/2)        # Max wavenumber
         self.nBin   = 10
-        self.bins   = np.logspace(self.k0,self.kMax,self.nBin+1,base=2)
+        self.bins   = np.logspace(self.k0,self.kMax,self.nBin+1)
         self.binsA  = np.exp((np.log(self.bins[1:]) + np.log(self.bins[:-1]))/2)
-        self.plot   = False
+        self.expMom = 1
         
         # General parameters
         if mpar is not None:
@@ -187,7 +189,9 @@ class FourierMetrics():
             Measure of variance in the azimuthal power spectrum (anisotropy)
         lSpec : float
             Spectral length scale (de Roode et al, 2004)
-
+        lSpecMom : float
+            Spectral length scale based on moments
+            (e.g. Jonker et al, 1998, Jonker et al, 2006)
         '''
         # Spectral analysis - general observations
         # Windowing   : Capturing more information is beneficial 
@@ -220,11 +224,12 @@ class FourierMetrics():
                   np.prod(field.shape)      # Get the energy-preserving 2D PSD
         psd1    = getPsd1D(psd2)            # Azimuthal integral-> 1D PSD
         psd1Az  = getPsd1DAz(psd2)          # Radial integral -> Sector 1D PSD
-        azVar   = 2*(np.max(psd1Az[1]) - 
+        azVar   = 2*(np.max(psd1Az[1]) -
                      np.min(psd1Az[1]))     # Spectrum anisotropy (0-1)
         
         # Direct beta
-        k1d     = np.arange(1,len(psd1)+1)  
+        shp     = np.min(field.shape)
+        k1d     = np.flip(-(fftpack.fftfreq(shp,self.dx))[shp//2:])
         beta,b0 = np.polyfit(np.log(k1d),
                              np.log(psd1),1)# Spectral slope beta
         rSqb    = rSquared(np.log(k1d),
@@ -246,7 +251,6 @@ class FourierMetrics():
                 psdi   = psd1[imin:imax]
             mns[i] = np.mean(psdi)
             sts[i] = np.std (psdi)
-        
         binsA = self.binsA[mns!=0]
         mns   = mns[mns!=0]
         
@@ -255,43 +259,66 @@ class FourierMetrics():
         rSqba = rSquared(np.log(binsA[1:-1]),np.log(mns[1:-1]),[betaa,b0a])    # rSquared of the fit
         
         # Spectral length scale as de Roode et al. (2004), using true median
-        sumps = np.cumsum(psd1); sumps/=sumps[-1]
-        kcrit = np.where(sumps>1/2)[0][0]
+        # sumps = np.cumsum(psd1); sumps/=sumps[-1]
+        # kcrit = np.where(sumps>1/2)[0][0]
+        # lSpec = 1./kcrit
+        
+        # Spectral length scale as de Roode et al. (2004) using ogive
+        varTot = np.trapz(psd1,k1d); i = 0; vari = varTot+1
+        while vari > 2./3*varTot:
+            vari = np.trapz(psd1[i:],k1d[i:])
+            i += 1
+        kcrit = k1d[i-1]
         lSpec = 1./kcrit
+        
+        # Spectral length scale as Jonker et al. (2006), using moments:
+        kMom     = np.trapz(psd1*k1d**self.expMom,k1d) / varTot
+        lSpecMom = 1./kMom
         
         # Plotting
         if self.plot:
-            fig,axs = plt.subplots(ncols=3,figsize=(12,4))
+            fig,axs = plt.subplots(ncols=2,figsize=(8,4))
             axs[0].imshow(field,'gray'); axs[0].axis('off')
             axs[0].set_title('Clouds')
-            axs[1].imshow(np.log(psd2)); axs[1].axis('off')
-            axs[1].set_title('2D PSD - Anisotropy: %.3f' %azVar)
-            axs[2].scatter(np.log(k1d),np.log(psd1),s=2.5,c='k')
-            axs[2].plot(np.log(k1d),b0+beta*np.log(k1d),c='k')
-            axs[2].scatter(np.log(binsA),np.log(mns),s=2.5,c='C1')
-            axs[2].plot(np.log(binsA),b0a+betaa*np.log(binsA),c='C1')
-            axs[2].annotate('Direct',(0.7,0.9), xycoords='axes fraction',
+            # axs[1].imshow(np.log(psd2)); axs[1].axis('off')
+            # axs[1].set_title('2D PSD - Anisotropy: %.3f' %azVar)
+            axs[1].scatter(np.log(k1d),np.log(psd1),s=2.5,c='k')
+            axs[1].plot(np.log(k1d),b0+beta*np.log(k1d),c='k')
+            axs[1].scatter(np.log(binsA),np.log(mns),s=2.5,c='C1')
+            axs[1].axvline(np.log(kcrit),c='grey')
+
+            locs = axs[1].get_xticks().tolist()
+            labs = [x for x in axs[1].get_xticks()]
+            Dticks=dict(zip(locs,labs))
+            Dticks[np.log(kcrit)] = r'$1/\Lambda$'
+            locas=list(Dticks.keys()); labes=list(Dticks.values())
+            axs[1].set_xticks(locas); axs[1].set_xticklabels(labes)
+            
+            axs[1].plot(np.log(binsA),b0a+betaa*np.log(binsA),c='C1')
+            axs[1].annotate('Direct',(0.7,0.9), xycoords='axes fraction',
                             fontsize=10)
-            axs[2].annotate(r'$R^2$='+str(round(rSqb,3)),(0.7,0.8), 
+            axs[1].annotate(r'$R^2$='+str(round(rSqb,3)),(0.7,0.8), 
                             xycoords='axes fraction',fontsize=10)
-            axs[2].annotate(r'$\beta=$'+str(round(beta,3)),(0.7,0.7), 
+            axs[1].annotate(r'$\beta=$'+str(round(beta,3)),(0.7,0.7), 
                             xycoords='axes fraction',fontsize=10)
-            axs[2].annotate(r'$\Lambda=$'+str(round(lSpec,3)),(0.7,0.6), 
+            axs[1].annotate(r'$\Lambda=$'+str(round(lSpec,3)),(0.7,0.6), 
                             xycoords='axes fraction',fontsize=10)
-            axs[2].annotate('Bin-averaged',(0.4,0.9), xycoords='axes fraction',
+            axs[1].annotate(r'$\Lambda_M=$'+str(round(lSpecMom,3)),(0.7,0.5), 
+                            xycoords='axes fraction',fontsize=10)
+            axs[1].annotate('Bin-averaged',(0.4,0.9), xycoords='axes fraction',
                             color='C1',fontsize=10)
-            axs[2].annotate(r'$R^2$='+str(round(rSqba,3)),(0.4,0.8), 
+            axs[1].annotate(r'$R^2$='+str(round(rSqba,3)),(0.4,0.8), 
                             xycoords='axes fraction',color='C1',fontsize=10)
-            axs[2].annotate(r'$\beta_a=$'+str(round(betaa,3)),(0.4,0.7), 
+            axs[1].annotate(r'$\beta_a=$'+str(round(betaa,3)),(0.4,0.7), 
                             xycoords='axes fraction',color='C1',fontsize=10)
-            axs[2].set_xlabel(r'$\ln k$',fontsize=10)
-            axs[2].set_ylabel(r'$\ln E(k)$',fontsize=10)
-            axs[2].grid()
-            axs[2].set_title('1D Spectrum')
+            axs[1].set_xlabel(r'$\ln k$',fontsize=10)
+            axs[1].set_ylabel(r'$\ln E(k)$',fontsize=10)
+            axs[1].grid()
+            axs[1].set_title('1D Spectrum')
             plt.tight_layout()
             plt.show()
         
-        return beta, betaa, azVar, lSpec
+        return beta, betaa, azVar, lSpec, lSpecMom
         
     def verify(self):
         return 'Verification not implemented for FourierMetrics'
@@ -314,17 +341,19 @@ class FourierMetrics():
             cm = getField(files[f], self.field, self.resFac, binary=False)
             print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
             
-            beta, betaa, azVar, lSpec  = self.metric(cm)
-            print('beta:   ', beta)
-            print('betaa:  ', betaa)
-            print('azVar:  ', azVar)
-            print('lSpec:  ', lSpec)
+            beta, betaa, azVar, lSpec, lSpecMom  = self.metric(cm)
+            print('beta:      ', beta)
+            print('betaa:     ', betaa)
+            print('azVar:     ', azVar)
+            print('lSpec:     ', lSpec)
+            print('lSpecMom:  ', lSpecMom)
 
             if self.save:
-                dfMetrics['beta'].loc[dates[f]]     = beta
-                dfMetrics['betaa'].loc[dates[f]]    = betaa
-                dfMetrics['psdAzVar'].loc[dates[f]] = azVar
-                dfMetrics['specL'].loc[dates[f]]    = lSpec
+                # dfMetrics['beta'].loc[dates[f]]     = beta
+                # dfMetrics['betaa'].loc[dates[f]]    = betaa
+                # dfMetrics['psdAzVar'].loc[dates[f]] = azVar
+                # dfMetrics['specl'].loc[dates[f]]    = lSpec
+                dfMetrics['specLMom'].loc[dates[f]]    = lSpecMom
         
         if self.save:
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',

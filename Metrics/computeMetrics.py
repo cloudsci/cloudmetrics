@@ -77,7 +77,7 @@ def computeMetrics(metrics,mpar):
         print('Computing sizeExp')
         csd = CSD(mpar=mpar)
         csd.compute()
-    if 'beta' in metrics:
+    if 'specLMom' in metrics:
         print('Computing Fourier metrics')
         fourier = FourierMetrics(mpar=mpar)
         fourier.compute()
@@ -188,8 +188,8 @@ def evaluateMetrics(metrics,fields,mpar=None):
     if 'beta' in metrics:
         print('Computing Fourier metrics')
         fourier = FourierMetrics(mpar=mpar)
-        df['beta'], df['betaa'], df['psdAzVar'], df['specL'] = \
-        fourier.metric(fields['cm'])
+        df['beta'], df['betaa'], df['psdAzVar'], df['specL'], df['specLMom'] \
+        = fourier.metric(fields['cm'])
     if 'cop' in metrics:
         print('Computing COP')
         cop = COP(mpar=mpar)
