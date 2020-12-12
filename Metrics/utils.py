@@ -33,6 +33,8 @@ def findFiles(path):
     # r=root, d=directories, f = files
     for r, d, f in os.walk(path):
         for file in f:
+            if not isinstance(file, str):
+                file = file.decode('utf-8')
             if '.h5' in file:
                 fname = os.path.join(r, file)
                 dates.append(file.split('.')[0])

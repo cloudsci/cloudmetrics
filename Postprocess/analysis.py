@@ -15,12 +15,24 @@ from .utils import stand, plotCorr, rainbowArrow, plot2dClusters, \
                    plotClusteredImages, getGrids, plotEmbedding, plotArrow, \
                    plotMetricSurf, rotFlip
 
-def loadMetrics(dirPath, metrics, ext='', sort=False, standardise=True, 
-                return_data=True, return_images=True):
+def loadMetrics(dirPath, metrics=None, ext='', sort_data=False, 
+                sort_images=False, standardise=True, return_data=True, 
+                return_images=True, fname='Metrics'):
     
-    df        = pd.read_hdf(dirPath+'/Metrics'+ext+'.h5')
-    dfMetrics = df[metrics]
-    if sort:
+    if sort_images and not sort_data:
+        print('sort_images can only be set to True when sort_data is True')
+        return
+    
+    df        = pd.read_hdf(dirPath+'/'+fname+ext+'.h5')
+    if metrics == None:
+        dfMetrics = df
+    else:
+        dfMetrics = df[metrics]
+    dfMetrics.drop_duplicates(inplace=True)
+    if sort_data:
+        if dfMetrics.index.dtype is not 'float64':
+            dfMetrics.index = dfMetrics.index.astype('float64')
+        order = dfMetrics.index.argsort()
         dfMetrics = dfMetrics.sort_index()
     if standardise:
         dfMetrics = stand(dfMetrics)
@@ -28,6 +40,8 @@ def loadMetrics(dirPath, metrics, ext='', sort=False, standardise=True,
     # More data
     if return_data and return_images:
         imgarr = np.load(dirPath+'/Images'+ext+'.npy')
+        if sort_images:
+            imgarr = imgarr[order,:,:]
         data   = dfMetrics.to_numpy()
         return dfMetrics, data, imgarr
     elif return_data and not return_images:
@@ -35,6 +49,8 @@ def loadMetrics(dirPath, metrics, ext='', sort=False, standardise=True,
         return dfMetrics, data
     elif not return_data and return_images:
         imgarr = np.load(dirPath+'/Images'+ext+'.npy')
+        if sort_images:
+            imgarr = imgarr[order,:,:]
         return dfMetrics, imgarr
     else:
         return dfMetrics

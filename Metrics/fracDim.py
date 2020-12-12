@@ -92,15 +92,17 @@ class FracDim():
         # Fit the relation: counts = coeffs[1]*sizes**coeffs[0]; coeffs[0]=-Nd
         coeffs = np.polyfit(np.log(sizes), np.log(counts), 1)  
         rSq    = rSquared(np.log(sizes),np.log(counts),coeffs)
-        fracDim = -coeffs[0]                      
+        fracDim = -coeffs[0]                   
         
         if self.plot:
-            fig,ax=plt.subplots(ncols=2,figsize=(8,4))
+            fig,ax=plt.subplots(ncols=2,figsize=(8.25,4))
             ax[0].imshow(field,'gray')
             ax[0].set_xticks([]); ax[0].set_yticks([])
             ax[1].loglog(sizes,counts)
             ax[1].set_title('fracDim = %.4f'%fracDim)
             ax[1].annotate('rSq: %.3f'%rSq,(0.7,0.9),xycoords='axes fraction')
+            ax[1].set_xlabel('Length')
+            ax[1].set_ylabel('Number of edge boxes')
             plt.show()
         
         return fracDim

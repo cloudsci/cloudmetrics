@@ -149,13 +149,9 @@ class FourierMetrics():
         self.window = 'Planck'         # Choose in [Planck, Welch, Hann, None]
         self.detrend= True
         self.dx     = 1                # Grid spacing (for making correct k)
-        self.k0     = np.log10(1/(512*self.dx))  # FIXME hardcoded shape (0 wavenumber)
-        self.kMax   = np.log10(self.dx/2)        # Max wavenumber
-        self.nBin   = 10
-        self.bins   = np.logspace(self.k0,self.kMax,self.nBin+1)
-        self.binsA  = np.exp((np.log(self.bins[1:]) + np.log(self.bins[:-1]))/2)
         self.expMom = 1
-        
+        self.nBin   = 10
+                
         # General parameters
         if mpar is not None:
             self.loadPath = mpar['loadPath']
@@ -191,7 +187,7 @@ class FourierMetrics():
             Spectral length scale (de Roode et al, 2004)
         lSpecMom : float
             Spectral length scale based on moments
-            (e.g. Jonker et al, 1998, Jonker et al, 2006)
+            (e.g. Jonker et al., 1998, Jonker et al., 2006)
         '''
         # Spectral analysis - general observations
         # Windowing   : Capturing more information is beneficial 
@@ -228,19 +224,24 @@ class FourierMetrics():
                      np.min(psd1Az[1]))     # Spectrum anisotropy (0-1)
         
         # Direct beta
-        shp     = np.min(field.shape)
-        k1d     = np.flip(-(fftpack.fftfreq(shp,self.dx))[shp//2:])
+        shp  = np.min(field.shape)
+        k1d     = -(fftpack.fftfreq(shp,self.dx))[shp//2:]
+        k1d     = np.flip(k1d)
         beta,b0 = np.polyfit(np.log(k1d),
-                             np.log(psd1),1)# Spectral slope beta
+                             np.log(psd1),1) # Spectral slope beta
         rSqb    = rSquared(np.log(k1d),
                            np.log(psd1),
-                           [beta,b0])       # rSquared of the fit
+                           [beta,b0])        # rSquared of the fit
         
         # Average over bins
-        mns = np.zeros(len(self.bins)-1); sts = np.zeros(len(self.bins-1))
-        for i in range(len(self.bins)-1):
-            imax   = np.where(k1d <  self.bins[i+1])[0][-1]
-            imin   = np.where(k1d >= self.bins[i])[0]
+        k0   = np.log10(1/(shp*self.dx))
+        kMax = np.log10(self.dx/2)        # Max wavenumber
+        bins = np.logspace(k0,kMax,self.nBin+1)
+        binsA  = np.exp((np.log(bins[1:]) + np.log(bins[:-1]))/2)
+        mns = np.zeros(len(bins)-1); sts = np.zeros(len(bins-1))
+        for i in range(len(bins)-1):
+            imax   = np.where(k1d <  bins[i+1])[0][-1]
+            imin   = np.where(k1d >= bins[i])[0]
             if len(imin) == 0:
                 continue # You have gone beyond the available wavenumbers
             else:
@@ -251,7 +252,7 @@ class FourierMetrics():
                 psdi   = psd1[imin:imax]
             mns[i] = np.mean(psdi)
             sts[i] = np.std (psdi)
-        binsA = self.binsA[mns!=0]
+        binsA = binsA[mns!=0]
         mns   = mns[mns!=0]
         
         # betaa
