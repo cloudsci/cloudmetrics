@@ -24,7 +24,7 @@ def findDirs(loadPath):
     dirs = np.sort(dirs)
     return dirs
 
-loadPath = '/Users/martinjanssens/Documents/Wageningen/Patterns-in-satellite-images/LES/FJRICO/Data'
+loadPath = '/projects/0/einf170/janssonf/botany/botany-1-94hyqf8e/runs'
 lwpThr   = 1e-7
 nRuns    = 16
 Nc       = 70000000 # FIXME assumes this is constant

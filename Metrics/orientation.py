@@ -92,6 +92,9 @@ class Orient():
         '''
         
         cov = moments_cov(field)
+        if np.isnan(cov).any() or np.isinf(cov).any():
+            return float('nan')
+
         evals,evecs = np.linalg.eig(cov)
         orie = np.sqrt(1 - np.min(evals)/np.max(evals))
         

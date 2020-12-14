@@ -183,6 +183,9 @@ class RDF():
         pos = np.vstack((np.asarray(xC),np.asarray(yC))).T
         
         print('Number of regions: ',pos.shape[0],'/',num)
+
+        if pos.shape[0] < 1:
+            return float('nan'),float('nan'),float('nan')
         
         rdf, rad, tmp = pair_correlation_2d(pos[:, 0], pos[:, 1],
                                             [field.shape[0], field.shape[1]],

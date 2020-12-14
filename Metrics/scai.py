@@ -96,6 +96,10 @@ class SCAI():
         pos = np.vstack((np.asarray(xC),np.asarray(yC))).T
         
         print('Number of regions: ',pos.shape[0],'/',num)
+
+        if pos.shape[0] < 1:
+            print('exiting...')
+            return float('nan'), float('nan')
               
         di   = sd.pdist(pos)
         D0   = gmean(di)

@@ -90,7 +90,10 @@ class COP():
         pos  = np.vstack((np.asarray(xC),np.asarray(yC))).T
         
         print('Number of regions: ',pos.shape[0],'/',num)
-        
+
+        if len(area) < 1:
+            return float("nan")
+
         ## COMPUTE COP (Array-based)
         dij = sd.squareform(sd.pdist(pos))          # Pairwise distance matrix
         dij = dij[np.triu_indices_from(dij, k=1)]   # Upper triangular (no diag)

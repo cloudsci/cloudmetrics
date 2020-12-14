@@ -11,7 +11,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import sys
-sys.path.insert(1, '/Users/martinjanssens/Documents/Wageningen/Patterns-in-satellite-images/cloudmetrics')
 from Postprocess import analysis, utils
 from sklearn.decomposition import PCA
 
@@ -26,31 +25,31 @@ def findDirs(loadPath):
     labs = np.sort(labs); dirs = np.sort(dirs)
     return labs, dirs
 
-metPath     = '/Users/martinjanssens/Documents/Wageningen/Patterns-in-satellite-images/LES/FJRICO/Metrics'
-savePath    = '/Users/martinjanssens/Documents/Wageningen/Patterns-in-satellite-images/LES/FJRICO/Plots'
+metPath     = '/projects/0/einf170/janssonf/botany/botany-1-94hyqf8e/runs'
+savePath    = '/projects/0/einf170/janssonf/botany/cloudmetrics/Plots'
 
 # Subset of metrics to be analysed
 # netVarDeg can be included upon request (see Metric Computation section above)
 metricsPP = [
              'cf',        
              'cwp',       
-             'lMax',      
-             'periSum',
-             'cth',
+#             'lMax',      
+#             'periSum',
+#             'cth',
              # 'sizeExp',
-             'lMean',
+#             'lMean',
              'specLMom',
-              'cop',
-             'scai',
-             'nClouds',
-              'rdfMax',
+#              'cop',
+#             'scai',
+#             'nClouds',
+#              'rdfMax',
              # 'netVarDeg',
-             'iOrgPoiss',
-             'fracDim',
+#             'iOrgPoiss',
+#             'fracDim',
               # 'iOrg',
              'os',
              'twpVar',
-             'cthVar',
+#             'cthVar',
              'cwpVarCl',
               'woi3',
             ]
@@ -58,23 +57,23 @@ metricsPP = [
 metLab    = [
              'Cloud fraction', 
              'Cloud water', 
-             'Max length',
-             'Perimeter',
-            r'$\overline{CTH}$',
+#             'Max length',
+#             'Perimeter',
+#            r'$\overline{CTH}$',
              # 'Size exponent',
-             'Mean length', 
+#             'Mean length', 
              'Spec. length', 
-              'COP',
-            r'SCAI',
-             'Cloud number',
-              'Max RDF',
+#              'COP',
+#            r'SCAI',
+#             'Cloud number',
+#              'Max RDF',
              # 'Degree var',
-            r'$I_{org}$',
-             'Fractal dim.', 
+#            r'$I_{org}$',
+#             'Fractal dim.', 
             # r'$I_{org}^*$',
              'Clear sky',
              'CWP var ratio',
-            r'St(CTH)',
+#            r'St(CTH)',
             r'St(CWP)',
             r'$WOI_3$', 
             ]
@@ -88,7 +87,8 @@ labs,loadPaths = findDirs(metPath)
 for d in range(len(labs)):
     dfMetricsd, datad, imgArrd = analysis.loadMetrics(loadPaths[d], 
                                                       metricsPP,
-                                                      sort=True, 
+                                                      sort_data=True,
+                                                      sort_images=True, 
                                                       standardise=False, 
                                                       return_data=True,
                                                       return_images=True)
@@ -102,6 +102,15 @@ for d in range(len(labs)):
         data      = np.concatenate((data,datad),axis=0)
         imgArr    = np.concatenate((imgArr,imgArrd),axis=0)
         indic     = np.concatenate((indic,indicd),axis=0)
+
+dfMetrics.to_hdf(savePath+'/Metrics.h5','Metrics')
+
+# Remove rows where spectral moment is nan (FIXME ugly hack)
+delRows   = np.where(dfMetrics['specLMom'].isnull())[0]
+dfMetrics = dfMetrics.drop(dfMetrics.index[delRows])
+data      = np.delete(data,delRows,0)
+imgArr    = np.delete(imgArr,delRows,0)
+indic     = np.delete(indic,delRows,0)
 
 dfMetrics = utils.stand(dfMetrics)
 data = utils.stand(data)
@@ -136,7 +145,7 @@ xPca[:,1] = -xPca[:,1]
 # xPca    = pca.transform(data)
 
 # Relate metrics to PCs 
-# analysis.relateMetricPCA(pca, xPca, metricsPP, metLab, savePath)
+analysis.relateMetricPCA(pca, xPca, metricsPP, metLab, savePath)
 
 # Plot PCA distribution
 # analysis.pcaDistribution(pca, xPca, savePath)
@@ -192,7 +201,6 @@ axs = utils.plotMetricSurf(xPca[:,2:4], dfMetrics, metricsPP, metLab,thr=0)
 #%% Classification by simulation
 colors = ['black','midnightblue','lavender','plum','palevioletred','crimson','maroon','peachpuff','peru',
           'saddlebrown','gold','darkorange','darkseagreen', 'teal', 'steelblue', 'slategrey']
-# models = ['MicroHH','SAM_CRM','MESONH','ICON_LEM','DAM','SCALE','UKMO_RA1_T','WRF_CRM']
 figure=plt.figure(figsize=(6,6)); ax=plt.gca()
 for i in range(len(colors)):
     inds = np.where(indic==i+1)[0]
@@ -206,25 +214,25 @@ plt.savefig(savePath+'/models.png',dpi=300,bbox_inches='tight')
 plt.show()
 
 #%% Classification by high/low
-sh = len(simTime)/16
-thls     = np.repeat(np.array([298,298,298,298,298,298,298,298,300,300,300,300,300,300,300,300]), sh) # 0 - 298; 1 - 300
-dqt_high = np.repeat(np.array([0,0,0,0,0.0025,0.0025,0.0025,0.0025,0,0,0,0,0.0025,0.0025,0.0025,0.0025]), sh) # 0 - 0  ; 1 - 0.0025
-windhigh = np.repeat(np.array([0,0,-9,-9,0,0,-9,-9,0,0,-9,-9,0,0,-9,-9]), sh) # 0 - -9 ; 1 - 0
-windlow  = np.repeat(np.array([0,-9,0,-9,0,-9,0,-9,0,-9,0,-9,0,-9,0,-9]), sh) # 0 - -9 ; 1 - 0
-
-stack = np.vstack((thls,dqt_high,windhigh,windlow))
-
-labs = ['SST',r'$\Delta q_t$, $z>3260$m',r'$U$, z=4000m', r'$U$, z=0m']
-
-for i in range(4):
-    fig=plt.figure(figsize=(6,6)); ax = plt.gca()
-    sc = ax.scatter(xPca[:,0],xPca[:,1],c=stack[i,:],cmap='viridis',s=50)
-    cbax = fig.add_axes([0.925, 0.12, 0.03, 0.765])
-    cb = fig.colorbar(sc,cax=cbax)
-    cb.ax.set_ylabel(labs[i],fontsize=10)
-    ax.set_xlabel('Principal Component 1',fontsize=10)
-    ax.set_ylabel('Principal Component 2',fontsize=10)
-    plt.savefig(savePath+'/forcing'+str(i)+'.png',dpi=300,bbox_inches='tight')
-    plt.show()
+#sh = len(simTime)/16
+#thls     = np.repeat(np.array([298,298,298,298,298,298,298,298,300,300,300,300,300,300,300,300]), sh) # 0 - 298; 1 - 300
+#dqt_high = np.repeat(np.array([0,0,0,0,0.0025,0.0025,0.0025,0.0025,0,0,0,0,0.0025,0.0025,0.0025,0.0025]), sh) # 0 - 0  ; 1 - 0.0025
+#windhigh = np.repeat(np.array([0,0,-9,-9,0,0,-9,-9,0,0,-9,-9,0,0,-9,-9]), sh) # 0 - -9 ; 1 - 0
+#windlow  = np.repeat(np.array([0,-9,0,-9,0,-9,0,-9,0,-9,0,-9,0,-9,0,-9]), sh) # 0 - -9 ; 1 - 0
+#
+#stack = np.vstack((thls,dqt_high,windhigh,windlow))
+#
+#labs = ['SST',r'$\Delta q_t$, $z>3260$m',r'$U$, z=4000m', r'$U$, z=0m']
+#
+#for i in range(4):
+#    fig=plt.figure(figsize=(6,6)); ax = plt.gca()
+#    sc = ax.scatter(xPca[:,0],xPca[:,1],c=stack[i,:],cmap='viridis',s=50)
+#    cbax = fig.add_axes([0.925, 0.12, 0.03, 0.765])
+#    cb = fig.colorbar(sc,cax=cbax)
+#    cb.ax.set_ylabel(labs[i],fontsize=10)
+#    ax.set_xlabel('Principal Component 1',fontsize=10)
+#    ax.set_ylabel('Principal Component 2',fontsize=10)
+#    plt.savefig(savePath+'/forcing'+str(i)+'.png',dpi=300,bbox_inches='tight')
+#    plt.show()
 
 

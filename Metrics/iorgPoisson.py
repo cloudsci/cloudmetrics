@@ -90,6 +90,9 @@ class IOrgPoisson():
         posScene = np.vstack((np.asarray(xC),np.asarray(yC))).T
         
         print('Number of regions: ',posScene.shape[0],'/',num)
+
+        if posScene.shape[0] < 1:
+            return float('nan')
     
         ## Compute the nearest neighbour distances ##
         # Scene

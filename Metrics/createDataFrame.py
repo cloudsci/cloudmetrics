@@ -32,10 +32,10 @@ def getAllMetrics(metricList):
     if anyInList(metrics,rdfList):
         metrics = uniqueAppend(metrics,rdfList)
     
-    networkList = ['netVarDeg', 'netAWPar', 'netCoPar', 'netLPar', 'netLCorr',
-                   'netDefSl', 'netDegMax']
-    if anyInList(metrics,networkList):
-        metrics = uniqueAppend(metrics,networkList)
+#    networkList = ['netVarDeg', 'netAWPar', 'netCoPar', 'netLPar', 'netLCorr',
+#                   'netDefSl', 'netDegMax']
+#    if anyInList(metrics,networkList):
+#        metrics = uniqueAppend(metrics,networkList)
 
     woiList = ['woi1', 'woi2', 'woi3', 'woi']
     if anyInList(metrics,woiList):
@@ -52,7 +52,7 @@ def createMetricDF(loadPath, metrics, savePath, saveExt=''):
 
 def createImageArr(loadPath, savePath, imageTag='image', sortTime=False):
     files,dates = findFiles(loadPath)
-    
+
     # Test field size and initialise
     df = pd.read_hdf(files[0])
     img = df[imageTag].values[0].copy()

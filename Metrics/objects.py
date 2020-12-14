@@ -109,7 +109,10 @@ class Objects():
             axs[3].hist(ecc, bins); axs[2].set_title('Eccentricity')
             axs[4].hist(peri,bins); axs[3].set_title('Perimeter')
             plt.show()
-        
+
+        if len(area) < 1:
+            return float('nan'),float('nan'),float('nan'),float('nan'),float('nan')
+
         lMax    = np.max(area)
         lMean   = np.mean(area)
         nClouds = len(area)

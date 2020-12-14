@@ -135,6 +135,9 @@ class IOrg():
         cr = np.flip(np.sort(cr))                        # Largest to smallest
         
         print('Number of regions: ',posScene.shape[0],'/',num)
+
+        if posScene.shape[0] < 1:
+            return float('nan')
         
         iOrgs = np.zeros(self.numCalcs)
         for c in range(self.numCalcs):

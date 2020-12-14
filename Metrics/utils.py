@@ -35,7 +35,7 @@ def findFiles(path):
         for file in f:
             if not isinstance(file, str):
                 file = file.decode('utf-8')
-            if '.h5' in file:
+            if '.h5' in file and 'Metrics.h5' not in file:
                 fname = os.path.join(r, file)
                 dates.append(file.split('.')[0])
                 files.append(fname)

@@ -256,9 +256,12 @@ class FourierMetrics():
         mns   = mns[mns!=0]
         
         # betaa
-        betaa,b0a = np.polyfit(np.log(binsA[1:-1]),np.log(mns[1:-1]),1)        # Spectral slope beta
-        rSqba = rSquared(np.log(binsA[1:-1]),np.log(mns[1:-1]),[betaa,b0a])    # rSquared of the fit
-        
+        if mns.shape[0] != 0:
+            betaa,b0a = np.polyfit(np.log(binsA[1:-1]),np.log(mns[1:-1]),1)        # Spectral slope beta
+            rSqba = rSquared(np.log(binsA[1:-1]),np.log(mns[1:-1]),[betaa,b0a])    # rSquared of the fit
+        else:
+            betaa,b0a = float('nan'), float('nan')
+
         # Spectral length scale as de Roode et al. (2004), using true median
         # sumps = np.cumsum(psd1); sumps/=sumps[-1]
         # kcrit = np.where(sumps>1/2)[0][0]

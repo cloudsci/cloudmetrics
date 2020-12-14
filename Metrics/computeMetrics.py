@@ -12,7 +12,7 @@ from .fourier import FourierMetrics
 from .cop import COP
 from .scai import SCAI
 from .rdf import RDF
-from .network import Network
+#from .network import Network
 from .iorgPoisson import IOrgPoisson
 from .fracDim import FracDim
 from .iorg import IOrg
