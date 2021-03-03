@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from netCDF4 import Dataset
 import os
-
+import glob
+import sys
 # Need to unpack from netCDF and store as h5
 
 def findDirs(loadPath):
@@ -24,16 +25,33 @@ def findDirs(loadPath):
     dirs = np.sort(dirs)
     return dirs
 
-loadPath = '/projects/0/einf170/janssonf/botany/botany-1-94hyqf8e/runs'
+loadPath = '/projects/0/einf170/janssonf/botany/botany-3-_b0vhnjz/runs'
+if len(sys.argv) > 1:
+    loadPath = sys.argv[1]
+
 lwpThr   = 1e-7
 nRuns    = 16
 Nc       = 70000000 # FIXME assumes this is constant
 tSU      = 5400 # Seconds after start allowed for spin-up
+overwrite= False
 
 # Get paths to data (cape*.nc) directories 
 dirs = findDirs(loadPath)
 
 for k in range(len(dirs)):
+    
+    # Check if cape2d.001.nc exists
+    capeFlag = os.path.exists(dirs[k]+'/cape2d.001.nc')
+    if not capeFlag:
+        continue
+
+    # Check if there are already .h5 files stored here and move on if not 
+    # allowed to overwrite
+    h5s = glob.glob(dirs[k]+'/*.h5')
+    if len(h5s) != 0 and not overwrite:
+        continue
+    
+    print('Processing '+dirs[k]+'/cape2d.001.nc')
     dataset = Dataset(dirs[k]+'/cape2d.001.nc')
     
     time = np.ma.getdata(dataset.variables['time'][:])

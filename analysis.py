@@ -20,9 +20,14 @@ def findDirs(loadPath):
     for r, d, f in os.walk(loadPath):
         for direc in d:
             dname = os.path.join(r, direc)
-            labs.append(direc)
-            dirs.append(dname)
-    labs = np.sort(labs); dirs = np.sort(dirs)
+            if 'Run_' in direc:
+                labs.append(direc)
+                dirs.append(dname)
+    sortst = [run[4:] for run in labs]
+    sortst = list(map(int, sortst))
+    order = sorted(range(len(sortst)), key=lambda x: sortst[x])
+    labs = [labs[i] for i in order]
+    dirs = [dirs[i] for i in order]
     return labs, dirs
 
 metPath     = '/projects/0/einf170/janssonf/botany/botany-1-94hyqf8e/runs'
@@ -126,7 +131,6 @@ imgArr    = imgArr[iTLow,:,:]
 indic     = indic[iTLow]
 simTime   = simTime[iTLow]
 
-
 #%% Make plots
 
 # Correlation matrix 
@@ -204,7 +208,7 @@ colors = ['black','midnightblue','lavender','plum','palevioletred','crimson','ma
 figure=plt.figure(figsize=(6,6)); ax=plt.gca()
 for i in range(len(colors)):
     inds = np.where(indic==i+1)[0]
-    ax.scatter(xPca[inds,0],xPca[inds,1],c=colors[i],s=1)#,label=models[i])
+    ax.scatter(xPca[inds,0],xPca[inds,1],c=colors[i],s=1,label=labs[i])
 ax.set_xlim((-5,7))
 ax.set_ylim((-5,6))
 ax.set_xlabel('Principal Component 1',fontsize=10)
@@ -214,25 +218,22 @@ plt.savefig(savePath+'/models.png',dpi=300,bbox_inches='tight')
 plt.show()
 
 #%% Classification by high/low
-#sh = len(simTime)/16
-#thls     = np.repeat(np.array([298,298,298,298,298,298,298,298,300,300,300,300,300,300,300,300]), sh) # 0 - 298; 1 - 300
-#dqt_high = np.repeat(np.array([0,0,0,0,0.0025,0.0025,0.0025,0.0025,0,0,0,0,0.0025,0.0025,0.0025,0.0025]), sh) # 0 - 0  ; 1 - 0.0025
-#windhigh = np.repeat(np.array([0,0,-9,-9,0,0,-9,-9,0,0,-9,-9,0,0,-9,-9]), sh) # 0 - -9 ; 1 - 0
-#windlow  = np.repeat(np.array([0,-9,0,-9,0,-9,0,-9,0,-9,0,-9,0,-9,0,-9]), sh) # 0 - -9 ; 1 - 0
-#
-#stack = np.vstack((thls,dqt_high,windhigh,windlow))
-#
-#labs = ['SST',r'$\Delta q_t$, $z>3260$m',r'$U$, z=4000m', r'$U$, z=0m']
-#
-#for i in range(4):
-#    fig=plt.figure(figsize=(6,6)); ax = plt.gca()
-#    sc = ax.scatter(xPca[:,0],xPca[:,1],c=stack[i,:],cmap='viridis',s=50)
-#    cbax = fig.add_axes([0.925, 0.12, 0.03, 0.765])
-#    cb = fig.colorbar(sc,cax=cbax)
-#    cb.ax.set_ylabel(labs[i],fontsize=10)
-#    ax.set_xlabel('Principal Component 1',fontsize=10)
-#    ax.set_ylabel('Principal Component 2',fontsize=10)
-#    plt.savefig(savePath+'/forcing'+str(i)+'.png',dpi=300,bbox_inches='tight')
-#    plt.show()
+cases    = np.genfromtxt(metPath+'/../datapoints.txt',skip_header=2)
+_,counts = np.unique(indic, return_counts=True)
+#                    qt_high_delta, wind_high, wind_low, thl_high, thl_s
+caseCol  = np.array([1,             2,         3,        4,        6])
+cases    = np.repeat(cases[:,caseCol], counts, axis=0)
+labs     = [r'$\Delta q_t$, $z>3260$m',r'$U$, z=4000m', r'$U$, z=0m', r'$\theta_l$ FT', 'SST']
+
+for i in range(cases.shape[1]):
+    fig=plt.figure(figsize=(6,6)); ax = plt.gca()
+    sc = ax.scatter(xPca[:,0],xPca[:,1],c=cases[:,i],cmap='viridis',s=5)
+    cbax = fig.add_axes([0.925, 0.12, 0.03, 0.765])
+    cb = fig.colorbar(sc,cax=cbax)
+    cb.ax.set_ylabel(labs[i],fontsize=10)
+    ax.set_xlabel('Principal Component 1',fontsize=10)
+    ax.set_ylabel('Principal Component 2',fontsize=10)
+    plt.savefig(savePath+'/forcing'+str(i)+'.png',dpi=300,bbox_inches='tight')
+    plt.show()
 
 

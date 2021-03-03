@@ -25,6 +25,18 @@ class circle():
         self.r = r
 
 def checkOverlap(new,placedCircles):
+    # check if the circle new overlaps with any circle in placedCircles
+    # or any of it's periodic images 
+
+    # faster attempt: Return as soon as overlap is found, handle all periodic images at once
+    for c in placedCircles:
+        dx = min(abs(c.x  - new.x), abs(c.xm - new.x), abs(c.xp - new.x))
+        dy = min(abs(c.y  - new.y), abs(c.ym - new.y), abs(c.yp - new.y))
+        if dx**2 + dy**2 <= (c.r + new.r)**2:
+            return True
+    return False
+
+    # original:
     ovl = \
     any(pow(c.x  - new.x,2) + pow(c.y  - new.y,2) <= pow(c.r + new.r,2) for c 
         in placedCircles) or \
@@ -118,6 +130,9 @@ class IOrg():
             distribution.
 
         '''
+        #fix seed for reproducible results when testing
+        #random.seed(5)
+
         cmlab,num  = label(field,return_num=True,connectivity=self.con)
         regions    = regionprops(cmlab)
         
