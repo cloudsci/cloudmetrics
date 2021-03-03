@@ -7,7 +7,8 @@ import pandas as pd
 from skimage.measure import label, regionprops
 from scipy.optimize import curve_fit
 from .utils import findFiles, getField, rSquared
-
+import multiprocessing as mp
+from tqdm import tqdm
 
 def fPerc(s, a, b, c):
     # Subcritical percolation fit (Ding et al. 2014)
@@ -68,6 +69,7 @@ class CSD():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
         # Bins
         dl0       = 2       # Zero bin length
@@ -174,7 +176,11 @@ class CSD():
         
     def verify(self):
         return 'Not implemented for CSD'
-        
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -188,28 +194,21 @@ class CSD():
             saveSt    = self.saveExt
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
-        ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            if self.csdFit == 'power':
-                sizeExp = self.metric(cm)
-                print('sizeExp:   ', sizeExp)
-                
-                if self.save:
-                    dfMetrics['sizeExp'].loc[dates[f]] = sizeExp
-
-            elif self.csdFit == 'perc':
-                popt = self.metric(cm)
-                for i in range(len(popt)):
-                    print('Fit par ',i,' : ',popt[i])
-
-                if self.save:
-                    raise NotImplementedError('Saving percolation fit not \
-supported')
+        ## Main loop over files       
+        if self.csdFit == 'power':
+            with mp.Pool(processes = self.nproc) as pool:
+                sizeExp = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
+        
+        elif self.csdFit == 'perc':
+             with mp.Pool(processes = self.nproc) as pool:
+                popt = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
+        # FIXME Do something with popt
         
         if self.save:
+            if self.csdFit == 'perc':
+                raise NotImplementedError('Saving percolation fit not supported')
+            else:
+                dfMetrics['sizeExp'].loc[dates] = sizeExp
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from .utils import findFiles, getField
 import pywt
+import multiprocessing as mp
+from tqdm import tqdm
 
 
 class WOI():
@@ -62,6 +64,7 @@ class WOI():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cwp']
             self.fieldRef = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field,cm,verify=False):
         '''
@@ -174,7 +177,12 @@ class WOI():
             print('Energy conserved by SWT')
         else:
             print('Energy not conserved by SWT - results will be wrong')
-                
+    
+    def getcalc(self,file):
+        cwp = getField(file, self.field,    self.resFac, binary=False)
+        cm  = getField(file, self.fieldRef, self.resFac, binary=True)
+        return self.metric(cwp,cm)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -189,24 +197,15 @@ class WOI():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cwp = getField(files[f], self.field, self.resFac, binary=False)
-            cm  = getField(files[f], self.fieldRef, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            woi1, woi2, woi3, woi = self.metric(cwp,cm)
-            print('woi1 = ',woi1)
-            print('woi2 = ',woi2)
-            print('woi3 = ',woi3)
-            print('woi  = ',woi )
-
-            if self.save:
-                dfMetrics['woi'].loc[dates[f]]  = woi
-                dfMetrics['woi1'].loc[dates[f]] = woi1
-                dfMetrics['woi2'].loc[dates[f]] = woi2
-                dfMetrics['woi3'].loc[dates[f]] = woi3
+        with mp.Pool(processes = self.nproc) as pool:
+            results = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
+        results = np.array(results)
         
         if self.save:
+            dfMetrics['woi'].loc[dates]  = results[:,3]
+            dfMetrics['woi1'].loc[dates] = results[:,0]
+            dfMetrics['woi2'].loc[dates] = results[:,1]
+            dfMetrics['woi3'].loc[dates] = results[:,2]
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from skimage.measure import label, regionprops
 from .utils import findFiles, getField
+import multiprocessing as mp
+from tqdm import tqdm
 
 def pair_correlation_2d(x, y, S, r_max, dr, normalize=True, mask=None):
     """
@@ -150,6 +152,7 @@ class RDF():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -182,7 +185,7 @@ class RDF():
         
         pos = np.vstack((np.asarray(xC),np.asarray(yC))).T
         
-        print('Number of regions: ',pos.shape[0],'/',num)
+        # print('Number of regions: ',pos.shape[0],'/',num)
 
         if pos.shape[0] < 1:
             return float('nan'),float('nan'),float('nan')
@@ -214,7 +217,11 @@ class RDF():
         
     def verify(self):
         return 'Not implemented for RDF'
-        
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -229,21 +236,14 @@ class RDF():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            rdfM, rdfI, rdfD = self.metric(cm)
-            print('Max RDF:                   ', rdfM)
-            print('Integral of RDF:           ', rdfI)
-            print('Max-min difference in RDF: ', rdfD)
-
-            if self.save:
-                dfMetrics['rdfMax'].loc[dates[f]]  = rdfM
-                dfMetrics['rdfInt'].loc[dates[f]]  = rdfI
-                dfMetrics['rdfDiff'].loc[dates[f]] = rdfD
+        with mp.Pool(processes = self.nproc) as pool:
+            results = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
+        results = np.array(results)
         
         if self.save:
+            dfMetrics['rdfMax'].loc[dates]   = results[:,0]
+            dfMetrics['rdfInt'].loc[dates]   = results[:,1]
+            dfMetrics['rdfDiff'].loc[dates]  = results[:,2]
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

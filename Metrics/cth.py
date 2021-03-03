@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.stats import skew, kurtosis
 from .utils import findFiles, getField
+import multiprocessing as mp
+from tqdm import tqdm
 
 class CTH():
     '''
@@ -62,6 +64,7 @@ class CTH():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cth']
             self.fieldMask= mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field,mask):
         '''
@@ -116,7 +119,12 @@ class CTH():
         
     def verify(self):
         return 'Verification not implemented for CTH'
-        
+    
+    def getcalc(self,file):
+        cth = getField(file, self.field,     self.resFac, binary=False)
+        cm  = getField(file, self.fieldMask, self.resFac, binary=True)
+        return self.metric(cth,cm)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -131,25 +139,15 @@ class CTH():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cth = getField(files[f], self.field,     self.resFac, binary=False)
-            cm  = getField(files[f], self.fieldMask, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            ave, var, ske, kur = self.metric(cth,cm)
-            print('Average CTH: ',ave )
-            print('Std:         ',var)
-            print('Skewness:    ',ske)
-            print('Kurtosis:    ',kur)
-            
-
-            if self.save:
-                dfMetrics['cth'].loc[dates[f]]    = ave
-                dfMetrics['cthVar'].loc[dates[f]] = var
-                dfMetrics['cthSke'].loc[dates[f]] = ske
-                dfMetrics['cthKur'].loc[dates[f]] = kur
+        with mp.Pool(processes = self.nproc) as pool:
+            results = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
+        results = np.array(results)
         
         if self.save:
+            dfMetrics['cth'].loc[dates]    = results[:,0]
+            dfMetrics['cthVar'].loc[dates] = results[:,1]
+            dfMetrics['cthSke'].loc[dates] = results[:,2]
+            dfMetrics['cthKur'].loc[dates] = results[:,3]
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 
