@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from .utils import findFiles, getField
+import multiprocessing as mp
+from tqdm import tqdm
 
 class CF():
     '''
@@ -55,6 +57,7 @@ class CF():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -86,7 +89,11 @@ class CF():
         '''
         
         return 'Verification not implemented for cloud fraction'
-        
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -99,19 +106,12 @@ class CF():
         if self.save:
             saveSt    = self.saveExt
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
-        
-        ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            cf = self.metric(cm)
-            print('Cloud fraction: ', cf)
-
-            if self.save:
-                dfMetrics['cf'].loc[dates[f]] = cf
+                
+        with mp.Pool(processes = self.nproc) as pool:
+            cf = pool.map(self.getcalc,tqdm(files))
         
         if self.save:
+            dfMetrics['cf'].loc[dates] = cf
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

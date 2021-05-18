@@ -69,7 +69,7 @@ def correlate(ndata, metrics, metLab, savePath):
     plt.savefig(savePath+'/corrMetric.pdf',bbox_inches='tight')
 
 
-def plotSortedScenes(ndata, imgarr, metLab, savePath):
+def plotSortedScenes(ndata, imgarr, metLab, savePath,iex = 10): # iex is outlier removal
     # Plot scenes sorted by metric - vertically oriented
     nrows = ndata.shape[1]
     ncols = 7
@@ -105,7 +105,6 @@ def plotSortedScenes(ndata, imgarr, metLab, savePath):
               ]
     
     fig,axs = plt.subplots(ncols=ncols,nrows=nrows,figsize=(3,3*nrows/ncols))
-    iex = 10 # Extremes -> Remove outliers
     for i in range(nrows):
         lati = np.argsort(ndata[:,i])
         idx  = np.round(np.linspace(iex, len(lati)-1-iex, ncols)).astype(int)
@@ -221,9 +220,8 @@ def regimeAnalysis(X_pca, imgarr, savePath):
     plt.savefig(savePath+'/regimeAnalysis.png',dpi=200,bbox_inches='tight')
     plt.show()
 
-def pcaDistribution(pca, X_pca, savePath):
+def pcaDistribution(pca, X_pca, savePath, ncomp = 4):
     # Visualise how the PCs compare to each other
-    ncomp = 4
     lim   = 6
     rot2rad = -49*np.pi/180
     X_pca = rotFlip(X_pca, rot2rad, flipAx=2, rotAxes=[2,3])

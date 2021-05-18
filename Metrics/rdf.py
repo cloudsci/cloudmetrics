@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from skimage.measure import label, regionprops
 from .utils import findFiles, getField
+import multiprocessing as mp
+from tqdm import tqdm
 
 def pair_correlation_2d(x, y, S, r_max, dr, normalize=True, mask=None):
     """
@@ -68,7 +70,7 @@ def pair_correlation_2d(x, y, S, r_max, dr, normalize=True, mask=None):
     num_increments = len(edges) - 1         
     g = np.zeros([num_interior_particles, num_increments]) # RDF for all interior particles
     radii = np.zeros(num_increments)
-    number_density = float(len(x)) / float(Sx*Sy) # Normalisation
+    number_density = float(len(x)) / float((Sx-2.*r_max)*(Sy-2.*r_max)) # Normalisation
 
     # Compute pairwise correlation for each interior particle
     for p in range(num_interior_particles):
