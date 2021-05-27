@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import pandas as pd
 from .utils import findFiles, getField
+import multiprocessing as mp
+from tqdm import tqdm
 
 class OpenSky():
     '''
@@ -61,6 +63,7 @@ class OpenSky():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
             
             
     def metric(self,field):
@@ -135,6 +138,10 @@ class OpenSky():
             plt.show()
                 
         return os
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
         
     def verify(self):
         return 'Not implemented for open sky'
@@ -153,17 +160,11 @@ class OpenSky():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            os = self.metric(cm)
-            print('Max open sky parameter: ',os)
-        
-            if self.save:
-                dfMetrics['os'].loc[dates[f]] = os
+        with mp.Pool(processes = self.nproc) as pool:
+            os = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))                
         
         if self.save:
+            dfMetrics['os'].loc[dates] = os
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

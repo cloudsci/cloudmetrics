@@ -70,7 +70,7 @@ def pair_correlation_2d(x, y, S, r_max, dr, normalize=True, mask=None):
     num_increments = len(edges) - 1         
     g = np.zeros([num_interior_particles, num_increments]) # RDF for all interior particles
     radii = np.zeros(num_increments)
-    number_density = float(len(x)) / float((Sx-2.*r_max)*(Sy-2.*r_max)) # Normalisation
+    number_density = float(len(x)) / float(Sx*Sy) # Normalisation
 
     # Compute pairwise correlation for each interior particle
     for p in range(num_interior_particles):
@@ -152,6 +152,7 @@ class RDF():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -184,7 +185,10 @@ class RDF():
         
         pos = np.vstack((np.asarray(xC),np.asarray(yC))).T
         
-        print('Number of regions: ',pos.shape[0],'/',num)
+        # print('Number of regions: ',pos.shape[0],'/',num)
+
+        if pos.shape[0] < 1:
+            return float('nan'),float('nan'),float('nan')
         
         rdf, rad, tmp = pair_correlation_2d(pos[:, 0], pos[:, 1],
                                             [field.shape[0], field.shape[1]],
@@ -213,7 +217,11 @@ class RDF():
         
     def verify(self):
         return 'Not implemented for RDF'
-        
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -228,21 +236,14 @@ class RDF():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            rdfM, rdfI, rdfD = self.metric(cm)
-            print('Max RDF:                   ', rdfM)
-            print('Integral of RDF:           ', rdfI)
-            print('Max-min difference in RDF: ', rdfD)
-
-            if self.save:
-                dfMetrics['rdfMax'].loc[dates[f]]  = rdfM
-                dfMetrics['rdfInt'].loc[dates[f]]  = rdfI
-                dfMetrics['rdfDiff'].loc[dates[f]] = rdfD
+        with mp.Pool(processes = self.nproc) as pool:
+            results = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
+        results = np.array(results)
         
         if self.save:
+            dfMetrics['rdfMax'].loc[dates]   = results[:,0]
+            dfMetrics['rdfInt'].loc[dates]   = results[:,1]
+            dfMetrics['rdfDiff'].loc[dates]  = results[:,2]
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

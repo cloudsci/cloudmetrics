@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from .utils import findFiles, getField, rSquared
+import multiprocessing as mp
+from tqdm import tqdm
 
 def boxcount(Z, k):
     S = np.add.reduceat(
@@ -64,6 +66,7 @@ class FracDim():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -151,7 +154,11 @@ class FracDim():
             veri.append(fracDim)
         
         return veri
-        
+
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
+
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -166,17 +173,11 @@ class FracDim():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
+        with mp.Pool(processes = self.nproc) as pool:
+            fracDim = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
             
-            fracDim = self.metric(cm)
-            print('Fractal dimension: ', fracDim)
-
-            if self.save:
-                dfMetrics['fracDim'].loc[dates[f]] = fracDim
-        
         if self.save:
+            dfMetrics['fracDim'].loc[dates] = fracDim
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from skimage.measure import label, regionprops
 from .utils import findFiles, getField
+import multiprocessing as mp
+from tqdm import tqdm
 
 class Objects():
     '''
@@ -60,6 +62,7 @@ class Objects():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
             self.fieldRef = mpar['fields']['im']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field,im):
         '''
@@ -97,7 +100,7 @@ class Objects():
         area = np.asarray(area); ecc = np.asarray(ecc); peri = np.asarray(peri)
         area = np.sqrt(area)
         
-        print('Number of regions: ',len(area),' / ',num)
+        # print('Number of regions: ',len(area),' / ',num)
         
         # Plotting
         if self.plot:
@@ -109,7 +112,10 @@ class Objects():
             axs[3].hist(ecc, bins); axs[2].set_title('Eccentricity')
             axs[4].hist(peri,bins); axs[3].set_title('Perimeter')
             plt.show()
-        
+
+        if len(area) < 1:
+            return float('nan'),float('nan'),float('nan'),float('nan'),float('nan')
+
         lMax    = np.max(area)
         lMean   = np.mean(area)
         nClouds = len(area)
@@ -120,7 +126,12 @@ class Objects():
         
     def verify(self):
         return 'Not implemented for Objects'
-        
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        im = getField(file, self.fieldRef, self.resFac, binary=False)
+        return self.metric(cm,im)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -135,26 +146,16 @@ class Objects():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field,    self.resFac, binary=True)
-            im = getField(files[f], self.fieldRef, self.resFac, binary=False)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            lMax, lMean, nClouds, eccA, periS = self.metric(cm,im)
-            print('lMax:    ', lMax)
-            print('lMean:   ', lMean)   
-            print('nClouds: ', nClouds)
-            print('eccA:    ', eccA)
-            print('periSum: ', periS)
-
-            if self.save:
-                dfMetrics['lMax'].loc[dates[f]]    = lMax
-                dfMetrics['lMean'].loc[dates[f]]   = lMean
-                dfMetrics['nClouds'].loc[dates[f]] = nClouds
-                dfMetrics['eccA'].loc[dates[f]]    = eccA
-                dfMetrics['periSum'].loc[dates[f]] = periS
+        with mp.Pool(processes = self.nproc) as pool:
+            results = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
+        results = np.array(results)
         
         if self.save:
+            dfMetrics['lMax'].loc[dates]    = results[:,0]
+            dfMetrics['lMean'].loc[dates]   = results[:,1]
+            dfMetrics['nClouds'].loc[dates] = results[:,2]
+            dfMetrics['eccA'].loc[dates]    = results[:,3]
+            dfMetrics['periSum'].loc[dates] = results[:,4]
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

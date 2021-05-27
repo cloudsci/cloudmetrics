@@ -6,6 +6,8 @@ import pandas as pd
 from skimage.measure import label, regionprops
 import scipy.spatial.distance as sd
 from .utils import findFiles, getField
+import multiprocessing as mp
+from tqdm import tqdm
 
 class COP():
     '''
@@ -60,6 +62,7 @@ class COP():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -89,8 +92,11 @@ class COP():
         area = np.asarray(area)
         pos  = np.vstack((np.asarray(xC),np.asarray(yC))).T
         
-        print('Number of regions: ',pos.shape[0],'/',num)
-        
+        # print('Number of regions: ',pos.shape[0],'/',num)
+
+        if len(area) < 1:
+            return float("nan")
+
         ## COMPUTE COP (Array-based)
         dij = sd.squareform(sd.pdist(pos))          # Pairwise distance matrix
         dij = dij[np.triu_indices_from(dij, k=1)]   # Upper triangular (no diag)
@@ -101,7 +107,7 @@ class COP():
         cop = np.sum(Vij)/(0.5*num*(num-1))         # COP
         
         return cop
-        
+    
     def verify(self):
         '''
         Verification with simple example from White et al. (2018)
@@ -119,7 +125,11 @@ class COP():
         cop = self.metric(cm)
         
         return cop
-        
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -134,17 +144,11 @@ class COP():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            cop = self.metric(cm)
-            print('COP: ', cop)   
+        with mp.Pool(processes = self.nproc) as pool:
+            cop = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
 
-            if self.save:
-                dfMetrics['cop'].loc[dates[f]]   = cop
-        
         if self.save:
+            dfMetrics['cop'].loc[dates]   = cop
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.stats import skew, kurtosis
 from .utils import findFiles, getField
+import multiprocessing as mp
+from tqdm import tqdm
 
 class CWP():
     '''
@@ -64,6 +66,7 @@ class CWP():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cwp']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -115,7 +118,11 @@ class CWP():
         
     def verify(self):
         return 'Not implemented for CWP'
-        
+    
+    def getcalc(self,file):
+        lwp = getField(file, self.field, self.resFac, binary=False)
+        return self.metric(lwp)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -130,25 +137,16 @@ class CWP():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cwp = getField(files[f], self.field,     self.resFac, binary=False)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            cwpSum, cwpVar, cwpSke, cwpKur, varCl = self.metric(cwp)
-            print('cwpSum:                  ',cwpSum)
-            print('cwpStd:                  ',cwpVar)
-            print('cwpStd in cloudy pixels: ',varCl)
-            print('Skewness:                ',cwpSke)
-            print('Kurtosis:                ',cwpKur) 
-
-            if self.save:
-                dfMetrics['cwp'].loc[dates[f]]      = cwpSum
-                dfMetrics['cwpVar'].loc[dates[f]]   = cwpVar
-                dfMetrics['cwpVarCl'].loc[dates[f]] = varCl
-                dfMetrics['cwpSke'].loc[dates[f]]   = cwpSke
-                dfMetrics['cwpKur'].loc[dates[f]]   = cwpKur
+        with mp.Pool(processes = self.nproc) as pool:
+            results = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))  
+        results = np.array(results)
         
         if self.save:
+            dfMetrics['cwp'].loc[dates]      = results[:,0]
+            dfMetrics['cwpVar'].loc[dates]   = results[:,1]
+            dfMetrics['cwpVarCl'].loc[dates] = results[:,4]
+            dfMetrics['cwpSke'].loc[dates]   = results[:,2]
+            dfMetrics['cwpKur'].loc[dates]   = results[:,3]
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

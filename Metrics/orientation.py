@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from .utils import findFiles, getField, createCircularMask
+import multiprocessing as mp
+from tqdm import tqdm
 
 def raw_moment(data, i_order, j_order):
   nrows, ncols = data.shape
@@ -74,6 +76,7 @@ class Orient():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -92,6 +95,9 @@ class Orient():
         '''
         
         cov = moments_cov(field)
+        if np.isnan(cov).any() or np.isinf(cov).any():
+            return float('nan')
+
         evals,evecs = np.linalg.eig(cov)
         orie = np.sqrt(1 - np.min(evals)/np.max(evals))
         
@@ -153,7 +159,11 @@ class Orient():
             veri.append(orie)
     
         return veri
-        
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -168,17 +178,11 @@ class Orient():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            orie = self.metric(cm)
-            print('Orientation measure: ', orie)   
-
-            if self.save:
-                dfMetrics['orie'].loc[dates[f]] = orie
+        with mp.Pool(processes = self.nproc) as pool:
+            orie = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
         
         if self.save:
+            dfMetrics['orie'].loc[dates] = orie
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from .utils import findFiles, getField, blockShaped
+import multiprocessing as mp
+from tqdm import tqdm
 
 class TWPVar():
     '''
@@ -62,6 +64,7 @@ class TWPVar():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cwp']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -101,7 +104,11 @@ class TWPVar():
         
     def verify(self):
         return 'Not implemented for twpVar'
-        
+    
+    def getcalc(self,file):
+        lwp = getField(file, self.field, self.resFac, binary=False)
+        return self.metric(lwp)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -116,17 +123,11 @@ class TWPVar():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            lwp = getField(files[f], self.field, self.resFac, binary=False)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            twpVar = self.metric(lwp)
-            print('Cloud water variance ratio: ', twpVar)
-
-            if self.save:
-                dfMetrics['twpVar'].loc[dates[f]] = twpVar
+        with mp.Pool(processes = self.nproc) as pool:
+            twpVar = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
         
         if self.save:
+            dfMetrics['twpVar'].loc[dates] = twpVar
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

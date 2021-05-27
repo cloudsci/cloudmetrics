@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from skimage.measure import label, regionprops
 from .utils import findFiles, getField, cKDTreeMethod
+import multiprocessing as mp
+from tqdm import tqdm
 
 # TODO: Account for periodic BCs
 
@@ -61,6 +63,7 @@ class IOrgPoisson():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -89,7 +92,10 @@ class IOrgPoisson():
     
         posScene = np.vstack((np.asarray(xC),np.asarray(yC))).T
         
-        print('Number of regions: ',posScene.shape[0],'/',num)
+        # print('Number of regions: ',posScene.shape[0],'/',num)
+
+        if posScene.shape[0] < 1:
+            return float('nan')
     
         ## Compute the nearest neighbour distances ##
         # Scene
@@ -160,6 +166,10 @@ class IOrgPoisson():
         self.areaMin = aMin; self.plot = plotBool
         
         return iOrg
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
         
     def compute(self):
         '''
@@ -174,18 +184,12 @@ class IOrgPoisson():
             saveSt    = self.saveExt
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
-        ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            iOrg = self.metric(cm)
-            print('iOrg: ', iOrg)   
-
-            if self.save:
-                dfMetrics['iOrgPoiss'].loc[dates[f]] = iOrg
+        ## Main loop over files       
+        with mp.Pool(processes = self.nproc) as pool:
+            iOrg = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
         
         if self.save:
+            dfMetrics['iOrgPoiss'].loc[dates] = iOrg
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 

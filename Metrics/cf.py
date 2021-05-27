@@ -82,7 +82,7 @@ class CF():
             plt.show()
         
         return cf
-        
+    
     def verify(self):
         '''
         Verification not implemented for cloud fraction.
@@ -106,9 +106,10 @@ class CF():
         if self.save:
             saveSt    = self.saveExt
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
-                
+        
+        ## Main loop over files
         with mp.Pool(processes = self.nproc) as pool:
-            cf = pool.map(self.getcalc,tqdm(files))
+            cf = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
         
         if self.save:
             dfMetrics['cf'].loc[dates] = cf

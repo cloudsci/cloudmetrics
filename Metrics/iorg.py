@@ -7,6 +7,8 @@ import pandas as pd
 import random
 from skimage.measure import label, regionprops
 from .utils import findFiles, getField, cKDTreeMethod, createCircularMask
+import multiprocessing as mp
+from tqdm import tqdm
 
 # TODO: Implement loop over each scene to ascertain sensitivity to random 
 #       sampling of reference locations for inhibition NNCDF
@@ -25,6 +27,18 @@ class circle():
         self.r = r
 
 def checkOverlap(new,placedCircles):
+    # check if the circle new overlaps with any circle in placedCircles
+    # or any of it's periodic images 
+
+    # faster attempt: Return as soon as overlap is found, handle all periodic images at once
+    for c in placedCircles:
+        dx = min(abs(c.x  - new.x), abs(c.xm - new.x), abs(c.xp - new.x))
+        dy = min(abs(c.y  - new.y), abs(c.ym - new.y), abs(c.yp - new.y))
+        if dx**2 + dy**2 <= (c.r + new.r)**2:
+            return True
+    return False
+
+    # original:
     ovl = \
     any(pow(c.x  - new.x,2) + pow(c.y  - new.y,2) <= pow(c.r + new.r,2) for c 
         in placedCircles) or \
@@ -101,6 +115,7 @@ class IOrg():
             self.fMin     = mpar['fMin']
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
+            self.nproc    = mpar['nproc']
 
     def metric(self,field):
         '''
@@ -118,6 +133,9 @@ class IOrg():
             distribution.
 
         '''
+        #fix seed for reproducible results when testing
+        #random.seed(5)
+
         cmlab,num  = label(field,return_num=True,connectivity=self.con)
         regions    = regionprops(cmlab)
         
@@ -134,7 +152,10 @@ class IOrg():
         cr       = np.asarray(cr)
         cr = np.flip(np.sort(cr))                        # Largest to smallest
         
-        print('Number of regions: ',posScene.shape[0],'/',num)
+        # print('Number of regions: ',posScene.shape[0],'/',num)
+
+        if posScene.shape[0] < 1:
+            return float('nan')
         
         iOrgs = np.zeros(self.numCalcs)
         for c in range(self.numCalcs):
@@ -236,7 +257,7 @@ class IOrg():
                           np.diff(axs[3].get_ylim())[0]
                     axs[3].set_aspect(asp)
                     plt.show()
-        print(iOrgs)
+        # print(iOrgs)
         iOrg = np.mean(iOrgs)        
         return iOrg
         
@@ -284,7 +305,11 @@ class IOrg():
         
         self.areaMin = aMin
         return veri
-        
+    
+    def getcalc(self,file):
+        cm = getField(file, self.field, self.resFac, binary=True)
+        return self.metric(cm)
+    
     def compute(self):
         '''
         Main loop over scenes. Loads fields, computes metric, and stores it.
@@ -299,17 +324,11 @@ class IOrg():
             dfMetrics = pd.read_hdf(self.savePath+'/Metrics'+saveSt+'.h5')
         
         ## Main loop over files
-        for f in range(len(files)):
-            cm = getField(files[f], self.field, self.resFac, binary=True)
-            print('Scene: '+files[f]+', '+str(f+1)+'/'+str(len(files)))
-            
-            iOrg = self.metric(cm)
-            print('iOrg: ',iOrg) 
-
-            if self.save:
-                dfMetrics['iOrg'].loc[dates[f]] = iOrg
+        with mp.Pool(processes = self.nproc) as pool:
+            iOrg = list(tqdm(pool.imap(self.getcalc,files),total=len(files)))
         
         if self.save:
+            dfMetrics['iOrg'].loc[dates] = iOrg
             dfMetrics.to_hdf(self.savePath+'/Metrics'+saveSt+'.h5', 'Metrics',
                              mode='w')
 
