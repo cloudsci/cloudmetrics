@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from skimage.measure import label, regionprops
 import scipy.spatial.distance as sd
-from .utils import findFiles, getField
+from .utils import findFiles, getField, periodic
 import multiprocessing as mp
 from tqdm import tqdm
 
@@ -63,6 +63,7 @@ class COP():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
             self.nproc    = mpar['nproc']
+            self.bc       = mpar['bc']
 
     def metric(self,field):
         '''
@@ -91,6 +92,7 @@ class COP():
                 area.append(props.area)
         area = np.asarray(area)
         pos  = np.vstack((np.asarray(xC),np.asarray(yC))).T
+        nCl  = len(area)
         
         # print('Number of regions: ',pos.shape[0],'/',num)
 
@@ -98,13 +100,27 @@ class COP():
             return float("nan")
 
         ## COMPUTE COP (Array-based)
-        dij = sd.squareform(sd.pdist(pos))          # Pairwise distance matrix
+        # pairwise distances (handling periodic BCs)
+        if self.bc == 'periodic':
+            dist_sq = np.zeros(nCl * (nCl - 1) // 2)  # to match the result of pdist
+            for d in range(field.ndim):
+                # Number of pixels in original field's dimension, assuming the 
+                # field was doubled
+                box = field.shape[d] // 2
+                pos_1d = pos[:, d][:, np.newaxis]  # shape (N, 1)
+                dist_1d = sd.pdist(pos_1d)  # shape (N * (N - 1) // 2, )
+                dist_1d[dist_1d > box * 0.5] -= box
+                dist_sq += dist_1d ** 2  # d^2 = dx^2 + dy^2 + dz^2
+            dist = np.sqrt(dist_sq)
+        else:
+            dist = sd.pdist(pos)
+        dij = sd.squareform(dist)                   # Pairwise distance matrix
         dij = dij[np.triu_indices_from(dij, k=1)]   # Upper triangular (no diag)
         aSqrt = np.sqrt(area)                       # Square root of area
         Aij = aSqrt[:, None] + aSqrt[None,:]        # Pairwise area sum matrix 
         Aij = Aij[np.triu_indices_from(Aij, k=1)]   # Upper triangular (no diag)
         Vij = Aij / (dij*np.sqrt(np.pi))            # Pairwise interaction pot.
-        cop = np.sum(Vij)/(0.5*num*(num-1))         # COP
+        cop = np.sum(Vij)/(0.5*nCl*(nCl-1))         # COP
         
         return cop
     
@@ -118,9 +134,49 @@ class COP():
             Metric for verification case.
 
         '''
-        cm = np.zeros((20,20))
-        cm[2:9,2:9] = 1;   cm[11:18,2:9] = 1
-        cm[2:9,11:18] = 1; cm[11:18,11:18] = 1
+        cm = np.array([[0., 0., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        1., 1., 1., 1.],
+       [1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        1., 1., 1., 1.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.],
+       [1., 0., 0., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0.]])
+        
+        if self.bc == 'periodic':
+            cm = periodic(cm,self.con)
         
         cop = self.metric(cm)
         
@@ -128,6 +184,8 @@ class COP():
     
     def getcalc(self,file):
         cm = getField(file, self.field, self.resFac, binary=True)
+        if self.bc == 'periodic':
+            cm = periodic(cm,self.con)
         return self.metric(cm)
     
     def compute(self):
