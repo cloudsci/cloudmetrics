@@ -22,7 +22,7 @@ backports.weakref==1.0.post1
 beautifulsoup4==4.8.2
 bitarray==1.2.1
 bkcharts==0.2
-bleach==3.1.0
+bleach==3.3.0
 bokeh==2.0.0
 boto==2.49.0
 Bottleneck==1.3.2
@@ -41,7 +41,7 @@ conda-build==3.18.9
 conda-package-handling==1.6.0
 conda-verify==3.4.2
 contextlib2==0.6.0.post1
-cryptography==2.8
+cryptography==3.2
 cycler==0.10.0
 Cython==0.29.15
 cytoolz==0.10.1
@@ -103,7 +103,7 @@ libarchive-c==2.8
 lief==0.9.0
 llvmlite==0.31.0
 locket==0.2.0
-lxml==4.5.0
+lxml==4.6.2
 MarkupSafe==1.1.1
 matplotlib==3.1.3
 mccabe==0.6.1
@@ -125,7 +125,7 @@ netCDF4==1.5.3
 networkx==2.4
 nltk==3.4.5
 nose==1.3.7
-notebook==6.0.3
+notebook==6.1.5
 numba==0.48.0
 numexpr==2.7.1
 numpy==1.18.1
@@ -145,7 +145,7 @@ pbr==5.4.4
 pep8==1.7.1
 pexpect==4.8.0
 pickleshare==0.7.5
-Pillow==7.0.0
+Pillow==7.1.0
 pkginfo==1.5.0.1
 pluggy==0.13.1
 ply==3.11
