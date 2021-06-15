@@ -20,6 +20,7 @@ from .openSky import OpenSky
 from .twpVar import TWPVar
 from .woi import WOI
 from .orientation import Orient
+from .utils import anyInList
 
 def computeMetrics(metrics,mpar):
     '''
@@ -57,69 +58,96 @@ def computeMetrics(metrics,mpar):
     None.
 
     '''
+    
     if 'cf' in metrics:
         print('Computing cf')
         cf = CF(mpar=mpar)
         cf.compute()
-    if 'cwp' in metrics:
+
+    cwpList = ['cwp','cwpVar','cwpVarCl','cwpSke','cwpKur']
+    if anyInList(metrics,cwpList):
         print('Computing cwp metrics')
         cwp = CWP(mpar=mpar)
         cwp.compute()
-    if 'lMax' in metrics:
+
+    objectList = ['lMax','lMean','nClouds','eccA','periSum']
+    if anyInList(metrics,objectList):
         print('Computing object metrics')
         objects = Objects(mpar=mpar)
         objects.compute()
-    if 'cth' in metrics:
+
+    cthList = ['cth','cthVar','cthSke','cthKur']
+    if anyInList(metrics,cthList):
         print('Computing cth metrics')
         cth = CTH(mpar=mpar)
         cth.compute()
+
     if 'sizeExp' in metrics:
         print('Computing sizeExp')
         csd = CSD(mpar=mpar)
         csd.compute()
-    if 'specLMom' in metrics:
+        
+    fourList = ['beta', 'betaa','specL','specLMom','psdAzVar']
+    if anyInList(metrics,fourList):
         print('Computing Fourier metrics')
         fourier = FourierMetrics(mpar=mpar)
         fourier.compute()
+
     if 'cop' in metrics:
         print('Computing COP')
         cop = COP(mpar=mpar)
         cop.compute()
-    if 'scai' in metrics:
+    
+    scaiList = ['scai', 'd0']
+    if anyInList(metrics,scaiList):
         print('Computing SCAI')
         scai = SCAI(mpar=mpar)
         scai.compute()
-    if 'rdfMax' in metrics:
+        
+    rdfList= ['rdfMax','rdfInt','rdfDiff']
+    if anyInList(metrics,rdfList):
         print('Computing RDF metrics')
         rdf = RDF(mpar=mpar)
         rdf.compute()
-    if 'netVarDeg' in metrics:
+
+    networkList = ['netVarDeg', 'netAWPar', 'netCoPar', 'netLPar', 'netLCorr',
+                   'netDefSl', 'netDegMax']
+    if anyInList(metrics,networkList):
         print('Computing network metrics')
         network = Network(mpar=mpar)
         network.compute()
+
     if 'iOrgPoiss' in metrics:
         print('Computing Poisson iOrg')
         iOrgPoisson = IOrgPoisson(mpar=mpar)
         iOrgPoisson.compute()
+
     if 'fracDim' in metrics:
         print('Computing fractal dimension') 
         fracDim = FracDim(mpar=mpar)
         fracDim.compute()
+
     if 'iOrg' in metrics:
         print('Computing iOrg')
         iOrg = IOrg(mpar=mpar)
         iOrg.compute()
-    if 'os' in metrics:
+    
+    osList = ['os','osAv']
+    if anyInList(metrics,osList):
         print('Computing open sky metric')
         os = OpenSky(mpar=mpar)
         os.compute()
+
     if 'twpVar' in metrics:
         twpVar = TWPVar(mpar=mpar)
         twpVar.compute()
-    if 'woi3' in metrics:
+        
+    woiList = ['woi1', 'woi2', 'woi3', 'woi']
+    if anyInList(metrics,woiList):
         print('Computing wavelet organisation indicies')
         woi = WOI(mpar=mpar)
         woi.compute()
+
     if 'orie' in metrics:
         print('Computing orientation from raw image moments')
         orie = Orient(mpar=mpar)

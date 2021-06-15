@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from skimage.measure import label, regionprops
 from scipy.optimize import curve_fit
-from .utils import findFiles, getField, rSquared
+from .utils import findFiles, getField, rSquared, periodic
 import multiprocessing as mp
 from tqdm import tqdm
 
@@ -70,10 +70,11 @@ class CSD():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
             self.nproc    = mpar['nproc']
+            self.bc       = mpar['bc']
 
         # Bins
         dl0       = 2       # Zero bin length
-        cst       = 2       # Strechting factor
+        cst       = 1.2       # Strechting factor
         N         = 9       # How many bins, maximum
           
         dl        = dl0*cst**np.arange(N)
@@ -110,6 +111,8 @@ class CSD():
                 area.append(props.area)
         area = np.asarray(area);
         l    = np.sqrt(area)
+        
+        plt.hist(area)
     
         # Construct histogram
         hist = np.histogram(l,self.bins)
@@ -179,6 +182,8 @@ class CSD():
     
     def getcalc(self,file):
         cm = getField(file, self.field, self.resFac, binary=True)
+        if self.bc == 'periodic':
+            cm = periodic(cm,self.con)
         return self.metric(cm)
     
     def compute(self):

@@ -40,6 +40,10 @@ def getAllMetrics(metricList):
     woiList = ['woi1', 'woi2', 'woi3', 'woi']
     if anyInList(metrics,woiList):
         metrics = uniqueAppend(metrics,woiList)
+    
+    osList = ['os','osAv']
+    if anyInList(metrics,osList):
+        metrics = uniqueAppend(metrics,osList)
         
     return metrics
 

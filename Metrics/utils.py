@@ -131,8 +131,9 @@ def uniqueAppend(metrics,appList):
             metrics.append(appList[i])
     return metrics        
 
-def cKDTreeMethod(data,img):
-    tree = cKDTree(data,boxsize=img.shape)
+def cKDTreeMethod(data,size=None):
+    # FIXME not sure if boxsize (periodic BCs) work if domain is not square
+    tree = cKDTree(data,boxsize=size) 
     dists = tree.query(data, 2)
     nn_dist = np.sort(dists[0][:, 1])    
     return nn_dist
@@ -212,7 +213,7 @@ def periodic(field,con):
             clouds_in_the_east += [cld_lbl[iy,x1]]
     
     # Move all cloud parts in the west(south) that are connected to cloud parts
-    # in the east(north) towards to east(north) beyond the boundariess of the 
+    # in the east(north) towards to east(north) beyond the boundaries of the 
     # original domain.
     regions = regionprops(cld_lbl)
     for cloud in np.unique(cld_lbl):
@@ -236,12 +237,12 @@ def periodic(field,con):
         if cloud in clouds_in_the_north:
             if clouds_to_move_north[clouds_in_the_north.index(cloud)] in clouds_to_move_east:
                 # Cloud is connnected to a cloud region in the south, but that 
-                # cloud region will also be moved eastward!
+                # cloud region will also be moved eastward
                 shift_x = nx
         if cloud in clouds_in_the_east:
             if clouds_to_move_east[clouds_in_the_east.index(cloud)] in clouds_to_move_north:
                 # Cloud is connnected to a cloud region in the west, but that 
-                # cloud region will also be moved northward!
+                # cloud region will also be moved northward
                 shift_y = ny
 
         # Shift the clouds
@@ -254,8 +255,6 @@ def periodic(field,con):
             cld_lbl[region.coords[:,0]+shift_y,
                     region.coords[:,1]+shift_x] = 1
 
-    return np.where(cld_lbl>0,1,0)
-
-    
+    return np.where(cld_lbl>0,1,0)    
     
     

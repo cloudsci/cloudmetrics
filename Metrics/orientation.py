@@ -25,6 +25,10 @@ def moments_cov(data):
   cov = np.array([[u20, u11], [u11, u02]])
   return cov
 
+# TODO:
+# - Implement support for periodic BCs. Current method is not translationally
+#   invariant.
+
 class Orient():
     '''
     Class for computing the scene's degree of directional alignment using the
@@ -77,6 +81,7 @@ class Orient():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
             self.nproc    = mpar['nproc']
+            self.bc       = mpar['bc']
 
     def metric(self,field):
         '''
@@ -94,6 +99,10 @@ class Orient():
 
         '''
         
+        if self.bc == 'periodic':
+            print('Periodic BCs not implemented for orientation metric, returning nan')
+            return float('nan')
+        
         cov = moments_cov(field)
         if np.isnan(cov).any() or np.isinf(cov).any():
             return float('nan')
@@ -107,7 +116,7 @@ class Orient():
             x_v2, y_v2 = evecs[:, sort_indices[1]]
             evalsn = evals[sort_indices] / evals[sort_indices][0]
             
-            scale = 50
+            scale = 10
             ox    = int(field.shape[1]/2)
             oy    = int(field.shape[0]/2)
             lw    = 5

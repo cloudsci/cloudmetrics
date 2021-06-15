@@ -10,6 +10,10 @@ from .cellgraph.graph_analysis import plot_graph, degree_variance, \
      aboav_weaire_parameter, lewis_parameter, defect_parameters, \
      coordination_parameter, lewis_correlation
 
+# TODO:
+# - Integrate Franziska's network functions (currently in separate, private repo)
+# - Implement support for periodic BCs
+
 class Network():
     '''
     Class for computing nearest-neighbour network parameters (as in Glassmeier

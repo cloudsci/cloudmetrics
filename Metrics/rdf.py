@@ -5,14 +5,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from skimage.measure import label, regionprops
-from .utils import findFiles, getField
+from scipy.spatial.distance import pdist, squareform
+from .utils import findFiles, getField, periodic
 import multiprocessing as mp
 from tqdm import tqdm
 
-def pair_correlation_2d(x, y, S, r_max, dr, normalize=True, mask=None):
+def pair_correlation_2d(pos, S, r_max, dr, bc, normalize=True):
     """
     
-    Pair correlation function, directly copied from:
+    Pair correlation function, adapted from:
     https://github.com/cfinch/colloid/blob/master/adsorption/analysis.py
     and indirectly from Rasp et al. (2018)
     
@@ -25,11 +26,12 @@ def pair_correlation_2d(x, y, S, r_max, dr, normalize=True, mask=None):
     returned. Try a smaller r_max...or write some code to handle edge effects! ;)
     
     Arguments:
-        x               an array of x positions of centers of particles
-        y               an array of y positions of centers of particles
+        pos             array of positions of shape (nPos,nDim), columns are 
+                        orderered x, y, ...
         S               length of each side of the square region of the plane
-        r_max            outer diameter of largest annulus
+        r_max           distance from (open) boundary where objects are ignored
         dr              increment for increasing radius of annulus
+        bc              boundary condition - if periodic look across boundaries
     Returns a tuple: (g, radii, interior_indices)
         g(r)            a numpy array containing the correlation function g(r)
         radii           a numpy array containing the radii of the
@@ -42,56 +44,66 @@ def pair_correlation_2d(x, y, S, r_max, dr, normalize=True, mask=None):
     # area of ring = pi*(r_outer**2 - r_inner**2)
 
     # Extract domain size
-    (Sx,Sy) = S if len(S) == 2 else (S, S)
+    (Sy,Sx) = S if len(S) == 2 else (S, S)
 
     # Find particles which are close enough to the box center that a circle of radius
-    # r_max will not cross any edge of the box
-
-    # Find indices within boundaries
-    if mask is None:
-        bools1 = x > r_max          # Valid centroids from left boundary
-        bools2 = x < (Sx - r_max)   # Valid centroids from right boundary
-        bools3 = y > r_max          # Valid centroids from top boundary
-        bools4 = y < (Sy - r_max)   # Valid centroids from bottom boundary
-        interior_indices, = np.where(bools1 * bools2 * bools3 * bools4)
+    # r_max will not cross any edge of the box, if no periodic bcs
+    if bc != 'periodic':
+        bools1 = pos[:,0] > r_max          # Valid centroids from left boundary
+        bools2 = pos[:,0] < (Sx - r_max)   # Valid centroids from right boundary
+        bools3 = pos[:,1] > r_max          # Valid centroids from top boundary
+        bools4 = pos[:,1] < (Sy - r_max)   # Valid centroids from bottom boundary
+        int_ind, = np.where(bools1 * bools2 * bools3 * bools4)
     else:
-        # Get closest indices for parcels in a pretty non-pythonic way
-        # and check whether it is inside convolved mask
-        x_round = np.round(x)
-        y_round = np.round(y)
-        interior_indices = []
-        for i in range(x_round.shape[0]):
-            if mask[int(x_round[i]), int(y_round[i])] == 1:
-                interior_indices.append(i)
+        int_ind = np.arange(pos.shape[0])
 
-    num_interior_particles = len(interior_indices)
+    nCl = len(int_ind)
+    pos = pos[int_ind,:]
 
+    # Make bins
     edges = np.arange(0., r_max + dr, dr)   # Annulus edges
-    num_increments = len(edges) - 1         
-    g = np.zeros([num_interior_particles, num_increments]) # RDF for all interior particles
-    radii = np.zeros(num_increments)
-    number_density = float(len(x)) / float(Sx*Sy) # Normalisation
+    nInc = len(edges) - 1         
+    g = np.zeros([nCl, nInc]) # RDF for all interior particles
+    radii = np.zeros(nInc)
 
-    # Compute pairwise correlation for each interior particle
-    for p in range(num_interior_particles):
-        index = interior_indices[p]
-        d = np.sqrt((x[index] - x)**2 + (y[index] - y)**2)
-        d[index] = 2 * r_max   # Because sqrt(0)
+    # Define normalisation based on the used region and particles
+    if bc == 'periodic':
+        number_density = float(pos.shape[0]) / float((Sx*Sy))
+    else:
+        number_density = float(pos.shape[0]) / float(((Sx-r_max)*(Sy-r_max)))        
 
-        result, bins = np.histogram(d, bins=edges)
+    # Compute pairwise distances
+    if bc == 'periodic':
+        dist_sq = np.zeros(nCl * (nCl - 1) // 2)  # to match the result of pdist
+        for d in range(pos.shape[1]):
+            box = S[pos.shape[1] - d - 1]         # to match x,y ordering in pos 
+            pos_1d = pos[:, d][:, np.newaxis]     # shape (N, 1)
+            dist_1d = pdist(pos_1d)               # shape (N * (N - 1) // 2, )
+            dist_1d[dist_1d > box * 0.5] -= box
+            dist_sq += dist_1d ** 2               
+        dist = np.sqrt(dist_sq)
+    else:
+        dist = pdist(pos)
+    
+    dist = squareform(dist)
+    np.fill_diagonal(dist,2*r_max) # Don't want distance to self to count
+    
+    # Count objects per ring
+    for p in range(nCl):
+        result, bins = np.histogram(dist[p,:], bins=edges)
         if normalize:
             result = result/number_density
         g[p, :] = result
-
+    
     # Average g(r) for all interior particles and compute radii
-    g_average = np.zeros(num_increments)
-    for i in range(num_increments):
+    g_average = np.zeros(nInc)
+    for i in range(nInc):
         radii[i] = (edges[i] + edges[i+1]) / 2.
         rOuter = edges[i + 1]
         rInner = edges[i]
         g_average[i] = np.mean(g[:, i]) / (np.pi * (rOuter**2 - rInner**2))
 
-    return g_average, radii, interior_indices
+    return g_average, radii, int_ind
 
 class RDF():
     '''
@@ -133,7 +145,7 @@ class RDF():
         # Metric-specific parameters
         self.field    = 'Cloud_Mask_1km'
         self.dx       = 1   # Convert pixel to km
-        self.rMax     = 40  # How far away to compute the rdf
+        self.rMax     = 20  # How far away to compute the rdf FIXME This is sensitive to each case!!
         self.dr       = 1   # Bin width
         self.plot     = False
         self.con      = 1
@@ -153,8 +165,9 @@ class RDF():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
             self.nproc    = mpar['nproc']
+            self.bc       = mpar['bc']
 
-    def metric(self,field):
+    def metric(self,field, S):
         '''
         Compute metric(s) for a single field
 
@@ -162,6 +175,8 @@ class RDF():
         ----------
         field : numpy array of shape (npx,npx) - npx is number of pixels
             Cloud mask field.
+        S     : Tuple of the input field's size (is different from field.shape
+                if periodic BCs are used)
 
         Returns
         -------
@@ -188,12 +203,15 @@ class RDF():
         # print('Number of regions: ',pos.shape[0],'/',num)
 
         if pos.shape[0] < 1:
+            print('No sufficiently large cloud objects, returning nan')
             return float('nan'),float('nan'),float('nan')
         
-        rdf, rad, tmp = pair_correlation_2d(pos[:, 0], pos[:, 1],
-                                            [field.shape[0], field.shape[1]],
-                                            self.rMax, self.dr, normalize=True, 
-                                            mask=None)
+        
+        # TODO set dr based on field size and object number, results are 
+        # sensitive to this
+        rdf, rad, tmp = pair_correlation_2d(pos, S,                                            
+                                            self.rMax, self.dr, self.bc,
+                                            normalize=True)
         rad *= self.dx
         rdfM = np.max(rdf)
         rdfI = np.trapz(rdf,rad)
@@ -220,7 +238,10 @@ class RDF():
     
     def getcalc(self,file):
         cm = getField(file, self.field, self.resFac, binary=True)
-        return self.metric(cm)
+        S = cm.shape
+        if self.bc == 'periodic':
+            cm = periodic(cm, self.con)
+        return self.metric(cm,S)
     
     def compute(self):
         '''

@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from skimage.measure import label, regionprops
-from .utils import findFiles, getField
+from .utils import findFiles, getField, periodic
 import multiprocessing as mp
 from tqdm import tqdm
 
@@ -63,6 +63,7 @@ class Objects():
             self.field    = mpar['fields']['cm']
             self.fieldRef = mpar['fields']['im']
             self.nproc    = mpar['nproc']
+            self.bc       = mpar['bc']
 
     def metric(self,field,im):
         '''
@@ -98,8 +99,10 @@ class Objects():
                 ecc .append(props.eccentricity)
                 peri.append(props.perimeter)      
         area = np.asarray(area); ecc = np.asarray(ecc); peri = np.asarray(peri)
-        area = np.sqrt(area)
-        
+        # area = np.sqrt(area) <- Janssens et al. (2021) worked in l-space.
+        #                         However, working directly with areas before
+        #                         taking mean is more representative of pattern        
+                
         # print('Number of regions: ',len(area),' / ',num)
         
         # Plotting
@@ -116,8 +119,8 @@ class Objects():
         if len(area) < 1:
             return float('nan'),float('nan'),float('nan'),float('nan'),float('nan')
 
-        lMax    = np.max(area)
-        lMean   = np.mean(area)
+        lMax    = np.sqrt(np.max(area))
+        lMean   = np.sqrt(np.mean(area))
         nClouds = len(area)
         eccA    = np.sum(area*ecc)/np.sum(area)
         periS   = np.mean(peri)
@@ -129,6 +132,8 @@ class Objects():
     
     def getcalc(self,file):
         cm = getField(file, self.field, self.resFac, binary=True)
+        if self.bc == 'periodic':
+            cm = periodic(cm,self.con)
         im = getField(file, self.fieldRef, self.resFac, binary=False)
         return self.metric(cm,im)
     

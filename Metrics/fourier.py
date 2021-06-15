@@ -168,6 +168,7 @@ class FourierMetrics():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
             self.nproc    = mpar['nproc']
+            self.bc       = mpar['bc']
 
     def metric(self,field):
         '''
@@ -209,12 +210,13 @@ class FourierMetrics():
             field,bDt  = detrend(field,[X,Y])
         
         # Windowing
-        if self.window == 'Planck':
-            field = planckRad(field)        # Planck-taper window
-        elif self.window == 'Welch':
-            field = welchRad(field)         # Welch window
-        elif self.window == 'Hann':
-            field = hannRad(field)          # Hann window  
+        if self.bc != 'periodic':
+            if self.window == 'Planck':
+                field = planckRad(field)        # Planck-taper window
+            elif self.window == 'Welch':
+                field = welchRad(field)         # Welch window
+            elif self.window == 'Hann':
+                field = hannRad(field)          # Hann window  
         
         # FFT
         F       = fftpack.fft2(field)       # 2D FFT (no prefactor)

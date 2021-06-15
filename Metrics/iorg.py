@@ -6,59 +6,37 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import random
 from skimage.measure import label, regionprops
-from .utils import findFiles, getField, cKDTreeMethod, createCircularMask
+from .utils import findFiles, getField, cKDTreeMethod, createCircularMask, periodic
 import multiprocessing as mp
 from tqdm import tqdm
 
-# TODO: Implement loop over each scene to ascertain sensitivity to random 
-#       sampling of reference locations for inhibition NNCDF
+# TODO: 
 
 class circle():
-    def __init__(self,r,img):
-        self.x = random.randint(0,img.shape[1]-1)
-        self.y = random.randint(0,img.shape[0]-1)
+    def __init__(self,r,sh):
+        self.x = random.randint(0,sh[1]-1)
+        self.y = random.randint(0,sh[0]-1)
         
-        self.xp = self.x + img.shape[1]
-        self.yp = self.y + img.shape[0]
+        self.xp = self.x + sh[1]
+        self.yp = self.y + sh[0]
         
-        self.xm = self.x - img.shape[1]
-        self.ym = self.y - img.shape[0]        
+        self.xm = self.x - sh[1]
+        self.ym = self.y - sh[0]        
         
         self.r = r
 
 def checkOverlap(new,placedCircles):
-    # check if the circle new overlaps with any circle in placedCircles
-    # or any of it's periodic images 
+    # check if the circle overlaps with any circle in placedCircles
+    # or any of its periodic images
 
-    # faster attempt: Return as soon as overlap is found, handle all periodic images at once
+    # By Fredrik Jansson: Return as soon as overlap is found, handle all 
+    # periodic images at once
     for c in placedCircles:
         dx = min(abs(c.x  - new.x), abs(c.xm - new.x), abs(c.xp - new.x))
         dy = min(abs(c.y  - new.y), abs(c.ym - new.y), abs(c.yp - new.y))
         if dx**2 + dy**2 <= (c.r + new.r)**2:
             return True
     return False
-
-    # original:
-    ovl = \
-    any(pow(c.x  - new.x,2) + pow(c.y  - new.y,2) <= pow(c.r + new.r,2) for c 
-        in placedCircles) or \
-    any(pow(c.xm - new.x,2) + pow(c.yp - new.y,2) <= pow(c.r + new.r,2) for c 
-        in placedCircles) or \
-    any(pow(c.x  - new.x,2) + pow(c.yp - new.y,2) <= pow(c.r + new.r,2) for c 
-        in placedCircles) or \
-    any(pow(c.xp - new.x,2) + pow(c.yp - new.y,2) <= pow(c.r + new.r,2) for c 
-        in placedCircles) or \
-    any(pow(c.xm - new.x,2) + pow(c.y  - new.y,2) <= pow(c.r + new.r,2) for c 
-        in placedCircles) or \
-    any(pow(c.xp - new.x,2) + pow(c.y  - new.y,2) <= pow(c.r + new.r,2) for c 
-        in placedCircles) or \
-    any(pow(c.xm - new.x,2) + pow(c.ym - new.y,2) <= pow(c.r + new.r,2) for c 
-        in placedCircles) or \
-    any(pow(c.x  - new.x,2) + pow(c.ym - new.y,2) <= pow(c.r + new.r,2) for c 
-        in placedCircles) or \
-    any(pow(c.xp - new.x,2) + pow(c.ym - new.y,2) <= pow(c.r + new.r,2) for c 
-        in placedCircles)
-    return ovl
 
 class IOrg():
     '''
@@ -101,6 +79,7 @@ class IOrg():
         self.plot     = False
         self.con      = 1
         self.areaMin  = 4
+        self.seed     = 1
         
         if mpar is not None:
             # General parameters
@@ -116,6 +95,7 @@ class IOrg():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
             self.nproc    = mpar['nproc']
+            self.bc       = mpar['bc']
 
     def metric(self,field):
         '''
@@ -133,8 +113,8 @@ class IOrg():
             distribution.
 
         '''
-        #fix seed for reproducible results when testing
-        #random.seed(5)
+        #fix seed for reproducible results
+        random.seed(self.seed)
 
         cmlab,num  = label(field,return_num=True,connectivity=self.con)
         regions    = regionprops(cmlab)
@@ -146,23 +126,38 @@ class IOrg():
             if props.area > self.areaMin:
                 y0, x0 = props.centroid
                 xC.append(x0); yC.append(y0)
-                cr.append(props.equivalent_diameter/2) # FIXME too simple?
+                cr.append(props.equivalent_diameter/2)
         
         posScene = np.vstack((np.asarray(xC),np.asarray(yC))).T
         cr       = np.asarray(cr)
-        cr = np.flip(np.sort(cr))                        # Largest to smallest
+        cr       = np.flip(np.sort(cr))                  # Largest to smallest
         
         # print('Number of regions: ',posScene.shape[0],'/',num)
 
         if posScene.shape[0] < 1:
             return float('nan')
         
+        if self.bc == 'periodic':
+            sh = [shd//2 for shd in field.shape]
+            sz = np.min(sh) # FIXME won't work for non-square domains
+            
+            # Move centroids outside the original domain into original domain
+            posScene[posScene[:,0]>=sh[1],0] -= sh[1]
+            posScene[posScene[:,0]<0,0]      += sh[1]
+            posScene[posScene[:,1]>=sh[0],1] -= sh[0]
+            posScene[posScene[:,1]<0,1]      += sh[0]
+        else:
+            sh = [shd for shd in field.shape]
+            sz = None
+        
+        nndScene  = cKDTreeMethod(posScene,sz)
+        
         iOrgs = np.zeros(self.numCalcs)
         for c in range(self.numCalcs):
             # Attempt to randomly place all circles in scene without ovelapping
             i=0; placedCircles = []; placeCount = 0
             while i < len(cr) and placeCount < self.maxTries:
-                new = circle(cr[i],field)
+                new = circle(cr[i],sh)
                 placeable = True
                 
                 # If the circles overlap -> Place again
@@ -174,7 +169,7 @@ class IOrg():
                     i+=1; placeCount = 0
             
             if placeCount == self.maxTries:
-                # FIXME should ideally start over again automatically
+                # TODO should ideally start over again automatically
                 print('Unable to place circles in this image') 
             else:
                 if self.plot:
@@ -210,13 +205,20 @@ class IOrg():
                     posRand[i,0] = placedCircles[i].x
                     posRand[i,1] = placedCircles[i].y
                 
-                nndRand   = cKDTreeMethod(posRand,field)
-                nndScene  = cKDTreeMethod(posScene,field)
+                # If field has open bcs, do not compute nn distances using 
+                # periodic bcs
+                nndRand   = cKDTreeMethod(posRand,sz)
+                # nndScene  = cKDTreeMethod(posScene,sz)
                 
-                nbins = len(nndRand)+1
-                bmin = np.min([np.min(nndRand),np.min(nndScene)])
-                bmax = np.max([np.max(nndRand),np.max(nndScene)])
-                bins = np.linspace(bmin,bmax,nbins)
+                # Old bin generation:
+                # nbins = len(nndRand)+1
+                # bmin = np.min([np.min(nndRand),np.min(nndScene)])
+                # bmax = np.max([np.max(nndRand),np.max(nndScene)])
+                # bins = np.linspace(bmin,bmax,nbins)
+                
+                # New:
+                nbins = 10000 # <-- Better off fixing nbins at a very large number
+                bins = np.linspace(0, np.sqrt(sh[0]**2+sh[1]**2), nbins)
                 
                 nndcdfRan = np.cumsum(np.histogram(nndRand, bins)[0])/len(nndRand)
                 nndcdfSce = np.cumsum(np.histogram(nndScene,bins)[0])/len(nndScene)
@@ -258,8 +260,7 @@ class IOrg():
                     axs[3].set_aspect(asp)
                     plt.show()
         # print(iOrgs)
-        iOrg = np.mean(iOrgs)        
-        return iOrg
+        return np.mean(iOrgs)
         
     def verify(self):
         '''
@@ -300,6 +301,8 @@ class IOrg():
         self.areaMin = 0
         veri = []
         for i in range(len(tests)):
+            if self.bc == 'periodic':
+                tests[i] = periodic(tests[i],self.con)
             iOrg = self.metric(tests[i])
             veri.append(iOrg)
         
@@ -308,6 +311,8 @@ class IOrg():
     
     def getcalc(self,file):
         cm = getField(file, self.field, self.resFac, binary=True)
+        if self.bc == 'periodic':
+            cm = periodic(cm,self.con)
         return self.metric(cm)
     
     def compute(self):

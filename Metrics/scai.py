@@ -7,7 +7,7 @@ import pandas as pd
 from skimage.measure import label, regionprops
 import scipy.spatial.distance as sd
 from scipy.stats.mstats import gmean
-from .utils import findFiles, getField
+from .utils import findFiles, getField, periodic
 import multiprocessing as mp
 from tqdm import tqdm
 
@@ -68,6 +68,7 @@ class SCAI():
             self.fMax     = mpar['fMax']
             self.field    = mpar['fields']['cm']
             self.nproc    = mpar['nproc']
+            self.bc       = mpar['bc']
 
     def metric(self,field):
         '''
@@ -96,15 +97,27 @@ class SCAI():
                 y0, x0 = props.centroid
                 xC.append(x0); yC.append(y0)
         pos = np.vstack((np.asarray(xC),np.asarray(yC))).T
+        nCl = pos.shape[0]
         
         # print('Number of regions: ',pos.shape[0],'/',num)
 
         if pos.shape[0] < 1:
-            print('exiting...')
+            print('No sufficiently large cloud objects, returning nan')
             return float('nan'), float('nan')
-              
-        di   = sd.pdist(pos)
-        D0   = gmean(di)
+        
+        if self.bc == 'periodic':
+            dist_sq = np.zeros(nCl * (nCl - 1) // 2)  # to match the result of pdist
+            for d in range(field.ndim):
+                box = field.shape[d] // 2
+                pos_1d = pos[:, d][:, np.newaxis]
+                dist_1d = sd.pdist(pos_1d)
+                dist_1d[dist_1d > box * 0.5] -= box
+                dist_sq += dist_1d ** 2
+            dist = np.sqrt(dist_sq)
+        else:
+            dist = sd.pdist(pos)
+            
+        D0   = gmean(dist)
         Nmax = field.shape[0]*field.shape[1]/2
         scai = num / Nmax * D0 / self.L * 1000
         
@@ -142,6 +155,8 @@ class SCAI():
     
     def getcalc(self,file):
         cm = getField(file, self.field, self.resFac, binary=True)
+        if self.bc == 'periodic':
+            cm = periodic(cm, self.con)
         return self.metric(cm)
     
     def compute(self):
