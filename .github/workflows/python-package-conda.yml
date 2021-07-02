@@ -11,6 +11,9 @@ jobs:
         os: [ubuntu-latest]
         python-version: [3.7]
     steps:
+      - name: git info
+        run: |
+          git log --name-only -1 | cat -
       - name: Setup conda
         uses: s-weigand/setup-conda@v1
         with:
@@ -35,9 +38,6 @@ jobs:
       - name: which python
         run: |
           which python
-      - name: git info
-        run: |
-          git log --name-only -1 | cat -
       - name: Test with pytest
         run: |
           pytest
