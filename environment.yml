@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.5
+  - cython
+  - pip
+  - pip:
+    - -r file:requirements.txt
