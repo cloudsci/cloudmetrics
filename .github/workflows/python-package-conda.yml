@@ -17,6 +17,10 @@ jobs:
         with:
           environment-file: environment.yml
           environment-name: cloudmetrics
+      - name: Install pip deps from requirements.txt
+        shell: bash -l {0}
+        run: |
+          pip install -r requirements.txt
       - name: Install test packages
         shell: bash -l {0}
         run: |
