@@ -74,7 +74,7 @@ def createImageArr(loadPath, savePath, imageTag="image", sortTime=False):
     dfImgs = np.zeros((len(dates), npx, npx))
 
     if sortTime:
-        if dates.dtype is not "float64":
+        if dates.dtype != "float64":
             dates = dates.astype("float64")
         files = files[np.argsort(dates)]
 

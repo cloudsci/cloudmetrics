@@ -48,7 +48,7 @@ def loadMetrics(
         dfMetrics = df[metrics]
     dfMetrics.drop_duplicates(inplace=True)
     if sort_data:
-        if dfMetrics.index.dtype is not "float64":
+        if dfMetrics.index.dtype != "float64":
             dfMetrics.index = dfMetrics.index.astype("float64")
         order = dfMetrics.index.argsort()
         dfMetrics = dfMetrics.sort_index()
