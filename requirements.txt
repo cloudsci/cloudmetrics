@@ -1,6 +1,8 @@
 scipy>=1.4.1
 PyWavelets>=1.1.1
-ristretto>=0.1.2
+# there's something with the version of ristretto on pipy, install directly from github for now
+# ristretto>=0.1.2
+git+https://github.com/erichson/ristretto/#egg=ristretto
 scikit-image>=0.16.2
 scikit-learn>=0.22.1
 
