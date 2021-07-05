@@ -17,6 +17,12 @@ jobs:
         with:
           environment-file: environment.yml
           environment-name: cloudmetrics
+      # "requirements.txt" should be picked up by mamba because it is included in "environment.yml"
+      # but that doesn't appear to work so we'll install with pip manually here instead
+      - name: Install packages with pip
+        shell: bash -l {0}
+        run: |
+          pip install -r requirements.txt
       - name: Install test packages
         shell: bash -l {0}
         run: |
