@@ -38,6 +38,11 @@ jobs:
       - name: which python
         run: |
           which python
+      - name: git info
+        run: |
+          git log --name-only -1 | cat -
+#     - name: Setup tmate session
+#       uses: mxschmitt/action-tmate@v3
       - name: Test with pytest
         run: |
-          pytest
+          python -m pytest
