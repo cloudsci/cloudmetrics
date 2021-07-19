@@ -1,5 +1,5 @@
 name: Python Package using Conda
-on: [push]
+on: [push, pull_request]
 
 jobs:
   test:
