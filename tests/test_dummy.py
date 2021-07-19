@@ -1,5 +1,4 @@
 import cloudmetrics
-import numpy
 
 
 def test_dummy():
