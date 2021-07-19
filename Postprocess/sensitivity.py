@@ -19,7 +19,8 @@ from scipy.stats import pearsonr
 
 def stand(data):
     data = data.astype(np.float64)
-    return (data - np.mean(data,axis=0)) / np.std(data,axis=0)
+    return (data - np.mean(data, axis=0)) / np.std(data, axis=0)
+
 
 # #%%
 # # Load data
@@ -40,7 +41,7 @@ def stand(data):
 #                'Mean length', 'Perimeter','Size exponent',
 #                'Max length',
 #                'Eccentricity', r'$WOI_3$', 'COP',
-#                # 'Anisotropy', 'Orientation', 'Branching', 
+#                # 'Anisotropy', 'Orientation', 'Branching',
 #                'Open sky',
 #                # 'Aboav-Wearie', 'a*','Lewis corr',
 #                'Degree var'
@@ -50,7 +51,7 @@ def stand(data):
 # dfMetrics = dfMetrics.sort_index()
 # ndDfMet   = stand(dfMetrics)
 # data      = dfMetrics.to_numpy()
-# ndata     = stand(data)   
+# ndata     = stand(data)
 
 # pca = PCA()
 # X_pca = pca.fit_transform(ndata)
@@ -64,10 +65,10 @@ def stand(data):
 # # 1. Take the plane spanned by the first 2 PCs -> This give a point pancake
 # # 2. Add a dimension to this dataset - the metric in question. IF this metric
 # #    puts the points in the plane spanned by the first 2 PCs, its main variance
-# #    is in that plane. In other words, the PCs of the resulting 3D system 
-# #    should practically contain no variance in the 3rd PC. The following 
-# #    routine quantifies the fraction of the total variance of the 3D set 
-# #    contained in the final PC. The closer it is to zero, the 
+# #    is in that plane. In other words, the PCs of the resulting 3D system
+# #    should practically contain no variance in the 3rd PC. The following
+# #    routine quantifies the fraction of the total variance of the 3D set
+# #    contained in the final PC. The closer it is to zero, the
 
 # # You can refine! You want to quantify the percentage of each metric's variance
 # # that cannot be explained by the already considered PCs, NOT how much that
@@ -121,13 +122,13 @@ def stand(data):
 # covMatP = ndDfMet[metProp].corr()               # Pandas alternative
 
 # # Starting from a d-dimensional dataset, we reduced it to dimSpace dimensions
-# # by a PCA. 
+# # by a PCA.
 # # Now, you want to find out if you can reconstruct the 2D space spanned by the
 # # PCs with different bases, that you've chosen to be your metrics. To test that,
 # # you would 1) Make the PC distribution and 2) make the metric distribution.
 # # Then, (and this is what I don't know), if they encapsulate the same information,
-# # you should be able to reconstruct the PC distribution from your metric 
-# # distribution by a linear transformation. 
+# # you should be able to reconstruct the PC distribution from your metric
+# # distribution by a linear transformation.
 
 # ind = []
 # for i in range(len(metrics)):
@@ -177,14 +178,13 @@ def stand(data):
 # ## WHY ARE THESE AN ORDER OF MAGNITUDE OFF?
 # # Because the former has all metrics, so there you project onto a basis with
 # # unit length. In the latter case, you do not, because you lack all components
-# # oriented along different metric directions that have contributions. 
+# # oriented along different metric directions that have contributions.
 
 # # The issue stems from that a normal PC transformation is np.dot(X,V.T), where
 # # V is pca.components_ is the right singular matrix of X in the SVD X=USV.T
 # # V is an orthonormal basis, such that the PC transformation not only projects
 # # the metrics onto the correctly oriented components, but they are appropriately
-# # scaled. This is no longer the case when we truncate V. 
-
+# # scaled. This is no longer the case when we truncate V.
 
 
 # # testMat = np.array([[comps[0,0]**2,comps[1,0]**2,0,0],
@@ -203,8 +203,8 @@ def stand(data):
 
 # # Project points defined by metProp onto principal components
 # comp  = np.arange(len(metProp)).astype('int')
-# pax = pca.components_[:len(metProp),:len(metProp)] 
-# proj = np.dot(np.dot(pax,ndatRed.transpose()).transpose(),pax) 
+# pax = pca.components_[:len(metProp),:len(metProp)]
+# proj = np.dot(np.dot(pax,ndatRed.transpose()).transpose(),pax)
 
 # # Compute (nD) distance between actual point and projection onto plane
 # diff = ndatRed - proj
@@ -224,50 +224,50 @@ def stand(data):
 
 
 #%% Sensitivity analysis - Following visual test
-def computeSensitivity(X_pca,X_pca1,X_pca2,X_pca3,savePath,npts=1e3):
+def computeSensitivity(X_pca, X_pca1, X_pca2, X_pca3, savePath, npts=1e3):
     dimMax = 8
     npts = int(npts)
-    
+
     # dimMax-dimensional KDEs of the entire distributions of the reference (A) and
     # different (B:) distributions
-    fA = ss.gaussian_kde(X_pca [:,:dimMax].T,bw_method=1)
-    fB = ss.gaussian_kde(X_pca1[:,:dimMax].T,bw_method=1)
-    fC = ss.gaussian_kde(X_pca2[:,:dimMax].T,bw_method=1)
-    fD = ss.gaussian_kde(X_pca3[:,:dimMax].T,bw_method=1)
-    
+    fA = ss.gaussian_kde(X_pca[:, :dimMax].T, bw_method=1)
+    fB = ss.gaussian_kde(X_pca1[:, :dimMax].T, bw_method=1)
+    fC = ss.gaussian_kde(X_pca2[:, :dimMax].T, bw_method=1)
+    fD = ss.gaussian_kde(X_pca3[:, :dimMax].T, bw_method=1)
+
     # Points sampled from all distributions
     ptsA = fA.resample(npts)
     ptsB = fB.resample(npts)
     ptsC = fC.resample(npts)
     ptsD = fD.resample(npts)
-    
+
     # Corresponding KDEs -> Necessary to reconstruct these to compare same points
-    fA1   = ss.gaussian_kde(ptsA,bw_method=3)
-    fB1   = ss.gaussian_kde(ptsB,bw_method=3)
-    fC1   = ss.gaussian_kde(ptsC,bw_method=3)
-    fD1   = ss.gaussian_kde(ptsD,bw_method=3)
-    
+    fA1 = ss.gaussian_kde(ptsA, bw_method=3)
+    fB1 = ss.gaussian_kde(ptsB, bw_method=3)
+    fC1 = ss.gaussian_kde(ptsC, bw_method=3)
+    fD1 = ss.gaussian_kde(ptsD, bw_method=3)
+
     # KDEs at points drawn from fA
     points = fA1.resample(npts)
-    fAp1   = fA1(points)
-    fBp1   = fB1(points)
-    fCp1   = fC1(points)
-    fDp1   = fD1(points)
-    
-    # Discriminant function D
-    D1     = fAp1 / (fAp1 + fBp1)
-    D2     = fAp1 / (fAp1 + fCp1)
-    D3     = fAp1 / (fAp1 + fDp1)
-    
-    fig = plt.figure(); ax = plt.gca()
-    ax  = sns.kdeplot(D1,ax=ax,color='midnightblue',label='Half resolution')
-    ax  = sns.kdeplot(D2,ax=ax,color='darkseagreen',label='8 connectivity')
-    ax  = sns.kdeplot(D3,ax=ax,color='peachpuff',   label='No minimum cloud size')
-    ax.plot([0.5,0.5],[0,12],'k--')
-    ax.set_ylabel('Kernel density estimate')
-    ax.set_xlabel(r'$\frac{f_A}{f_A + f_B}$')
-    ax.set_xlim((-0.05,1.05))
-    ax.set_ylim((-0.05,12.05))
-    ax.legend(loc='upper left',frameon=False)
-    plt.savefig(savePath+'/senskde.pdf',bbox_inches='tight')
+    fAp1 = fA1(points)
+    fBp1 = fB1(points)
+    fCp1 = fC1(points)
+    fDp1 = fD1(points)
 
+    # Discriminant function D
+    D1 = fAp1 / (fAp1 + fBp1)
+    D2 = fAp1 / (fAp1 + fCp1)
+    D3 = fAp1 / (fAp1 + fDp1)
+
+    fig = plt.figure()
+    ax = plt.gca()
+    ax = sns.kdeplot(D1, ax=ax, color="midnightblue", label="Half resolution")
+    ax = sns.kdeplot(D2, ax=ax, color="darkseagreen", label="8 connectivity")
+    ax = sns.kdeplot(D3, ax=ax, color="peachpuff", label="No minimum cloud size")
+    ax.plot([0.5, 0.5], [0, 12], "k--")
+    ax.set_ylabel("Kernel density estimate")
+    ax.set_xlabel(r"$\frac{f_A}{f_A + f_B}$")
+    ax.set_xlim((-0.05, 1.05))
+    ax.set_ylim((-0.05, 12.05))
+    ax.legend(loc="upper left", frameon=False)
+    plt.savefig(savePath + "/senskde.pdf", bbox_inches="tight")

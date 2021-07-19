@@ -1,0 +1,42 @@
+name: Python Package using Conda
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Test python ${{ matrix.python-version }} on ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7]
+    steps:
+      - uses: actions/checkout@v2
+      - name: install mamba
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: environment.yml
+          environment-name: cloudmetrics
+      # "requirements.txt" should be picked up by mamba because it is included in "environment.yml"
+      # but that doesn't appear to work so we'll install with pip manually here instead
+      - name: Install packages with pip
+        shell: bash -l {0}
+        run: |
+          pip install -r requirements.txt
+      - name: Install test packages
+        shell: bash -l {0}
+        run: |
+          pip install pytest nbconvert nbformat
+      - name: which python
+        shell: bash -l {0}
+        run: |
+          which python
+      - name: git info
+        run: |
+          git log --name-only -1 | cat -
+#     - name: Setup tmate session
+#       uses: mxschmitt/action-tmate@v3
+      - name: Test with pytest
+        shell: bash -l {0}
+        run: |
+          python -m pytest

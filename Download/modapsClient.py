@@ -13,6 +13,7 @@ See http://ladsweb.nascom.nasa.gov/data/web_services.html**
 from __future__ import division, print_function, absolute_import
 from __future__ import unicode_literals
 from future import standard_library
+
 standard_library.install_aliases()
 
 from builtins import filter
@@ -23,15 +24,13 @@ import logging
 from xml.dom import minidom
 
 logging.basicConfig(level=logging.DEBUG)
-LOGGER = logging.getLogger('pygaarst.modapsclient')
+LOGGER = logging.getLogger("pygaarst.modapsclient")
 
 MODAPSBASEURL = (
-    u"https://modwebsrv.modaps.eosdis.nasa.gov/"
-    u"axis2/services/MODAPSservices"
+    "https://modwebsrv.modaps.eosdis.nasa.gov/" "axis2/services/MODAPSservices"
 )
 MODAPSBASEURL_noTLS = (
-    u"http://modwebsrv.modaps.eosdis.nasa.gov/"
-    u"axis2/services/MODAPSservices"
+    "http://modwebsrv.modaps.eosdis.nasa.gov/" "axis2/services/MODAPSservices"
 )
 
 
@@ -80,7 +79,7 @@ def _parselistofdicts(domobj, containerstr, prefix, listofkeys):
         children = node.childNodes
         for child in children:
             if child.tagName.startswith(prefix):
-                key = child.tagName.replace(prefix, '', 1)
+                key = child.tagName.replace(prefix, "", 1)
                 item[key] = child.firstChild.data
         output.append(item)
     return output
@@ -90,7 +89,7 @@ def _startswithax(item):
     """
     Helper function to filter tag lists for starting with xmlns:ax
     """
-    return item.startswith('xmlns:ax')
+    return item.startswith("xmlns:ax")
 
 
 class ModapsClient(object):
@@ -103,18 +102,15 @@ class ModapsClient(object):
 
     def __init__(self):
         self.baseurl = MODAPSBASEURL
-        self.headers = {
-            u'User-Agent': u'satellite RS data fetcher'
-        }
+        self.headers = {"User-Agent": "satellite RS data fetcher"}
 
     def _rawresponse(self, url, data=None):
         if data:
             for tag in data:
                 if type(data[tag]) == list:
-                    data[tag] = ','.join(data[tag])
+                    data[tag] = ",".join(data[tag])
             querydata = urllib.parse.urlencode(data).encode("utf-8")
-            request = urllib.request.Request(
-                url, querydata, headers=self.headers)
+            request = urllib.request.Request(url, querydata, headers=self.headers)
         else:
             request = urllib.request.Request(url, headers=self.headers)
         try:
@@ -132,8 +128,7 @@ class ModapsClient(object):
             return self.baseurl + path
         return MODAPSBASEURL_noTLS + path
 
-    def _parsedresponse(self, path, argdict, parserfun,
-                        data=None, unstabletags=False):
+    def _parsedresponse(self, path, argdict, parserfun, data=None, unstabletags=False):
         """Returns response based on request and parser function"""
         url = self._makeurl(path, TLS=True)
         try:
@@ -143,315 +138,330 @@ class ModapsClient(object):
                 url = self._makeurl(path, TLS=False)
                 response = self._rawresponse(url, data=data)
             except urllib.error.HTTPError:
-                logging.critical(
-                    "Tried with and without TLS. Web service unavailable.")
+                logging.critical("Tried with and without TLS. Web service unavailable.")
                 raise
         xmldoc = minidom.parseString(response)
         if unstabletags:
             attr = list(xmldoc.documentElement.attributes.items())
             pref = list(filter(_startswithax, [item[0] for item in attr]))
             if not pref:
-                LOGGER.error(
-                    "No valid namespace prefix found for request %s ." % url)
+                LOGGER.error("No valid namespace prefix found for request %s ." % url)
                 sys.exit(1)
             elif len(pref) > 1:
                 LOGGER.error(
-                    "Too many potential namespace prefix found for " +
-                    "request %s. Using %s." % (url, pref[0]))
+                    "Too many potential namespace prefix found for "
+                    + "request %s. Using %s." % (url, pref[0])
+                )
             else:
-                prefix = pref[0][6:] + ':'
+                prefix = pref[0][6:] + ":"
                 for item in argdict:
-                    if item != 'containerstr':
+                    if item != "containerstr":
                         argdict[item] = prefix + argdict[item]
         return parserfun(xmldoc, **argdict)
 
     def getAllOrders(self, email):
         """All orders for an email address"""
         raise NotImplementedError(
-            "Method {} not implemented. Probably won't be.".format(
-                'getAllOrders'))
+            "Method {} not implemented. Probably won't be.".format("getAllOrders")
+        )
 
     def getBands(self, product):
         """Available bands for a product"""
-        path = u'/getBands'
+        path = "/getBands"
         parser = _parsekeyvals
         argdict = {}
-        argdict[u'containerstr'] = u'return'
-        argdict[u'keystr'] = u'mws:name'
-        argdict[u'valstr'] = u'mws:value'
+        argdict["containerstr"] = "return"
+        argdict["keystr"] = "mws:name"
+        argdict["valstr"] = "mws:value"
         data = {}
-        data[u'product'] = product
+        data["product"] = product
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def getBrowse(self, fileId):
         """fileIds is a single file-ID"""
-        path = u'/getBrowse'
+        path = "/getBrowse"
         parser = _parselistofdicts
         argdict = {}
-        argdict[u'containerstr'] = u'return'
-        argdict[u'prefix'] = u'mws:'
-        argdict[u'listofkeys'] = [
-            u'fileID', u'product', u'description'
-        ]
+        argdict["containerstr"] = "return"
+        argdict["prefix"] = "mws:"
+        argdict["listofkeys"] = ["fileID", "product", "description"]
         data = {}
-        data[u'fileId'] = fileId
+        data["fileId"] = fileId
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def getCollections(self, product):
         """Available collections for a product"""
-        path = u'/getCollections'
+        path = "/getCollections"
         parser = _parsekeyvals
         argdict = {}
-        argdict[u'containerstr'] = u'mws:Collection'
-        argdict[u'keystr'] = u'mws:Name'
-        argdict[u'valstr'] = u'mws:Description'
+        argdict["containerstr"] = "mws:Collection"
+        argdict["keystr"] = "mws:Name"
+        argdict["valstr"] = "mws:Description"
         data = {}
-        data[u'product'] = product
+        data["product"] = product
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def getDataLayers(self, product):
         """Available data layers for a product"""
-        path = u'/getDataLayers'
+        path = "/getDataLayers"
         parser = _parsekeyvals
         argdict = {}
-        argdict[u'containerstr'] = u'return'
-        argdict[u'keystr'] = u'mws:name'
-        argdict[u'valstr'] = u'mws:value'
+        argdict["containerstr"] = "return"
+        argdict["keystr"] = "mws:name"
+        argdict["valstr"] = "mws:value"
         data = {}
-        data[u'product'] = product
+        data["product"] = product
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def getDateCoverage(self, collection, product):
-        '''Available dates for a collection/product combination
+        """Available dates for a collection/product combination
 
-        TODO: add some result postprocessing - not a good format'''
-        path = u'/getDateCoverage'
+        TODO: add some result postprocessing - not a good format"""
+        path = "/getDateCoverage"
         parser = _parselist
         argdict = {}
-        argdict[u'containerstr'] = u'return'
+        argdict["containerstr"] = "return"
         data = {}
-        data[u'product'] = product
-        data[u'collection'] = collection
+        data["product"] = product
+        data["collection"] = collection
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def getFileOnlineStatuses(self, fileIds):
         """fileIds is a comma-separated list of file-IDs"""
-        path = u'/getFileOnlineStatuses'
+        path = "/getFileOnlineStatuses"
         parser = _parselistofdicts
         argdict = {}
-        argdict[u'containerstr'] = u'return'
-        argdict[u'prefix'] = u'mws:'
-        argdict[u'listofkeys'] = [
-            u'fileID', u'archiveAutoDelete', u'requireUntil'
-        ]
+        argdict["containerstr"] = "return"
+        argdict["prefix"] = "mws:"
+        argdict["listofkeys"] = ["fileID", "archiveAutoDelete", "requireUntil"]
         data = {}
-        data[u'fileIds'] = fileIds
+        data["fileIds"] = fileIds
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def getFileProperties(self, fileIds):
         """fileIds is a comma-separated list of file-IDs"""
-        path = u'/getFileProperties'
+        path = "/getFileProperties"
         parser = _parselistofdicts
         argdict = {}
-        argdict[u'containerstr'] = u'return'
-        argdict[u'prefix'] = u'mws:'
-        argdict[u'listofkeys'] = [
-            u'fileID', u'fileName', u'checksum', u'fileSizeBytes',
-            u'fileType', u'ingestTime', u'online', u'startTime'
+        argdict["containerstr"] = "return"
+        argdict["prefix"] = "mws:"
+        argdict["listofkeys"] = [
+            "fileID",
+            "fileName",
+            "checksum",
+            "fileSizeBytes",
+            "fileType",
+            "ingestTime",
+            "online",
+            "startTime",
         ]
         data = {}
-        data[u'fileIds'] = fileIds
+        data["fileIds"] = fileIds
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def getFileUrls(self, fileIds):
         """fileIds is a comma-separated list of file-IDs"""
-        path = u'/getFileUrls'
+        path = "/getFileUrls"
         parser = _parselist
         argdict = {}
-        argdict[u'containerstr'] = u'return'
+        argdict["containerstr"] = "return"
         data = {}
-        data[u'fileIds'] = fileIds
+        data["fileIds"] = fileIds
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def getMaxSearchResults(self):
         """Max number of search results that can be returned"""
-        path = u'/getMaxSearchResults'
+        path = "/getMaxSearchResults"
         parser = _parselist
         argdict = {}
-        argdict[u'containerstr'] = u'ns:return'
+        argdict["containerstr"] = "ns:return"
         return self._parsedresponse(path, argdict, parser)
 
     def getOrderStatus(self, orderId):
         """Order status for an order ID"""
-        path = u'/getOrderStatus'
+        path = "/getOrderStatus"
         parser = _parselist
         argdict = {}
-        argdict[u'containerstr'] = u'return'
+        argdict["containerstr"] = "return"
         data = {}
-        data[u'orderId'] = orderId
+        data["orderId"] = orderId
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def getOrderUrl(self, OrderID):
         """Order URL(?) for order ID. TODO: implement"""
         raise NotImplementedError(
-            "Method {} not implemented. Probably won't be.".format(
-                'getOrderUrl'))
+            "Method {} not implemented. Probably won't be.".format("getOrderUrl")
+        )
 
     def getPostProcessingTypes(self, products):
-        '''Products: comma-concatenated string of valid product labels'''
-        path = u'/getPostProcessingTypes'
+        """Products: comma-concatenated string of valid product labels"""
+        path = "/getPostProcessingTypes"
         parser = _parselist
         argdict = {}
-        argdict[u'containerstr'] = u'return'
+        argdict["containerstr"] = "return"
         data = {}
-        data[u'products'] = products
+        data["products"] = products
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def listCollections(self):
         """Lists all collections. Deprecated: use getCollections"""
-        path = u'/listCollections'
+        path = "/listCollections"
         parser = _parsekeyvals
         argdict = {}
-        argdict[u'containerstr'] = u'ns:return'
-        argdict[u'keystr'] = u'id'
-        argdict[u'valstr'] = u'value'
+        argdict["containerstr"] = "ns:return"
+        argdict["keystr"] = "id"
+        argdict["valstr"] = "value"
         return self._parsedresponse(path, argdict, parser, unstabletags=True)
 
     def listMapProjections(self):
         """Lists all available map projections"""
-        path = u'/listMapProjections'
+        path = "/listMapProjections"
         parser = _parsekeyvals
         argdict = {}
-        argdict[u'containerstr'] = u'ns:return'
-        argdict[u'keystr'] = u'name'
-        argdict[u'valstr'] = u'value'
+        argdict["containerstr"] = "ns:return"
+        argdict["keystr"] = "name"
+        argdict["valstr"] = "value"
         return self._parsedresponse(path, argdict, parser, unstabletags=True)
 
     def listProductGroups(self, instrument):
         """Lists all available product groups"""
-        path = u'/listProductGroups'
+        path = "/listProductGroups"
         parser = _parsekeyvals
         argdict = {}
-        argdict[u'containerstr'] = u'return'
-        argdict[u'keystr'] = u'mws:name'
-        argdict[u'valstr'] = u'mws:value'
+        argdict["containerstr"] = "return"
+        argdict["keystr"] = "mws:name"
+        argdict["valstr"] = "mws:value"
         data = {}
-        data[u'instrument'] = instrument
+        data["instrument"] = instrument
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def listProducts(self):
         """Lists all available products"""
-        path = u'/listProducts'
+        path = "/listProducts"
         parser = _parsekeyvals
         argdict = {}
-        argdict[u'containerstr'] = u'mws:Product'
-        argdict[u'keystr'] = u'mws:Name'
-        argdict[u'valstr'] = u'mws:Description'
+        argdict["containerstr"] = "mws:Product"
+        argdict["keystr"] = "mws:Name"
+        argdict["valstr"] = "mws:Description"
         return self._parsedresponse(path, argdict, parser)
 
     def listProductsByInstrument(self, instrument, group=None):
         """Lists all available products for an instrument"""
-        path = u'/listProductsByInstrument'
+        path = "/listProductsByInstrument"
         parser = _parselist
         argdict = {}
-        argdict[u'containerstr'] = u'return'
+        argdict["containerstr"] = "return"
         data = {}
-        data[u'instrument'] = instrument
+        data["instrument"] = instrument
         if group:
-            data[u'group'] = group
+            data["group"] = group
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def listReprojectionParameters(self, reprojectionName):
         """Lists reprojection parameters for a reprojection"""
-        path = u'/listReprojectionParameters'
+        path = "/listReprojectionParameters"
         parser = _parselistofdicts
         argdict = {}
-        argdict[u'containerstr'] = u'return'
-        argdict[u'prefix'] = u'mws:'
-        argdict[u'listofkeys'] = [
-            u'name', u'description', u'units'
-        ]
+        argdict["containerstr"] = "return"
+        argdict["prefix"] = "mws:"
+        argdict["listofkeys"] = ["name", "description", "units"]
         data = {}
-        data[u'reprojectionName'] = reprojectionName
+        data["reprojectionName"] = reprojectionName
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def listSatelliteInstruments(self):
         """Lists all available satellite instruments"""
-        path = u'/listSatelliteInstruments'
+        path = "/listSatelliteInstruments"
         parser = _parsekeyvals
         argdict = {}
-        argdict[u'containerstr'] = u'ns:return'
-        argdict[u'keystr'] = u'name'
-        argdict[u'valstr'] = u'value'
+        argdict["containerstr"] = "ns:return"
+        argdict["keystr"] = "name"
+        argdict["valstr"] = "value"
         return self._parsedresponse(path, argdict, parser, unstabletags=True)
 
-    def orderFiles(self, email, FileIDs, reformatType=False, doMosaic=False, 
-                   geoSubsetNorth=None, geoSubsetSouth=None, geoSubsetWest=None,
-                   geoSubsetEast=None, subsetDataLayer=None):
+    def orderFiles(
+        self,
+        email,
+        FileIDs,
+        reformatType=False,
+        doMosaic=False,
+        geoSubsetNorth=None,
+        geoSubsetSouth=None,
+        geoSubsetWest=None,
+        geoSubsetEast=None,
+        subsetDataLayer=None,
+    ):
         """Submits an order"""
-        path = u'/orderFiles'
+        path = "/orderFiles"
         parser = _parselist
         argdict = {}
-        argdict[u'containerstr'] = u'return'
+        argdict["containerstr"] = "return"
         data = {}
-        data[u'email'] = email
-        data[u'fileIds'] = FileIDs
+        data["email"] = email
+        data["fileIds"] = FileIDs
         if reformatType:
-            data[u'reformatType'] = reformatType
+            data["reformatType"] = reformatType
         if doMosaic:
-            data[u'doMosaic'] = 'true'
+            data["doMosaic"] = "true"
         if geoSubsetNorth:
-            data[u'geoSubsetNorth'] = geoSubsetNorth
+            data["geoSubsetNorth"] = geoSubsetNorth
         if geoSubsetSouth:
-            data[u'geoSubsetSouth'] = geoSubsetSouth
+            data["geoSubsetSouth"] = geoSubsetSouth
         if geoSubsetWest:
-            data[u'geoSubsetWest'] = geoSubsetWest
+            data["geoSubsetWest"] = geoSubsetWest
         if geoSubsetEast:
-            data[u'geoSubsetEast'] = geoSubsetEast
+            data["geoSubsetEast"] = geoSubsetEast
         if subsetDataLayer:
-            data[u'subsetDataLayer'] = subsetDataLayer
-                
+            data["subsetDataLayer"] = subsetDataLayer
+
         return self._parsedresponse(path, argdict, parser, data=data)
-        
 
     def searchForFiles(
-            self, products, startTime, endTime,
-            north, south, east, west,
-            coordsOrTiles=u'coords',
-            dayNightBoth=u'DNB', collection=6):
+        self,
+        products,
+        startTime,
+        endTime,
+        north,
+        south,
+        east,
+        west,
+        coordsOrTiles="coords",
+        dayNightBoth="DNB",
+        collection=6,
+    ):
         """Submits a search based on product, geography and time"""
-        path = u'/searchForFiles'
+        path = "/searchForFiles"
         parser = _parselist
         argdict = {}
-        argdict[u'containerstr'] = u'return'
+        argdict["containerstr"] = "return"
         data = {}
-        data[u'products'] = products
-        data[u'startTime'] = startTime
-        data[u'endTime'] = endTime
-        data[u'north'] = north
-        data[u'south'] = south
-        data[u'east'] = east
-        data[u'west'] = west
-        data[u'coordsOrTiles'] = coordsOrTiles
+        data["products"] = products
+        data["startTime"] = startTime
+        data["endTime"] = endTime
+        data["north"] = north
+        data["south"] = south
+        data["east"] = east
+        data["west"] = west
+        data["coordsOrTiles"] = coordsOrTiles
         if collection:
-            data[u'collection'] = collection
+            data["collection"] = collection
         if dayNightBoth:
-            data[u'dayNightBoth'] = dayNightBoth
+            data["dayNightBoth"] = dayNightBoth
         return self._parsedresponse(path, argdict, parser, data=data)
 
     def searchForFilesByName(self, collection, pattern):
         """Submits a search based on a file name pattern"""
-        path = u'/searchForFilesByName'
+        path = "/searchForFilesByName"
         parser = _parselist
         argdict = {}
-        argdict[u'containerstr'] = u'return'
+        argdict["containerstr"] = "return"
         data = {}
-        data[u'collection'] = collection
-        data[u'pattern'] = pattern
+        data["collection"] = collection
+        data["pattern"] = pattern
         return self._parsedresponse(path, argdict, parser, data=data)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     a = ModapsClient()
     req = a.listCollections()
     print(req)
