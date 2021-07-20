@@ -21,7 +21,11 @@ def test_lattice_of_squares(periodic_domain, connectivity):
     if periodic_domain:
         cloud_mask = make_periodic_field(cloud_mask, con=connectivity)
 
-    i_org = cloudmetrics.iorg(cloud_mask)
+    i_org = cloudmetrics.iorg(cloud_mask,
+                              periodic_domain=periodic_domain,
+                              connectivity=connectivity,
+                              area_min=0,
+                              random_seed=0)
     np.testing.assert_allclose(i_org, 0.0, atol=0.1)
 
 
@@ -39,7 +43,11 @@ def test_random_points(periodic_domain, connectivity):
     if periodic_domain:
         cloud_mask = make_periodic_field(cloud_mask, con=connectivity)
 
-    i_org = cloudmetrics.iorg(cloud_mask)
+    i_org = cloudmetrics.iorg(cloud_mask,
+                              periodic_domain=periodic_domain,
+                              connectivity=connectivity,
+                              area_min=0,
+                              random_seed=0)
     np.testing.assert_allclose(i_org, 0.5, atol=0.1)
 
 
@@ -66,5 +74,9 @@ def test_single_uniform_circle(periodic_domain, connectivity):
     if periodic_domain:
         cloud_mask = make_periodic_field(cloud_mask, con=connectivity)
 
-    i_org = cloudmetrics.iorg(cloud_mask)
+    i_org = cloudmetrics.iorg(cloud_mask,
+                              periodic_domain=periodic_domain,
+                              connectivity=connectivity,
+                              area_min=0,
+                              random_seed=0)
     np.testing.assert_allclose(i_org, 1.0, atol=0.1)

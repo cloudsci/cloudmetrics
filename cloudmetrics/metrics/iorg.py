@@ -8,14 +8,14 @@ by Benner & Curry (1998) and detailed in Antonissen (2019).
 
 import numpy as np
 import matplotlib.pyplot as plt
-import random
 from skimage.measure import label, regionprops
 
 from ..utils import find_nearest_neighbors
 
 
 def _debug_plot_1(field, placedCircles):
-    fig, ax = plt.figure(figsize=(5, 5))
+    fig = plt.figure(figsize=(5, 5))
+    ax = plt.gca()
     ax.set_xlim((0, field.shape[1]))
     ax.set_ylim((0, field.shape[0]))
     for i in range(len(placedCircles)):
@@ -115,9 +115,9 @@ def _check_circle_overlap(new, placedCircles):
 
 
 class CloudCircle:
-    def __init__(self, r, sh):
-        self.x = random.randint(0, sh[1] - 1)
-        self.y = random.randint(0, sh[0] - 1)
+    def __init__(self, r, sh, rng):
+        self.x = rng.integers(0, sh[1] - 1)
+        self.y = rng.integers(0, sh[0] - 1)
 
         self.xp = self.x + sh[1]
         self.yp = self.y + sh[0]
@@ -152,7 +152,11 @@ def iorg(
                      just x-y neighbours (connectivity=1) are considered joined
     area_min:        minimum area (number of pixels) of labeled regions to consider
     max_iterations:  maximum number of iterations to use within the algorithm before giving up
-    num_placements:  "how many times to do the placement"
+    num_placements:  number of times the entire random circle placement routine
+                     is carried out, and thus number of different random
+                     nearest neighbour distance cumulative density functions 
+                     are computed. The function utput is an average over the 
+                     num_placements different values of iorg this generates.
 
     Returns
     -------
@@ -161,11 +165,8 @@ def iorg(
         distribution.
 
     """
-    # XXX: what does "how many times to do the placement" mean?
 
-    if random_seed:
-        # fix seed for reproducible results
-        random.seed(random_seed)
+    rng = np.random.default_rng(random_seed)
 
     cmlab, num = label(cloud_mask, return_num=True, connectivity=connectivity)
     regions = regionprops(cmlab)
@@ -212,7 +213,7 @@ def iorg(
         placedCircles = []
         placeCount = 0
         while i < len(cr) and placeCount < max_iterations:
-            new = CloudCircle(cr[i], sh)
+            new = CloudCircle(cr[i], sh, rng)
             placeable = True
 
             # If the circles overlap -> Place again
