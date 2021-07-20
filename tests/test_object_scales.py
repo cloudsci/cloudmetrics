@@ -6,8 +6,8 @@ from math import sqrt
 import cloudmetrics
 
 EXAMPLE_MASK_STRING = """
-00000000000000000000
-00000000000000000000
+11000000000000000011
+11000000000000000011
 00000000000000000000
 00001110000000000000
 00001110000000000000
@@ -16,16 +16,16 @@ EXAMPLE_MASK_STRING = """
 00000000000000000000
 00000000000000000000
 00000000000000000000
-00000000001111000000
-00000000001111000000
-00000000001111000000
-00000000001111000000
 00000000000000000000
 00000000000000000000
 00000000000000000000
 00000000000000000000
 00000000000000000000
 00000000000000000000
+00000000000000000000
+00000000000000000000
+11000000000000000011
+11000000000000000011
 """
 
 
@@ -47,7 +47,10 @@ def test_max_length_scale(periodic_domain):
         cloud_object_labels=cloud_object_labels
     )
 
-    np.testing.assert_almost_equal(l_max, 4.0)
+    if periodic_domain:
+        np.testing.assert_almost_equal(l_max, 4.0)
+    else:
+        np.testing.assert_almost_equal(l_max, 3.0)
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
@@ -61,8 +64,12 @@ def test_mean_length_scale(periodic_domain):
         cloud_object_labels=cloud_object_labels
     )
 
-    # 3^2 + 4^2 = 5^2 => (3^2 + 4^2)/2 = (5/sqrt(2))^2
-    np.testing.assert_almost_equal(l_mean, 5.0 / sqrt(2.0))
+    if periodic_domain:
+        # 3^2 + 4^2 = 5^2 => (3^2 + 4^2)/2 = (5/sqrt(2))^2
+        np.testing.assert_almost_equal(l_mean, 5.0 / sqrt(2.0))
+    else:
+        l_true = sqrt((4 * 4.0 + 9) / 5.0)
+        np.testing.assert_almost_equal(l_mean, l_true)
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
@@ -76,7 +83,10 @@ def test_mean_perimeter_length(periodic_domain):
         cloud_object_labels=cloud_object_labels
     )
 
-    l_true = (2.0 * 4 + 3.0 * 4) / 2.0
+    if periodic_domain:
+        l_true = (2.0 * 4 + 3.0 * 4) / 2.0
+    else:
+        l_true = (2.0 * 4 + 1.0 * 4 * 4) / 5.0
 
     np.testing.assert_almost_equal(l_perim_length, l_true)
 
