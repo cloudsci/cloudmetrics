@@ -69,6 +69,11 @@ def mean_eccentricity(cloud_object_labels):
 def mean_perimeter_length(cloud_object_labels):
     """
     Compute mean perimeter length of across all labeled objects in pixel units
+
+    NOTE: the perimeter is calculated as the "Perimeter of object which
+    approximates the contour as a line through the centers of border pixels
+    using a 4-connectivity." This means that a object comprised of 3x3 pixels
+    will have a perimeter length of 8 (2*4)
     """
     objects_perim = _get_objects_property(
         cloud_object_labels=cloud_object_labels, property_name="perimeter"
