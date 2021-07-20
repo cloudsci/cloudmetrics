@@ -6,6 +6,10 @@
 
 *new features*
 
+- Refactored iorg metric calculation, now available as `cloudmetrics.iorg(...)`
+  [\#21](https://github.com/cloudsci/cloudmetrics/pull/21). By Leif Denby
+  & Martin Janssens (@leifdenby & @martinjanssens)
+
 - Code cleanup and setup of continuous integration testing
   [\#19](https://github.com/cloudsci/cloudmetrics/pull/19). By Leif Denby
   (@leifdenby)
