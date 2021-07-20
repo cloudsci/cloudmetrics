@@ -1,9 +1,11 @@
 # Developing cloudmetrics
 
-`cloudmetrics` is automatically checked with tests that reside in `tests/`.
-These are run automatically on all pull-requests against the git
-repository at https://github.com/cloudsci/cloudmetrics and can be run
-locally with `pytest` from the root of the repository:
+`cloudmetrics` is automatically checked with tests that reside in
+`tests/`. Every function with a name starting with `test_` in every file
+in this directory with filename starting with `test_` is considered a test
+and will be run. These tests are run automatically on all pull-requests
+against the git repository at https://github.com/cloudsci/cloudmetrics and
+can be run locally with `pytest` from the root of the repository:
 
 ```bash
 pip install pytest
