@@ -9,7 +9,7 @@ can be run locally with `pytest` from the root of the repository:
 
 ```bash
 pip install pytest
-pytest
+python -m pytest
 ```
 
 If the computer you are running on has multiple CPUs it can be advantageous to
@@ -19,7 +19,7 @@ number of parallel workers:
 
 ```bash
 pip install pytest-xdist
-pytest -n <n_cpus>
+python -m pytest -n <n_cpus>
 ```
 
 You can also speed up testing by reducing the number of test being run (if
@@ -28,7 +28,7 @@ you're for example working on fixing just a single breaking test) by using the
 want to run, e.g.
 
 ```bash
-pytest -k orientation
+python -m pytest -k orientation
 ```
 
 Finally, it is useful to have a `ipdb`-debugger open up inline on failing
