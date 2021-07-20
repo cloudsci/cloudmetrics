@@ -6,6 +6,11 @@
 
 *new features*
 
+- Refactored "open sky" (clear sky) metric calculation, now available as
+  `cloudmetrics.open_sky(...)`
+  [\#22](https://github.com/cloudsci/cloudmetrics/pull/22). By Leif Denby
+  & Martin Janssens (@leifdenby & @martinjanssens)
+
 - Refactored iorg metric calculation, now available as `cloudmetrics.iorg(...)`
   [\#21](https://github.com/cloudsci/cloudmetrics/pull/21). By Leif Denby
   & Martin Janssens (@leifdenby & @martinjanssens)
