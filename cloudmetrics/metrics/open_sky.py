@@ -6,12 +6,13 @@ import numpy as np
 
 def open_sky(cloud_mask, periodic_domain=False, debug=False):
     """
-    Compute "open sky" metric (Antonissen 2018) for a single cloud_mask.
+    Compute "open sky" metric proposed by Antonissen (2018) for a single 
+    cloud_mask (see http://resolver.tudelft.nl/uuid:d868273a-b028-4273-8380-ff1628ecabd5).
     The method analyses rectangular reference areas in the scene defined by
     four extrema in east, west, north and south.  These points are the distance
     from each cloud-free point to the nearest cloudy pixel in each direction.
-    The largest such area is returned as a metric for the size of the scene's
-    voids (contiguous, cloud-free areas).
+    The largest and average such area are both returned as metrics for the size 
+    of the scene's voids (contiguous, cloud-free areas).
 
     Parameters
     ----------

@@ -1,1 +1,1 @@
-from .open_sky import open_sky
+from .metrics.open_sky import open_sky
