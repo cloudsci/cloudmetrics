@@ -154,8 +154,8 @@ def iorg(
     max_iterations:  maximum number of iterations to use within the algorithm before giving up
     num_placements:  number of times the entire random circle placement routine
                      is carried out, and thus number of different random
-                     nearest neighbour distance cumulative density functions 
-                     are computed. The function utput is an average over the 
+                     nearest neighbour distance cumulative density functions
+                     are computed. The function utput is an average over the
                      num_placements different values of iorg this generates.
 
     Returns
