@@ -139,3 +139,14 @@ def find_nearest_neighbors(data, size=None):
     dists = tree.query(data, 2)
     nn_dist = np.sort(dists[0][:, 1])
     return nn_dist
+
+def compute_r_squared(x, y, coeffs):
+
+    p = np.poly1d(coeffs)
+
+    # fit values, and mean
+    yhat = p(x)  # or [p(z) for z in x]
+    ybar = np.sum(y) / len(y)  # or sum(y)/len(y)
+    ssreg = np.sum((yhat - ybar) ** 2)  # or sum([ (yihat - ybar)**2 for yihat in yhat])
+    sstot = np.sum((y - ybar) ** 2)  # or sum([ (yi - ybar)**2 for yi in y])
+    return ssreg / sstot
