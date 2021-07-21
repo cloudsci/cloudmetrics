@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from ..utils import compute_r_squared
 
+
 def _debug_plot(cloud_mask, sizes, counts, fractal_dim, r_squared):
     fig, ax = plt.subplots(ncols=2, figsize=(8.25, 4))
     ax[0].imshow(cloud_mask, "gray")
@@ -18,6 +19,7 @@ def _debug_plot(cloud_mask, sizes, counts, fractal_dim, r_squared):
     ax[1].set_ylabel("Number of edge boxes")
     plt.show()
 
+
 def _boxcount(Z, k):
     S = np.add.reduceat(
         np.add.reduceat(Z, np.arange(0, Z.shape[0], k), axis=0),
@@ -26,16 +28,15 @@ def _boxcount(Z, k):
     )
     return len(np.where((S > 0) & (S < k * k))[0])
 
-def fractal_dimension(cloud_mask,
-                      periodic_domain=False,
-                      debug=False):
+
+def fractal_dimension(cloud_mask, debug=False):
     """
     Compute box-counting dimension from a binary cloud mask. Adapted from:
     https://gist.github.com/rougier/e5eafc276a4e54f516ed5559df4242c0
 
     Parameters
     ----------
-    field : numpy array of shape (npx,npx) - npx is number of pixels
+    cloud_mask : numpy array of shape (npx,npx) - npx is number of pixels
         Cloud mask field.
 
     Returns
