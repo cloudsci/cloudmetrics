@@ -22,7 +22,11 @@ def _moments_cov(data):
 
 def orientation(cloud_mask, debug=False, periodic_domain=False):
     """
-    Compute metric(s) for a single cloud_mask
+    Compute a measure for a single cloud_mask's degree of directional alignment,
+    using the cloud_mask's raw image moment covariance matrix. Code based on:
+    https://github.com/alyssaq/blog/blob/master/posts/150114-054922_computing-the-axes-or-orientation-of-a-blob.md.
+    Note that this function currently does not support periodic boundary
+    conditions (use the wavelet-based orientation measure woi3 for such scenes).
 
     Parameters
     ----------
@@ -32,7 +36,7 @@ def orientation(cloud_mask, debug=False, periodic_domain=False):
     Returns
     -------
     orie : float
-        XXX: what are the units of the orientation?
+        Orientation measure (dimensionless value between 0-1, with 0 denoting no preferential direction of orientation and 1 denoting that all information is oriented in one direction)
 
     """
 
