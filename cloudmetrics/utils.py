@@ -140,6 +140,7 @@ def find_nearest_neighbors(data, size=None):
     nn_dist = np.sort(dists[0][:, 1])
     return nn_dist
 
+
 def compute_r_squared(x, y, coeffs):
 
     p = np.poly1d(coeffs)
