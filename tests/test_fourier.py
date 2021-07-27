@@ -11,11 +11,11 @@ def test_spectral_noise(periodic_domain):
         - variance in radial 1d psd should be amp**2*pi/4
         - azimuthal spectrum should be approximately uniform over sectors, so
           anisotropy should -> 0
-        - radial spectrum (integrated over rings) should increase linearly 
+        - radial spectrum (integrated over rings) should increase linearly
           with k1d, i.e.:
          - spectral slopes -> 1
-         - median l_spec: triangular spectrum -> 1/3 of variance is encountered at 
-           sqrt(3)/3 of max wavenumber N/2 -> spectral length scale should be 
+         - median l_spec: triangular spectrum -> 1/3 of variance is encountered at
+           sqrt(3)/3 of max wavenumber N/2 -> spectral length scale should be
            1/(sqrt(3)/3*N/2*1/L), or more simply 2*sqrt(3)*dx
          - mean l_spec should then occur at wavenumber 2/3*kmax, or l_spec -> 3*dx
     """

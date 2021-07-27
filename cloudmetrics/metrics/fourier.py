@@ -231,7 +231,11 @@ def _debug_plot(
         fontsize=10,
     )
     axs[1].annotate(
-        "Bin-averaged", (0.4, 0.9), xycoords="axes fraction", color="C1", fontsize=10,
+        "Bin-averaged",
+        (0.4, 0.9),
+        xycoords="axes fraction",
+        color="C1",
+        fontsize=10,
     )
     axs[1].annotate(
         r"$R^2$=" + str(round(r_squared_binned, 3)),
@@ -262,7 +266,7 @@ def compute_spectra(
 ):
     """
     Compute energy-preserving 2D FFT of input cloud_scalar field, which is
-    assued to be square, computes the spectral power of this field and 
+    assued to be square, computes the spectral power of this field and
     decomposes this into radial and azimuthal power spectral densities.
 
     Parameters
@@ -276,10 +280,10 @@ def compute_spectra(
         Whether the domain is periodic. If False, choose an appropriate window
         to apply before performing the FFT. The default is False.
     apply_detrending : Bool, optional
-        Whether to remove a blinear fit of the input scalar field. The default 
+        Whether to remove a blinear fit of the input scalar field. The default
         is False.
     window : String, optional
-        Which windowing function to apply. Set to a value in 
+        Which windowing function to apply. Set to a value in
         ['Hann', 'Welch', 'Planck']. The default is None, corresponding to no
         applied windowing.
 
@@ -360,9 +364,9 @@ def spectral_anisotropy(psd_1d_azi):
 
 def spectral_slope(k1d, psd_1d_rad, return_intercept=False):
     """
-    Compute a least squares fit of the slope of the 1D radial PSD, which turns 
-    out to be a reasonable measure for the dominant length scale of the 
-    cloud_scalar. 
+    Compute a least squares fit of the slope of the 1D radial PSD, which turns
+    out to be a reasonable measure for the dominant length scale of the
+    cloud_scalar.
 
     Parameters
     ----------
@@ -371,7 +375,7 @@ def spectral_slope(k1d, psd_1d_rad, return_intercept=False):
     psd_1d_rad :  1D numpy array
         1D radial PSD.
     return_intercept : Bool, optional
-        Whether to return the y-intercept of the fit (e.g. for plotting). 
+        Whether to return the y-intercept of the fit (e.g. for plotting).
         Default is False.
 
     Returns
@@ -398,7 +402,7 @@ def spectral_slope(k1d, psd_1d_rad, return_intercept=False):
 
 def spectral_slope_binned(k1d, psd_1d_rad, n_bins=10, return_intercept=False):
     """
-    Similar to spectral_slope, this computes a least squares fit of the slope of 
+    Similar to spectral_slope, this computes a least squares fit of the slope of
     the 1D radial PSD, but coarsens the PSD into averages over logarithmically
     spaced bins first, to weight large and small scales more equally.
 
@@ -411,7 +415,7 @@ def spectral_slope_binned(k1d, psd_1d_rad, n_bins=10, return_intercept=False):
     n_bins : int, optional
         Number of logarithmically spaced bins. The default is 10.
     return_intercept : Bool, optional
-        Whether to return the y-intercept of the fit (e.g. for plotting). 
+        Whether to return the y-intercept of the fit (e.g. for plotting).
         Default is False.
 
     Returns
