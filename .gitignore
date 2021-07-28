@@ -1,5 +1,5 @@
 Data/
-__pyache__/
+__pycache__/
 *.py[cod]
 .DS_Store
 

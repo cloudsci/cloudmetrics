@@ -14,10 +14,17 @@ def create_circular_mask(h, w):
     return mask
 
 
-def make_periodic_field(field, con):
+def make_periodic_cloud_mask(field, object_connectivity):
     """
-    Apply periodic BCs to cloud mask fields, based on implementation from
-    https://github.com/MennoVeerman/periodic-COP
+    Apply periodic BCs to cloud mask fields by:
+
+    1. doubling the domain in x- and y-direction by padding with zeros
+    2. identifying individual clouds in the mask
+    3. moving the clouds that wrap the west and north boundaries to the south
+       and east so that they are unwrapped into contiguous regions in the
+       returned mask
+
+    based on implementation from https://github.com/MennoVeerman/periodic-COP
 
     Parameters
     ----------
@@ -27,7 +34,7 @@ def make_periodic_field(field, con):
     Returns
     -------
     Field of (2*npx,2*npx), with cloud objects that cross boundaries translated
-    to coherent structures crossing the northern/eastern boundaries.
+    to contiguous structures crossing the northern/eastern boundaries.
 
     """
 
@@ -43,7 +50,7 @@ def make_periodic_field(field, con):
     cld[:ny, :nx] = field.copy()
 
     # Label connected regions of cloudy pixels
-    cld_lbl, nlbl = label(cld, connectivity=con, return_num=True)
+    cld_lbl, nlbl = label(cld, connectivity=object_connectivity, return_num=True)
 
     # Find all clouds (labels) that cross the domain boundary in n-s direction.
     # Save the labels of the cloudy region at both the southern border
@@ -139,3 +146,18 @@ def find_nearest_neighbors(data, size=None):
     dists = tree.query(data, 2)
     nn_dist = np.sort(dists[0][:, 1])
     return nn_dist
+
+
+def print_object_labels(cloud_object_labels):
+    """
+    debugging function to print a cloud-mask or cloud-object labels
+    """
+    if np.max(cloud_object_labels) > 9:
+        raise NotImplementedError
+
+    nx, ny = cloud_object_labels.shape
+
+    for i in range(nx):
+        for j in range(ny):
+            print(cloud_object_labels.astype(int)[i, j], end="")
+        print()

@@ -82,5 +82,5 @@ def mean_perimeter_length(cloud_object_labels):
 
 
 def num_clouds(cloud_object_labels):
-    _, num_objects = _get_regionprops(cloud_object_labels=cloud_object_labels)
-    return num_objects
+    regions = _get_regionprops(cloud_object_labels=cloud_object_labels)
+    return len(regions)
