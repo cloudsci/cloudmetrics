@@ -6,6 +6,11 @@
 
 *new features*
 
+- Refactored orientation metric calculation, now available as
+  `cloudmetrics.orientation(...)`
+  [\#24](https://github.com/cloudsci/cloudmetrics/pull/24). By Leif Denby
+  & Martin Janssens (@leifdenby & @martinjanssens)
+
 - Refactored "open sky" (clear sky) metric calculation, now available as
   `cloudmetrics.open_sky(...)`
   [\#22](https://github.com/cloudsci/cloudmetrics/pull/22). By Leif Denby
