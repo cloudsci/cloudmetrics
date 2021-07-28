@@ -22,7 +22,9 @@ def _moments_cov(data):
 
 def orientation(cloud_mask, debug=False, periodic_domain=False):
     """
-    Compute metric(s) for a single cloud_mask
+    Compute the scene's degree of directional alignment using the
+    cloud mask's raw image moment covariance matrix. Code based on:
+    https://github.com/alyssaq/blog/blob/master/posts/150114-054922_computing-the-axes-or-orientation-of-a-blob.md
 
     Parameters
     ----------
