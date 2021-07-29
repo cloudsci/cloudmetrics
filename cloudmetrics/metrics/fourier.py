@@ -231,11 +231,7 @@ def _debug_plot(
         fontsize=10,
     )
     axs[1].annotate(
-        "Bin-averaged",
-        (0.4, 0.9),
-        xycoords="axes fraction",
-        color="C1",
-        fontsize=10,
+        "Bin-averaged", (0.4, 0.9), xycoords="axes fraction", color="C1", fontsize=10,
     )
     axs[1].annotate(
         r"$R^2$=" + str(round(r_squared_binned, 3)),
@@ -300,7 +296,9 @@ def compute_spectra(
 
     # TODO: This explicitly assumes square domains
     if cloud_scalar.shape[0] != cloud_scalar.shape[1]:
-        raise NotImplementedError(f"nx != ny ({cloud_scalar.shape[1]} != {cloud_scalar.shape[0]})")
+        raise NotImplementedError(
+            f"nx != ny ({cloud_scalar.shape[1]} != {cloud_scalar.shape[0]})"
+        )
 
     # General observations
     # Windowing   : Capturing more information is beneficial

@@ -20,45 +20,37 @@ def _debug_plot_1(field, placedCircles):
     ax.set_ylim((0, field.shape[0]))
     for i in range(len(placedCircles)):
         circ = plt.Circle(
-            (placedCircles[i].xm, placedCircles[i].yp),
-            placedCircles[i].r,
+            (placedCircles[i].xm, placedCircles[i].yp), placedCircles[i].r,
         )
         ax.add_artist(circ)
         circ = plt.Circle(
-            (placedCircles[i].x, placedCircles[i].yp),
-            placedCircles[i].r,
+            (placedCircles[i].x, placedCircles[i].yp), placedCircles[i].r,
         )
         ax.add_artist(circ)
         circ = plt.Circle(
-            (placedCircles[i].xp, placedCircles[i].yp),
-            placedCircles[i].r,
+            (placedCircles[i].xp, placedCircles[i].yp), placedCircles[i].r,
         )
         ax.add_artist(circ)
         circ = plt.Circle(
-            (placedCircles[i].xm, placedCircles[i].y),
-            placedCircles[i].r,
+            (placedCircles[i].xm, placedCircles[i].y), placedCircles[i].r,
         )
         ax.add_artist(circ)
         circ = plt.Circle((placedCircles[i].x, placedCircles[i].y), placedCircles[i].r)
         ax.add_artist(circ)
         circ = plt.Circle(
-            (placedCircles[i].xp, placedCircles[i].y),
-            placedCircles[i].r,
+            (placedCircles[i].xp, placedCircles[i].y), placedCircles[i].r,
         )
         ax.add_artist(circ)
         circ = plt.Circle(
-            (placedCircles[i].xm, placedCircles[i].ym),
-            placedCircles[i].r,
+            (placedCircles[i].xm, placedCircles[i].ym), placedCircles[i].r,
         )
         ax.add_artist(circ)
         circ = plt.Circle(
-            (placedCircles[i].x, placedCircles[i].ym),
-            placedCircles[i].r,
+            (placedCircles[i].x, placedCircles[i].ym), placedCircles[i].r,
         )
         ax.add_artist(circ)
         circ = plt.Circle(
-            (placedCircles[i].xp, placedCircles[i].ym),
-            placedCircles[i].r,
+            (placedCircles[i].xp, placedCircles[i].ym), placedCircles[i].r,
         )
         ax.add_artist(circ)
     ax.grid(which="both")
@@ -89,9 +81,7 @@ def _debug_plot_2(field, posScene, posRand, nndcdfRan, nndcdfSce, iOrg):
     axs[3].set_xlabel("Random field nearest neighbour CDF")
     axs[3].set_ylabel("Scene nearest neighbour CDF")
     axs[3].annotate(
-        r"$I_{org} = $" + str(round(iOrg, 3)),
-        (0.7, 0.1),
-        xycoords="axes fraction",
+        r"$I_{org} = $" + str(round(iOrg, 3)), (0.7, 0.1), xycoords="axes fraction",
     )
     asp = np.diff(axs[3].get_xlim())[0] / np.diff(axs[3].get_ylim())[0]
     axs[3].set_aspect(asp)
