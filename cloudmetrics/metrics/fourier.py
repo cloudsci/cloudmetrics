@@ -272,7 +272,7 @@ def compute_spectra(
     Parameters
     ----------
     cloud_scalar : numpy array of shape (npx,npx) - npx is number of pixels
-            Cloud mask field.
+            Cloud scalar field.
     dx : int, optional
         Horizontal (uniform) grid spacing, for computing wavenumbers. The
         default is 1.
@@ -290,14 +290,17 @@ def compute_spectra(
     Returns
     -------
     k1d : 1D numpy array
-        Radial 1D wavenumbers of the FFT, whose wavelength is 2*pi/k1d
+        Radial 1D wavenumbers of the FFT, whose wavelength is 2*pi/k1d. These are
+        the coordinates at which psd_1d_rad is defined.
     psd_1d_rad: 1D numpy array
-        Radial 1D power spectral density of the cloud_scalar field
+        Radial 1D power spectral density of the cloud_scalar field.
     psd_1d_azi: 1D numpy array
-        Azimuthal 1D power spectral density of the cloud_scalar field
+        Azimuthal 1D power spectral density of the cloud_scalar field.
     """
 
     # TODO: This explicitly assumes square domains
+    if cloud_scalar.shape[0] != cloud_scalar.shape[1]:
+        raise NotImplementedError(f"nx != ny ({cloud_scalar.shape[1]} != {cloud_scalar.shape[0]})")
 
     # General observations
     # Windowing   : Capturing more information is beneficial

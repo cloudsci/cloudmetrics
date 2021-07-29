@@ -56,7 +56,7 @@ def fractal_dimension(cloud_mask, debug=False):
 
     # Fit the relation: counts = coeffs[1]*sizes**coeffs[0]; coeffs[0]=-Nd
     coeffs = np.polyfit(np.log(sizes), np.log(counts), 1)
-    r_squared = compute_r_squared(np.log(sizes), np.log(counts), coeffs)
+    r_squared = compute_r_squared(lambda x, c: c[1] + c[0] * x, coeffs, np.log(sizes), np.log(counts))
     fractal_dim = -coeffs[0]
 
     if debug:
