@@ -141,13 +141,15 @@ def find_nearest_neighbors(data, size=None):
     return nn_dist
 
 
-def compute_r_squared(x, y, coeffs):
+def compute_r_squared(func, coeffs, x, y):
 
-    p = np.poly1d(coeffs)
+    # Pseudo-R^2 (equal to R^2 for linear regressions, not interpretable as
+    # variance fraction explained by model for non-linear regression, where
+    # it can be less than zero).
 
     # fit values, and mean
-    yhat = p(x)  # or [p(z) for z in x]
+    yhat = func(x, coeffs)  # or [p(z) for z in x]
     ybar = np.sum(y) / len(y)  # or sum(y)/len(y)
-    ssreg = np.sum((yhat - ybar) ** 2)  # or sum([ (yihat - ybar)**2 for yihat in yhat])
+    ssres = np.sum((y - yhat) ** 2)  # or sum([ (yihat - ybar)**2 for yihat in yhat])
     sstot = np.sum((y - ybar) ** 2)  # or sum([ (yi - ybar)**2 for yi in y])
-    return ssreg / sstot
+    return 1 - ssres / sstot
