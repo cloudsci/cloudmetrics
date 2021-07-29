@@ -22,7 +22,7 @@ jobs:
       - name: Install packages with pip
         shell: bash -l {0}
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements-test.txt
       - name: Install test packages
         shell: bash -l {0}
         run: |

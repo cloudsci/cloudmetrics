@@ -9,3 +9,4 @@ from .metrics.fourier import (
     spectral_length_moment,
     compute_all_spectral,
 )
+from .metrics.fractal_dimension import fractal_dimension
