@@ -11,3 +11,4 @@ from .metrics.fourier import (
     compute_all_spectral,
 )
 from .metrics.fractal_dimension import fractal_dimension
+from .metrics.woi import woi
