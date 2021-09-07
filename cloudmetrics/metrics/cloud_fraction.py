@@ -20,4 +20,4 @@ def cloud_fraction(cloud_mask):
 
     """
 
-    return len(np.where(cloud_mask == 1)[0]) / cloud_mask.size
+    return np.count_nonzero(cloud_mask) / cloud_mask.size
