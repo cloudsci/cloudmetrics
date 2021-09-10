@@ -4,15 +4,25 @@ import pytest
 
 import cloudmetrics
 
+
 def test_woi():
 
-    cloud_scalar = np.zeros((512,512))
-    
-    woi1, woi2, woi3, specs = cloudmetrics.woi(cloud_scalar, return_spectra=True)
+    # Horizontal stripes
+    cloud_scalar_h = np.zeros((512, 512))
+    cloud_scalar_h[::4, :] = 1
+    Ebar, Elbar, Esbar, Eld, Esd = cloudmetrics.compute_swt(
+        cloud_scalar_h, "periodic", "haar", 5
+    )
 
-    # Validate wavelet energy spectrum -> if correct total energy should be
-    # the same as in image space
-    Ewav = np.sum(specs)
-    Eimg = np.mean(cloud_scalar ** 2)
-    np.testing.assert_allclose(Ewav, Eimg, atol=1e-10)
-    
+    # All energy should be in horizontal direction
+    np.testing.assert_allclose((Eld + Esd)[1:], 0, atol=1e-10)
+
+    # Vertical stripes
+    cloud_scalar_v = np.zeros((512, 512))
+    cloud_scalar_v[:, ::4] = 1
+    Ebar, Elbar, Esbar, Eld, Esd = cloudmetrics.compute_swt(
+        cloud_scalar_v, "periodic", "haar", 5
+    )
+
+    # All energy should be in vertical direction
+    np.testing.assert_allclose((Eld + Esd)[[0, 2]], 0, atol=1e-10)
