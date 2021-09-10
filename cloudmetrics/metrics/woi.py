@@ -37,7 +37,7 @@ def _debug_plot(cloud_scalar, k, specs):
     plt.tight_layout()
     plt.show()
 
-def compute_swt(cloud_scalar, pad_method, wavelet, separation_scale, return_spectra=False, debug=False, ):
+def compute_swt(cloud_scalar, pad_method, wavelet, separation_scale, debug=False):
     """
     Computes the stationary/undecimated Direct Wavelet Transform 
     (SWT, https://pywavelets.readthedocs.io/en/latest/ref/swt-stationary-wavelet-transform.html#multilevel-2d-swt2)
@@ -78,8 +78,6 @@ def compute_swt(cloud_scalar, pad_method, wavelet, separation_scale, return_spec
         Sum of squared coefficients of the SWT, over scales smaller than
         `separation_scale` (exclusive), in the horizontal, vertical and diagonal
         direction
-    specs : List, optional
-        The raw output spectra from the SWT (see pywt docs for details)
     """
 
     # Pad if necessary
@@ -119,7 +117,7 @@ def compute_swt(cloud_scalar, pad_method, wavelet, separation_scale, return_spec
 
     # Decompose into ''large scale'' energy and ''small scale'' energy
     # Large scales are defined as 0 < k < separation_scale
-    specs = specs[1:]
+    specs = specs[1:] # Remove first (mean) component, as it always distributes over horizontal dimension
     specL = specs[:separation_scale, :]
     specS = specs[separation_scale:, :]
 
@@ -134,11 +132,7 @@ def compute_swt(cloud_scalar, pad_method, wavelet, separation_scale, return_spec
 
     if debug:
         _debug_plot(cloud_scalar, k, specs)
-
-    if return_spectra:
-        return Ebar, Elbar, Esbar, Eld, Esd, specs
-    else:
-        return Ebar, Elbar, Esbar, Eld, Esd
+    return Ebar, Elbar, Esbar, Eld, Esd
 
 def woi1(cloud_scalar, pad_method='periodic', wavelet='haar', separation_scale=5):
     """
