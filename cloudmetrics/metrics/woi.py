@@ -13,7 +13,6 @@ def _get_swt(cloud_scalar, pad_method, wavelet, separation_scale):
     # avoid recalculating it
     array_id = id(cloud_scalar)
     if array_id in _CACHED_VALUES:
-        print("Returning cached object", _CACHED_VALUES[array_id])
         return _CACHED_VALUES[array_id]
 
     swt = compute_swt(cloud_scalar, pad_method, wavelet, separation_scale)
@@ -241,8 +240,17 @@ def woi3(cloud_scalar, pad_method="periodic", wavelet="haar", separation_scale=5
     Ebar, Elbar, Esbar, Eld, Esd = _get_swt(
         cloud_scalar, pad_method, wavelet, separation_scale
     )
-    return (
-        1.0
-        / 3
-        * np.sqrt(np.sum(((Esd - Esbar) / Esbar) ** 2 + ((Eld - Elbar) / Elbar) ** 2))
-    )
+
+    if Elbar == 0:
+        woi3 = 1.0 / 3 * np.sum((Esd - Esbar) / Esbar)
+    elif Esbar == 0:
+        woi3 = 1.0 / 3 * np.sum((Eld - Elbar) / Elbar)
+    else:
+        woi3 = (
+            1.0
+            / 3
+            * np.sqrt(
+                np.sum(((Esd - Esbar) / Esbar) ** 2 + ((Eld - Elbar) / Elbar) ** 2)
+            )
+        )
+    return woi3
