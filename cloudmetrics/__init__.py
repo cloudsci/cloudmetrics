@@ -12,3 +12,4 @@ from .metrics.fourier import (
 )
 from .metrics.fractal_dimension import fractal_dimension
 from .metrics.woi import compute_swt, woi1, woi2, woi3
+from .metrics.cloud_fraction import cloud_fraction
