@@ -14,5 +14,4 @@ dependencies:
   - sphinx
   - sphinx-autosummary-accessors
   - sphinx-copybutton
-  - cloudmetrics
   - pip
