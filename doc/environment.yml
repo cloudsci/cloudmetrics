@@ -12,6 +12,7 @@ dependencies:
   - numpydoc
   - pytest
   - sphinx
+  - cython
   - sphinx-autosummary-accessors
   - sphinx-copybutton
   - pip
