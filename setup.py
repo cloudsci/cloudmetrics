@@ -3,16 +3,11 @@ from setuptools import setup, find_packages
 
 
 def _parse_requirements():
-    # TODO: ristretto is causing issues because the install fails when installing
-    # from pipy. Need to sort this out when we have completed refactoring. For now
-    # we'll just make sure setup.py can use ristretto as given in requirements.txt
     requirements = []
 
     for line in open("requirements.txt").readlines():
         if line.startswith("#"):
             continue
-        elif "git+" in line and "ristretto" in line:
-            line = f"ristretto @ {line}"
         requirements.append(line)
     return requirements
 
