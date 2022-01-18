@@ -2,9 +2,14 @@
 
 ## [Unreleased](https://github.com/cloudsci/cloudmetrics/tree/HEAD)
 
-[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.8.0...HEAD)
+[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.1.0...HEAD)
 
 *new features*
+
+- Change build setup to use `setup.cfg` and setup linting using
+  [pre-commit](https://pre-commit.com/#usage).
+  [\#38](https://github.com/cloudsci/cloudmetrics/pull/32). By Leif Denby
+  (@leifdenby)
 
 - Refactored wavelet organisation indices, now available as
   `woi1=cloudmetrics.woi1(...)`, `woi2=cloudmetrics.woi2(...)` and

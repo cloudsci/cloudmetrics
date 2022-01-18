@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-
 import cloudmetrics
 
 EXAMPLE_MASKS_STRING = """

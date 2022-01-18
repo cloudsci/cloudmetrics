@@ -5,3 +5,4 @@ __pyache__/
 .eggs/
 
 .*.sw*
+cloudmetrics.egg-info/
