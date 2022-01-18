@@ -25,7 +25,7 @@ def _evaluate_metric(metric_name, cloud_mask, periodic_domain, object_connectivi
         cloud_mask=cloud_mask, connectivity=object_connectivity
     )
 
-    return metric_function(cloud_object_labels=cloud_object_labels)
+    return metric_function(object_labels=cloud_object_labels)
 
 
 def num_clouds(cloud_mask, periodic_domain, object_connectivity=1):
@@ -34,7 +34,7 @@ def num_clouds(cloud_mask, periodic_domain, object_connectivity=1):
     objects
     """
     return _evaluate_metric(
-        metric_name="num_clouds",
+        metric_name="num_objects",
         cloud_mask=cloud_mask,
         periodic_domain=periodic_domain,
         object_connectivity=object_connectivity,
