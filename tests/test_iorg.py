@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import cloudmetrics
-from cloudmetrics.utils import create_circular_mask, make_periodic_field
+from cloudmetrics.utils import create_circular_mask, make_periodic_cloud_mask
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
@@ -19,7 +19,9 @@ def test_lattice_of_squares(periodic_domain, connectivity):
     cloud_mask[1::16, 1::16] = 1
 
     if periodic_domain:
-        cloud_mask = make_periodic_field(cloud_mask, con=connectivity)
+        cloud_mask = make_periodic_cloud_mask(
+            cloud_mask, object_connectivity=connectivity
+        )
 
     i_org = cloudmetrics.iorg(
         cloud_mask,
@@ -43,7 +45,9 @@ def test_random_points(periodic_domain, connectivity):
     cloud_mask[posScene[:, 0], posScene[:, 1]] = 1
 
     if periodic_domain:
-        cloud_mask = make_periodic_field(cloud_mask, con=connectivity)
+        cloud_mask = make_periodic_cloud_mask(
+            cloud_mask, object_connectivity=connectivity
+        )
 
     i_org = cloudmetrics.iorg(
         cloud_mask,
@@ -76,7 +80,9 @@ def test_single_uniform_circle(periodic_domain, connectivity):
     cloud_mask[cloud_mask > 1] = 1
 
     if periodic_domain:
-        cloud_mask = make_periodic_field(cloud_mask, con=connectivity)
+        cloud_mask = make_periodic_cloud_mask(
+            cloud_mask, object_connectivity=connectivity
+        )
 
     i_org = cloudmetrics.iorg(
         cloud_mask,
