@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from hilbertcurve.hilbertcurve import HilbertCurve
 
 import cloudmetrics
