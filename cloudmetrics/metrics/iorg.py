@@ -6,15 +6,15 @@ cloud mask, using an inhibition nearest neighbour distribution, as proposed
 by Benner & Curry (1998) and detailed in Antonissen (2019).
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from skimage.measure import label, regionprops
 
 from ..utils import find_nearest_neighbors
 
 
 def _debug_plot_1(field, placedCircles):
-    fig = plt.figure(figsize=(5, 5))
+    plt.figure(figsize=(5, 5))
     ax = plt.gca()
     ax.set_xlim((0, field.shape[1]))
     ax.set_ylim((0, field.shape[0]))

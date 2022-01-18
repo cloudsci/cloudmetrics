@@ -1,6 +1,6 @@
 import numpy as np
-from skimage.measure import label, regionprops
 from scipy.spatial import cKDTree
+from skimage.measure import label, regionprops
 
 
 def create_circular_mask(h, w):

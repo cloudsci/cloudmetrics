@@ -1,8 +1,8 @@
-import pytest
 import numpy as np
+import pytest
 
-from cloudmetrics.utils import create_circular_mask, make_periodic_field
 import cloudmetrics
+from cloudmetrics.utils import create_circular_mask, make_periodic_field
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])

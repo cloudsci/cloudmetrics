@@ -3,4 +3,4 @@ import cloudmetrics
 
 def test_dummy():
     # dummy test which always passes
-    pass
+    assert cloudmetrics is not None
