@@ -6,6 +6,10 @@
 
 *new features*
 
+- Refactored cloud-object metrics that cmopute geometry metrics of labelled
+  objects [\#23](https://github.com/cloudsci/cloudmetrics/pull/23). By Leif
+  Denby (@leifdenby)
+
 - Change build setup to use `setup.cfg` and setup linting using
   [pre-commit](https://pre-commit.com/#usage).
   [\#38](https://github.com/cloudsci/cloudmetrics/pull/32). By Leif Denby
