@@ -1,8 +1,8 @@
+from functools import partial
+from math import sqrt
+
 import numpy as np
 import pytest
-from math import sqrt
-from functools import partial
-
 
 import cloudmetrics
 

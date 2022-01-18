@@ -1,8 +1,8 @@
 """
 Routines for evaluating cloud object metrics directly from cloud masks
 """
-from ..objects import metrics as obj_metrics
 from ..objects import label as label_objects
+from ..objects import metrics as obj_metrics
 from ..utils import make_periodic_cloud_mask, print_object_labels
 
 
