@@ -161,3 +161,17 @@ def print_object_labels(cloud_object_labels):
         for j in range(ny):
             print(cloud_object_labels.astype(int)[i, j], end="")
         print()
+
+
+def compute_r_squared(func, coeffs, x, y):
+
+    # Pseudo-R^2 (equal to R^2 for linear regressions, not interpretable as
+    # variance fraction explained by model for non-linear regression, where
+    # it can be less than zero).
+
+    # fit values, and mean
+    yhat = func(x, coeffs)  # or [p(z) for z in x]
+    ybar = np.sum(y) / len(y)  # or sum(y)/len(y)
+    ssres = np.sum((y - yhat) ** 2)  # or sum([ (yihat - ybar)**2 for yihat in yhat])
+    sstot = np.sum((y - ybar) ** 2)  # or sum([ (yi - ybar)**2 for yi in y])
+    return 1 - ssres / sstot

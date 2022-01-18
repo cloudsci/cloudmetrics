@@ -6,6 +6,17 @@
 
 *new features*
 
+- Refactored wavelet organisation indices, now available as
+  `woi1=cloudmetrics.woi1(...)`, `woi2=cloudmetrics.woi2(...)` and
+  `woi3=cloudmetrics.woi3(...)`
+  [\#32](https://github.com/cloudsci/cloudmetrics/pull/32). By Leif Denby
+  & Martin Janssens (@leifdenby & @martinjanssens)
+
+- Refactored orientation metric calculation, now available as
+  `cloudmetrics.orientation(...)`
+  [\#24](https://github.com/cloudsci/cloudmetrics/pull/24). By Leif Denby
+  & Martin Janssens (@leifdenby & @martinjanssens)
+
 - Refactored "open sky" (clear sky) metric calculation, now available as
   `cloudmetrics.open_sky(...)`
   [\#22](https://github.com/cloudsci/cloudmetrics/pull/22). By Leif Denby
