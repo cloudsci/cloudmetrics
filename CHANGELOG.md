@@ -6,6 +6,12 @@
 
 *new features*
 
+- Refactored metrics into common api based on what input each operates on, so
+  that metrics are now in submodules called `cloudmetrics.mask`,
+  `cloudmetrics.objects` and `cloudmetrics.scalar`.
+  [\#39](https://github.com/cloudsci/cloudmetrics/pull/39). By Leif Denby
+  (@leifdenby)
+
 - Refactored cloud-object metrics that cmopute geometry metrics of labelled
   objects [\#23](https://github.com/cloudsci/cloudmetrics/pull/23). By Leif
   Denby (@leifdenby)

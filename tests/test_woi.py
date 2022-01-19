@@ -8,13 +8,13 @@ def test_woi():
     # Horizontal stripes
     cloud_scalar_h = np.zeros((512, 512))
     cloud_scalar_h[::4, :] = 1
-    Ebar, Elbar, Esbar, Eld, Esd = cloudmetrics.compute_swt(
+    Ebar, Elbar, Esbar, Eld, Esd = cloudmetrics.scalar.compute_swt(
         cloud_scalar_h, "periodic", "haar", 5
     )
 
-    woi1_h = cloudmetrics.woi1(cloud_scalar_h)
-    woi2_h = cloudmetrics.woi2(cloud_scalar_h)
-    woi3_h = cloudmetrics.woi3(cloud_scalar_h)
+    woi1_h = cloudmetrics.scalar.woi1(cloud_scalar_h)
+    woi2_h = cloudmetrics.scalar.woi2(cloud_scalar_h)
+    woi3_h = cloudmetrics.scalar.woi3(cloud_scalar_h)
 
     # All energy should be in small scales
     np.testing.assert_allclose(woi1_h, 0, atol=1e-10)
@@ -31,7 +31,7 @@ def test_woi():
     # Vertical stripes
     cloud_scalar_v = np.zeros((512, 512))
     cloud_scalar_v[:, ::4] = 1
-    Ebar, Elbar, Esbar, Eld, Esd = cloudmetrics.compute_swt(
+    Ebar, Elbar, Esbar, Eld, Esd = cloudmetrics.scalar.compute_swt(
         cloud_scalar_v, "periodic", "haar", 5
     )
 
@@ -42,6 +42,6 @@ def test_woi():
     cloud_scalar_vh = cloud_scalar_v.copy()
     cloud_scalar_vh[:256, :] = 0
 
-    woi3_vh = cloudmetrics.woi3(cloud_scalar_vh)
+    woi3_vh = cloudmetrics.scalar.woi3(cloud_scalar_vh)
 
     np.testing.assert_allclose(woi3_vh, 1.1462686724831639, atol=1e-10)

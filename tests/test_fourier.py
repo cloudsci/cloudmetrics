@@ -27,7 +27,7 @@ def test_spectral_noise(periodic_domain):
     rng = np.random.default_rng(0)
     cloud_scalar = rng.normal(0, amp, size=sh * sh).reshape((sh, sh))
 
-    k1d, psd_1d_rad, psd_1d_azi = cloudmetrics.compute_spectra(
+    k1d, psd_1d_rad, psd_1d_azi = cloudmetrics.scalar.compute_spectra(
         cloud_scalar,
         dx=dx,
         periodic_domain=periodic_domain,
@@ -36,11 +36,11 @@ def test_spectral_noise(periodic_domain):
     )
 
     variance_psd = np.sum(psd_1d_rad) * 2 * np.pi / (dx * sh)
-    anisotropy = cloudmetrics.spectral_anisotropy(psd_1d_azi)
-    beta = cloudmetrics.spectral_slope(k1d, psd_1d_rad)
-    beta_binned = cloudmetrics.spectral_slope_binned(k1d, psd_1d_rad)
-    l_spec_median = cloudmetrics.spectral_length_median(k1d, psd_1d_rad)
-    l_spec_moment = cloudmetrics.spectral_length_moment(k1d, psd_1d_rad)
+    anisotropy = cloudmetrics.scalar.spectral_anisotropy(psd_1d_azi)
+    beta = cloudmetrics.scalar.spectral_slope(k1d, psd_1d_rad)
+    beta_binned = cloudmetrics.scalar.spectral_slope_binned(k1d, psd_1d_rad)
+    l_spec_median = cloudmetrics.scalar.spectral_length_median(k1d, psd_1d_rad)
+    l_spec_moment = cloudmetrics.scalar.spectral_length_moment(k1d, psd_1d_rad)
 
     np.testing.assert_allclose(variance_psd, amp ** 2 * np.pi / 4, 0.01)
     np.testing.assert_allclose(anisotropy, 0.0, atol=0.1)

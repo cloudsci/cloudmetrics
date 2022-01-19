@@ -144,11 +144,14 @@ def _make_mask_function_name(metric_name):
     The naming convention for object functions that apply directly to masks is
         `{op}_{measure}` -> `{op}_cloud_{measure}`,
     e.g.
-        `num_objects` -> `num_cloud_objects`
+        `num_objects` -> `num_objects`
         `mean_perimeter_length` -> `mean_object_perimeter_length`
     """
+    if "objects" in metric_name:
+        return metric_name
+
     op, *measure_parts = metric_name.split("_")
-    return "_".join([op, "cloud"] + measure_parts)
+    return "_".join([op, "object"] + measure_parts)
 
 
 @pytest.mark.parametrize(
@@ -161,7 +164,7 @@ def test_metric_on_cloud_mask(
     # test for evaluation with `cloudmetrics.{op}_cloud_{measure}`, e.g.
     # `cloudmetrics.mean_cloud_length_scale`
     mask_metric_function_name = _make_mask_function_name(metric_name=metric_name)
-    metric_fn = getattr(cloudmetrics, mask_metric_function_name, None)
+    metric_fn = getattr(cloudmetrics.mask, mask_metric_function_name, None)
     if metric_fn is None:
         raise NotImplementedError(
             f"Function for computing metric `{mask_metric_function_name}` wasn't found"
