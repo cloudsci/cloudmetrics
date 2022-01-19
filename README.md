@@ -47,9 +47,9 @@ The table below gives an overview over which metrics are avaiable in the
 | `scalar.woi2` #2                   |        |                 | ✔️              |
 | `scalar.woi3` #2                   |        |                 | ✔️              |
 | `scalar.mean`                      | req'd  |                 | TODO           |
-| `scalar.var`                       | req'd  |                 | ✔️              |
-| `scalar.skew`                      | req'd  |                 | ✔️              |
-| `scalar.kurtosis`                  | req'd  |                 | ✔️              |
+| `scalar.var`                       | req'd  |                 | TODO           |
+| `scalar.skew`                      | req'd  |                 | TODO           |
+| `scalar.kurtosis`                  | req'd  |                 | TODO           |
 
 †: for convenience object-based scalars are also made avaiable to operate
 directly on masks, for example `objects.max_length_scale(object_labels=...)`
