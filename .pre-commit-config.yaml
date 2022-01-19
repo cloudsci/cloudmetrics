@@ -11,16 +11,16 @@ repos:
     rev: 5.10.1
     hooks:
       - id: isort
-        exclude: ^(Download/|Metrics/|Postprocess/|Preprocess/|main.py)
+        exclude: ^(Metrics/)
   # https://github.com/python/black#version-control-integration
   - repo: https://github.com/psf/black
     rev: 21.12b0
     hooks:
       - id: black
       - id: black-jupyter
-        exclude: ^(Download/|Metrics/|Postprocess/|Preprocess/|main.py)
+        exclude: ^(Metrics/)
   - repo: https://github.com/PyCQA/flake8
     rev: 4.0.1
     hooks:
       - id: flake8
-        exclude: ^(Download/|Metrics/|Postprocess/|Preprocess/|main.py)
+        exclude: ^(Metrics/)
