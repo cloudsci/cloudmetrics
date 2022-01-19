@@ -2,6 +2,7 @@ import inspect
 import sys
 
 from ._object_properties import _get_regionprops
+from .csd import csd  # noqa
 from .geometry import (  # noqa
     max_length_scale,
     mean_eccentricity,
