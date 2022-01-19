@@ -35,9 +35,10 @@ def fPerc(s, a, b, c):
     return a * s - b * np.log(s) + c
 
 
-def csd(object_labels, fit_kind, min_area=0):
+def csd(object_labels, fit_kind="powerlaw", min_area=0):
     """
-    Compute metric(s) for a single field
+    Computing attributes of the cloud size distribution (CSD). Has
+    two modes: Power law fit or percolation fit (Ding et al. 2014).
 
     Parameters
     ----------
@@ -76,7 +77,7 @@ def csd(object_labels, fit_kind, min_area=0):
     lavsl = lavsl[1:]
 
     # Regular fit
-    if fit_kind == "power":
+    if fit_kind == "powerlaw":
         csd_sl, csd_int = np.polyfit(np.log(lavsl), np.log(nssl), 1)
         # rSq = r_squared(np.log(lavsl), np.log(nssl), [csd_sl, csd_int])
         coeff = csd_sl
