@@ -1,21 +1,14 @@
 import inspect
 import sys
 
-from ._object_properties import _get_regionprops
+from .cop import cop  # noqa
 from .geometry import (  # noqa
     max_length_scale,
     mean_eccentricity,
     mean_length_scale,
     mean_perimeter_length,
 )
-
-
-def num_objects(object_labels):
-    """
-    Compute number of labelled objects
-    """
-    regions = _get_regionprops(object_labels=object_labels)
-    return len(regions)
+from .num_objects import num_objects  # noqa
 
 
 def _find_labelled_objects_functions():
