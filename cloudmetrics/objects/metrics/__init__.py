@@ -8,6 +8,7 @@ from .geometry import (  # noqa
     mean_length_scale,
     mean_perimeter_length,
 )
+from .rdf import rdf  # noqa
 
 
 def num_objects(object_labels):
