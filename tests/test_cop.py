@@ -3,7 +3,7 @@ import pytest
 
 import cloudmetrics
 
-from .scai_cop_examples import EXAMPLES
+from .cop_examples import EXAMPLES
 
 
 @pytest.mark.parametrize("test_name", EXAMPLES.keys())
