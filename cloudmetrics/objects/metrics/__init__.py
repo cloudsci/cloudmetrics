@@ -1,7 +1,6 @@
 import inspect
 import sys
 
-from .cop import cop  # noqa
 from .geometry import (  # noqa
     max_length_scale,
     mean_eccentricity,
@@ -9,6 +8,7 @@ from .geometry import (  # noqa
     mean_perimeter_length,
 )
 from .num_objects import num_objects  # noqa
+from .scai import scai  # noqa
 
 
 def _find_labelled_objects_functions():

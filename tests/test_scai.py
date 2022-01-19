@@ -3,11 +3,10 @@ import pytest
 
 import cloudmetrics
 
-from .scai_cop_examples import EXAMPLES
+from .scai_examples import EXAMPLES
 
 
-# @pytest.mark.parametrize("test_name", EXAMPLES.keys())
-@pytest.mark.parametrize("test_name", ["4a"])
+@pytest.mark.parametrize("test_name", EXAMPLES.keys())
 def test_a(test_name):
     cloud_mask, scai_value_true, _ = EXAMPLES[test_name]
     assert cloud_mask.shape == (20, 20)
