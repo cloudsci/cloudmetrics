@@ -10,7 +10,7 @@ def test_large_uniform_circle_orientation():
     """
     # 1. One large, uniform circle
     cloud_mask = cloudmetrics.utils.create_circular_mask(h=512, w=512)
-    orientation = cloudmetrics.orientation(cloud_mask=cloud_mask)
+    orientation = cloudmetrics.mask.orientation(cloud_mask=cloud_mask)
     np.testing.assert_allclose(orientation, 0.0, atol=0.1)
 
 
@@ -20,7 +20,7 @@ def test_randomly_scatterd_points():
     """
     scalars = np.random.random(size=(512, 512))
     cloud_mask = (scalars > 0.5).astype(int)
-    orientation = cloudmetrics.orientation(cloud_mask=cloud_mask)
+    orientation = cloudmetrics.mask.orientation(cloud_mask=cloud_mask)
     np.testing.assert_allclose(orientation, 0.0, atol=0.1)
 
 
@@ -31,5 +31,5 @@ def test_vertical_lines():
     cloud_mask = np.zeros((512, 512))
     cloud_mask[:, 250:251] = 1
 
-    orientation = cloudmetrics.orientation(cloud_mask=cloud_mask)
+    orientation = cloudmetrics.mask.orientation(cloud_mask=cloud_mask)
     np.testing.assert_almost_equal(orientation, 1.0)
