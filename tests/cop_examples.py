@@ -33,7 +33,6 @@ EXAMPLES["empty"] = [
 """
     ),
     float("nan"),
-    float("nan"),
 ]
 
 EXAMPLES["4a"] = [
