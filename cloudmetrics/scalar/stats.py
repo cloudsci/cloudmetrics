@@ -20,6 +20,7 @@ def mean(scalar_field, mask=None):
     if isinstance(mask, type(None)):
         return scalar_field.mean()
     else:
+        mask = mask.astype(bool)
         return scalar_field[mask].mean()
 
 
@@ -42,6 +43,7 @@ def var(scalar_field, mask=None):
     if isinstance(mask, type(None)):
         return scalar_field.var()
     else:
+        mask = mask.astype(bool)
         return scalar_field[mask].var()
 
 
@@ -64,6 +66,7 @@ def skew(scalar_field, mask=None):
     if isinstance(mask, type(None)):
         return sp.stats.skew(scalar_field)
     else:
+        mask = mask.astype(bool)
         return sp.stats.skew(scalar_field[mask])
 
 
@@ -86,4 +89,5 @@ def kurtosis(scalar_field, mask=None):
     if isinstance(mask, type(None)):
         return sp.stats.kurtosis(scalar_field)
     else:
+        mask = mask.astype(bool)
         return sp.stats.kurtosis(scalar_field[mask])
