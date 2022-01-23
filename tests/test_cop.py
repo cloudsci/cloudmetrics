@@ -16,4 +16,4 @@ def test_a(test_name):
         object_labels=cloud_labels, periodic_domain=False
     )
 
-    np.testing.assert_almost_equal(cop_value, cop_value_true, decimal=6)
+    np.testing.assert_almost_equal(cop_value, cop_value_true, decimal=4)
