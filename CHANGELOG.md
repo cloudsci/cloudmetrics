@@ -6,6 +6,11 @@
 
 *new features*
 
+- Refactored Convective Organisation Potential (COP) metric, now available in
+  `cloudmetrics.objects.cop` and `cloudmetrics.mask.cop_objects`
+  [\#41](https://github.com/cloudsci/cloudmetrics/pull/41) By Leif Denby &
+  Martin Janssens (@leifdenby & @martinjanssens)
+
 - Refactored metrics into common api based on what input each operates on, so
   that metrics are now in submodules called `cloudmetrics.mask`,
   `cloudmetrics.objects` and `cloudmetrics.scalar`.
