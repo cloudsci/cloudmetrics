@@ -37,12 +37,16 @@ def _make_mask_function_name(metric_name):
     e.g.
         `num_objects` -> `num_objects`
         `mean_perimeter_length` -> `mean_object_perimeter_length`
+        `cop` -> `cop_objects`
     """
     if "objects" in metric_name:
         return metric_name
 
     op, *measure_parts = metric_name.split("_")
-    return "_".join([op, "object"] + measure_parts)
+    if len(measure_parts) == 0:
+        return f"{op}_objects"
+    else:
+        return "_".join([op, "object"] + measure_parts)
 
 
 _OBJECT_FUNCTION_TEMPLATE = """
