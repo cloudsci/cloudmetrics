@@ -37,12 +37,16 @@ def _make_mask_function_name(metric_name):
     e.g.
         `num_objects` -> `num_objects`
         `mean_perimeter_length` -> `mean_object_perimeter_length`
+        `cop` -> `cop_objects`
     """
     if "objects" in metric_name:
         return metric_name
 
     op, *measure_parts = metric_name.split("_")
-    return "_".join([op, "object"] + measure_parts)
+    if len(measure_parts) == 0:
+        return f"{op}_objects"
+    else:
+        return "_".join([op, "object"] + measure_parts)
 
 
 _OBJECT_FUNCTION_TEMPLATE = """
@@ -61,6 +65,7 @@ def _make_mask_function_strings():
     for (metric_name, fn) in obj_metrics.ALL_METRIC_FUNCTIONS.items():
         metric_docstring = fn.__doc__.strip()
         function_name = _make_mask_function_name(metric_name=metric_name)
+        print(function_name)
         metric_docstring = metric_docstring[0].lower() + metric_docstring[1:]
         docstring = f"Identify individual objects in the mask and {metric_docstring}"
         mask_function_str = _OBJECT_FUNCTION_TEMPLATE.format(
