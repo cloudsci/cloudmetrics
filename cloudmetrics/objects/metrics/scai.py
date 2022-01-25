@@ -1,13 +1,11 @@
 import numpy as np
-import scipy as sc
 import scipy.spatial.distance as sd
-from scipy.spatial.distance import pdist
 from scipy.stats.mstats import gmean
 
 from ._object_properties import _get_objects_property
 
 
-def scai1(
+def scai(
     object_labels,
     min_area=0,
     periodic_domain=False,
@@ -89,42 +87,3 @@ def scai1(
     if return_nn_dist:
         return scai, D0
     return scai
-
-
-def scai2(object_labels, min_area=0, periodic_domain=False, return_nn_dist=False):
-    cloudmask = object_labels > 0
-    area = _get_objects_property(object_labels=object_labels, property_name="area")
-    centroids = _get_objects_property(
-        object_labels=object_labels, property_name="centroid"
-    )
-
-    connectivity = 1
-
-    # number of cloud clusters
-    N = len(area)
-
-    # potential maximum of N depending on cloud connectivity
-    N_max = np.sum(~np.isnan(cloudmask)) / 2
-    if connectivity == 2:
-        N_max = np.sum(~np.isnan(cloudmask)) / 4
-
-    # distance between points (center of mass of clouds) in pairs
-    di = pdist(centroids, "euclidean")
-    # order-zero diameter
-    D0 = sc.stats.mstats.gmean(di)
-    print(di)
-
-    # characteristic length of the domain (in pixels): diagonal of box
-    L = np.sqrt(cloudmask.shape[0] ** 2 + cloudmask.shape[1] ** 2)
-
-    print("L", L)
-    print("Nmax", N_max)
-
-    scai = N / N_max * D0 / L * 1000
-
-    if return_nn_dist:
-        return scai, D0
-    return scai
-
-
-scai = scai1
