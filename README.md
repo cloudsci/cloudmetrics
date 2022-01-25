@@ -28,7 +28,7 @@ The table below gives an overview over which metrics are avaiable in the
 | `mask.open_sky`                    | ✔️      |                 |                |
 | `mask.orientation`                 | ✔️      |                 |                |
 | `mask.network_nn_dist`             | TODO   |                 |                |
-| `mask.cop`                         | TODO   | TODO            |                |
+| `mask.cop`                         | (✔️)†   | ✔️               |                |
 | `mask.csd`                         | TODO   | TODO            |                |
 | `objects.iorg`                     | ✔️#1    | TODO            |                |
 | `objects.iorg_poisson`             | (✔️)†   | ✔️               |                |
