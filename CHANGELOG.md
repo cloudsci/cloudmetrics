@@ -6,6 +6,17 @@
 
 *new features*
 
+- Add metrics for statistical reductions of scalar fields (either globally or
+  masked) available as `cloudmetrics.scalar.mean`, `cloudmetrics.scalar.var`,
+  `cloudmetrics.scalar.skew` and `cloudmetrics.scalar.kurtosis`
+  [\#46](https://github.com/cloudsci/cloudmetrics/pull/46) By Leif Denby &
+  Martin Janssens (@leifdenby & @martinjanssens)
+
+- Refactored Convective Organisation Potential (COP) metric, now available in
+  `cloudmetrics.objects.cop` and `cloudmetrics.mask.cop_objects`
+  [\#41](https://github.com/cloudsci/cloudmetrics/pull/41) By Leif Denby &
+  Martin Janssens (@leifdenby & @martinjanssens)
+
 - Refactored metrics into common api based on what input each operates on, so
   that metrics are now in submodules called `cloudmetrics.mask`,
   `cloudmetrics.objects` and `cloudmetrics.scalar`.

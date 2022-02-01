@@ -1,6 +1,7 @@
 import inspect
 import sys
 
+from .cop import cop  # noqa
 from .geometry import (  # noqa
     max_length_scale,
     mean_eccentricity,
@@ -17,9 +18,21 @@ def _find_labelled_objects_functions():
     that look like they operate on labelled objects
     """
 
+    def _num_args_without_default_value(fn_sig):
+        return len(
+            [
+                param
+                for param in fn_sig.parameters.values()
+                if param.default is inspect._empty
+            ]
+        )
+
     def _takes_object_labels_kwarg(fn):
         fn_sig = inspect.signature(fn)
-        return "object_labels" in fn_sig.parameters and len(fn_sig.parameters) == 1
+        return (
+            "object_labels" in fn_sig.parameters
+            and _num_args_without_default_value(fn_sig) == 1
+        )
 
     fns = [
         (fn_name, fn)
