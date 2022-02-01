@@ -30,15 +30,23 @@ def test_resolution_doubling():
     assert mask_halfdx.shape == (2 * nx, 2 * ny)
 
     cloud_labels = cloudmetrics.objects.label(cloud_mask=mask, connectivity=1)
+    dx = 1.0
     scai_value = cloudmetrics.objects.scai(
-        object_labels=cloud_labels, periodic_domain=False, dx=1.0
+        object_labels=cloud_labels, periodic_domain=False, dx=dx
     )
 
     cloud_labels = cloudmetrics.objects.label(cloud_mask=mask_halfdx, connectivity=1)
+    dx2 = 0.5
     scai_value_halfdx = cloudmetrics.objects.scai(
         object_labels=cloud_labels,
         periodic_domain=False,
-        dx=2.0,  # XXX: I feel like this should be dx=0.5 for the SCAI values to be equal, no?
+        dx=dx2,
     )
 
-    np.testing.assert_almost_equal(scai_value, scai_value_halfdx)
+    # NB: SCAI isn't resolution independent. Instead, from the same domain sampled
+    # at two different resolutions the value of SCAI will increase with dx^2.
+    # To correct for this we here scale the SCAI values by 1/dx^2 for the
+    # examples
+    np.testing.assert_almost_equal(
+        scai_value / dx ** 2.0, scai_value_halfdx / dx2 ** 2.0
+    )

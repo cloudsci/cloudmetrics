@@ -15,8 +15,14 @@ def scai(
 ):
     """
     compute the Simple Convective Aggregation Index (SCAI)
-    (https://doi.org/10.1175/JCLI-D-11-00258.1)
+    (Tobin et al 2012, https://doi.org/10.1175/JCLI-D-11-00258.1)
     from a cloud mask, assuming distances are in pixels
+
+    NB: SCAI isn't resolution independent. Instead, from the same domain
+    sampled at two different resolutions the value of SCAI will increase with
+    dx^2. To correct for you should scale the SCAI value by 1/dx^2. See
+    detailed discussion in
+    https://github.com/cloudsci/cloudmetrics/pull/42#issuecomment-1021156313
 
     Parameters
     ----------
