@@ -1,7 +1,7 @@
 from ._object_properties import _get_regionprops
 
 
-def num_objects(object_labels):
+def num_objects(object_labels, periodic_domain=False):
     """
     Compute number of labelled objects
     """
