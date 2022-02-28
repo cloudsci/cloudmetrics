@@ -22,7 +22,7 @@ def test_lattice_of_squares(periodic_domain, connectivity):
         mask = make_periodic_mask(mask, object_connectivity=connectivity)
 
     i_org = cloudmetrics.mask.iorg(
-        mask=mask,
+        mask,
         periodic_domain=periodic_domain,
         connectivity=connectivity,
         area_min=0,
@@ -46,7 +46,7 @@ def test_random_points(periodic_domain, connectivity):
         mask = make_periodic_mask(mask, object_connectivity=connectivity)
 
     i_org = cloudmetrics.mask.iorg(
-        mask=mask,
+        mask,
         periodic_domain=periodic_domain,
         connectivity=connectivity,
         area_min=0,
@@ -64,8 +64,8 @@ def test_single_uniform_circle(periodic_domain, connectivity):
     # 3. One large, uniform circle with noise around it
     mask = np.zeros((512, 512))
     maw = 128
-    mask = create_circular_mask(maw, maw).astype(int)
-    mask[:maw, :maw] = mask
+    mask_circle = create_circular_mask(maw, maw).astype(int)
+    mask[:maw, :maw] = mask_circle
     # mask[maw-20:2*maw-20,maw-50:2*maw-50] = mask;
     tadd = np.random.rand(maw, maw)
     ind = np.where(tadd > 0.4)
@@ -79,7 +79,7 @@ def test_single_uniform_circle(periodic_domain, connectivity):
         mask = make_periodic_mask(mask, object_connectivity=connectivity)
 
     i_org = cloudmetrics.mask.iorg(
-        mask=mask,
+        mask,
         periodic_domain=periodic_domain,
         connectivity=connectivity,
         area_min=0,
