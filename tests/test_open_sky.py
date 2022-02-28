@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-
 import cloudmetrics
 
 EXAMPLE_MASKS_STRING = """
@@ -37,7 +36,7 @@ EXAMPLE_MASK = _parse_example_mask(EXAMPLE_MASKS_STRING)
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
 def test_open_sky(periodic_domain):
-    os_max, os_avg = cloudmetrics.open_sky(
+    os_max, os_avg = cloudmetrics.mask.open_sky(
         cloud_mask=EXAMPLE_MASK, periodic_domain=periodic_domain
     )
 

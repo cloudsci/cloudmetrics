@@ -98,8 +98,8 @@ def open_sky(cloud_mask, periodic_domain=False, debug=False):
 
 
 def _debug_plot(cloud_mask, osc, wmax, nmax, emax, smax):
-    import matplotlib.pyplot as plt
     import matplotlib.patches as patches
+    import matplotlib.pyplot as plt
 
     plt.figure()
     ax = plt.gca()
