@@ -16,7 +16,7 @@ def scai(
     """
     compute the Simple Convective Aggregation Index (SCAI)
     (Tobin et al 2012, https://doi.org/10.1175/JCLI-D-11-00258.1)
-    from a cloud mask, assuming distances are in pixels
+    from a (cloud) mask, assuming distances are in pixels
 
     NB: SCAI isn't resolution independent. Instead, from the same domain
     sampled at two different resolutions the value of SCAI will increase with
@@ -27,7 +27,7 @@ def scai(
     Parameters
     ----------
     object_labels : numpy array of shape (npx,npx) - npx is number of pixels
-        Cloud mask field.
+        2D Field with numbered object labels.
     min_area : int
         Minimum area (in pixels) an object must have. Default is 0.
     periodic_domain : bool (optional)

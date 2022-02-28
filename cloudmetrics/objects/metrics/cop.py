@@ -12,8 +12,8 @@ def cop(object_labels, min_area=0, periodic_domain=False):
     Parameters
     ----------
     object_labels : numpy array of shape (npx,npx) - npx is number of pixels
-                    Cloud mask field.
-    min_area : Minimum cloud size (in number of pixels) considered in
+                    2D Field with numbered object labels.
+    min_area : Minimum object size (in number of pixels) considered in
                computing metric
 
     Returns

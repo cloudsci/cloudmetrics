@@ -14,13 +14,13 @@ def create_circular_mask(h, w):
     return mask
 
 
-def make_periodic_mask(field, object_connectivity):
+def make_periodic_mask(mask, object_connectivity):
     """
-    Apply periodic BCs to cloud mask fields by:
+    Apply periodic BCs to (cloud) mask fields by:
 
     1. doubling the domain in x- and y-direction by padding with zeros
-    2. identifying individual clouds in the mask
-    3. moving the clouds that wrap the west and north boundaries to the south
+    2. identifying individual objects in the mask
+    3. moving the objects that wrap the west and north boundaries to the south
        and east so that they are unwrapped into contiguous regions in the
        returned mask
 
@@ -29,11 +29,11 @@ def make_periodic_mask(field, object_connectivity):
     Parameters
     ----------
     field : (npx,npx) numpy array
-        Cloud mask field (no other cloud field accepted!).
+        (Cloud) mask field
 
     Returns
     -------
-    Field of (2*npx,2*npx), with cloud objects that cross boundaries translated
+    Field of (2*npx,2*npx), with (cloud) objects that cross boundaries translated
     to contiguous structures crossing the northern/eastern boundaries.
 
     """
@@ -41,103 +41,107 @@ def make_periodic_mask(field, object_connectivity):
     # Questions remaining:
     # - How to handle regions whose cog lies outside the original image?
 
-    ny, nx = field.shape
+    ny, nx = mask.shape
 
     # Create array with extra cells in y and x direction to handle periodic BCs
-    cld = np.zeros((2 * ny, 2 * nx))
+    mask_periodic = np.zeros((2 * ny, 2 * nx))
 
-    # set clouds mask
-    cld[:ny, :nx] = field.copy()
+    # set periodic (cloud) mask
+    mask_periodic[:ny, :nx] = mask.copy()
 
-    # Label connected regions of cloudy pixels
-    cld_lbl, nlbl = label(cld, connectivity=object_connectivity, return_num=True)
+    # Label connected regions in the mask
+    mask_periodic_lbl, nlbl = label(
+        mask_periodic, connectivity=object_connectivity, return_num=True
+    )
 
-    # Find all clouds (labels) that cross the domain boundary in n-s direction.
-    # Save the labels of the cloudy region at both the southern border
-    # (clouds_to_move_north) and at the northern border (clouds_in_the_north)
+    # Find all object (labels) that cross the domain boundary in n-s direction.
+    # Save the labels of the masked region at both the southern border
+    # (objects_to_move_north) and at the northern border (objects_in_the_north)
     y0, y1 = 0, ny - 1
-    clouds_to_move_north = []
-    clouds_in_the_north = []
+    objects_to_move_north = []
+    objects_in_the_north = []
     for ix in range(nx):
         if (
-            cld_lbl[y0, ix] > 0
-            and cld_lbl[y1, ix] > 0
-            and cld_lbl[y0, ix] != cld_lbl[y1, ix]
-            and cld_lbl[y0, ix]
+            mask_periodic_lbl[y0, ix] > 0
+            and mask_periodic_lbl[y1, ix] > 0
+            and mask_periodic_lbl[y0, ix] != mask_periodic_lbl[y1, ix]
+            and mask_periodic_lbl[y0, ix]
         ):
-            clouds_to_move_north += [cld_lbl[y0, ix]]
-            clouds_in_the_north += [cld_lbl[y1, ix]]
+            objects_to_move_north += [mask_periodic_lbl[y0, ix]]
+            objects_in_the_north += [mask_periodic_lbl[y1, ix]]
 
-    # Find all clouds (labels) that cross the domain boundary in e-w direction.
-    # Save the labels of the cloudy region at both the western border
-    # (clouds_to_move_east) and at the western border (clouds_in_the_east)
+    # Find all objects (labels) that cross the domain boundary in e-w direction.
+    # Save the labels of the masked region at both the western border
+    # (objects_to_move_east) and at the western border (objects_in_the_east)
     x0, x1 = 0, nx - 1
-    clouds_to_move_east = []
-    clouds_in_the_east = []
+    objects_to_move_east = []
+    objects_in_the_east = []
     for iy in range(ny):
         if (
-            cld_lbl[iy, x0] > 0
-            and cld_lbl[iy, x1] > 0
-            and cld_lbl[iy, x0] != cld_lbl[iy, x1]
+            mask_periodic_lbl[iy, x0] > 0
+            and mask_periodic_lbl[iy, x1] > 0
+            and mask_periodic_lbl[iy, x0] != mask_periodic_lbl[iy, x1]
         ):
-            clouds_to_move_east += [cld_lbl[iy, x0]]
-            clouds_in_the_east += [cld_lbl[iy, x1]]
+            objects_to_move_east += [mask_periodic_lbl[iy, x0]]
+            objects_in_the_east += [mask_periodic_lbl[iy, x1]]
 
-    # Move all cloud parts in the west(south) that are connected to cloud parts
+    # Move all objects in the west(south) that are connected to masked parts
     # in the east(north) towards to east(north) beyond the boundaries of the
     # original domain.
-    regions = regionprops(cld_lbl)
-    for cloud in np.unique(cld_lbl):
-        # Loop over all identified cloud clusters
+    regions = regionprops(mask_periodic_lbl)
+    for obj in np.unique(mask_periodic_lbl):
+        # Loop over all identified objects
         shift_y, shift_x = 0, 0
 
-        if cloud in clouds_to_move_north:
-            # Clouds region connects to cloud region at the northern boundary
+        if obj in objects_to_move_north:
+            # object connects to region at the northern boundary
             # and will be moved north
             shift_y = ny
             if (
-                clouds_in_the_north[clouds_to_move_north.index(cloud)]
-                in clouds_to_move_east
+                objects_in_the_north[objects_to_move_north.index(obj)]
+                in objects_to_move_east
             ):
-                # The connected cloud in the north will be moved east:
+                # The connected object in the north will be moved east:
                 # diagonal crossing
                 shift_x = nx
 
-        if cloud in clouds_to_move_east:
+        if obj in objects_to_move_east:
             shift_x = nx
             if (
-                clouds_in_the_east[clouds_to_move_east.index(cloud)]
-                in clouds_to_move_north
+                objects_in_the_east[objects_to_move_east.index(obj)]
+                in objects_to_move_north
             ):
                 shift_y = ny
 
-        if cloud in clouds_in_the_north:
+        if obj in objects_in_the_north:
             if (
-                clouds_to_move_north[clouds_in_the_north.index(cloud)]
-                in clouds_to_move_east
+                objects_to_move_north[objects_in_the_north.index(obj)]
+                in objects_to_move_east
             ):
-                # Cloud is connnected to a cloud region in the south, but that
-                # cloud region will also be moved eastward
+                # Object is connnected to a region in the south, but that
+                # region will also be moved eastward
                 shift_x = nx
-        if cloud in clouds_in_the_east:
+        if obj in objects_in_the_east:
             if (
-                clouds_to_move_east[clouds_in_the_east.index(cloud)]
-                in clouds_to_move_north
+                objects_to_move_east[objects_in_the_east.index(obj)]
+                in objects_to_move_north
             ):
-                # Cloud is connnected to a cloud region in the west, but that
-                # cloud region will also be moved northward
+                # object is connnected to a region in the west, but that
+                # region will also be moved northward
                 shift_y = ny
 
-        # Shift the clouds
+        # Shift the objects
         if shift_y > 0 or shift_x > 0:
-            # Cloud should be shifted in east-west and/or north-south direction
-            region = regions[cloud - 1]
+            # Object should be shifted in east-west and/or north-south direction
+            region = regions[obj - 1]
             # Remove from current position
-            cld_lbl[region.coords[:, 0], region.coords[:, 1]] = 0
+            mask_periodic_lbl[region.coords[:, 0], region.coords[:, 1]] = 0
             # Put in new position
-            cld_lbl[region.coords[:, 0] + shift_y, region.coords[:, 1] + shift_x] = 1
+            mask_periodic_lbl[
+                region.coords[:, 0] + shift_y, region.coords[:, 1] + shift_x
+            ] = 1
 
-    return np.where(cld_lbl > 0, 1, 0)
+    return np.where(mask_periodic_lbl > 0, 1, 0)
 
 
 def find_nearest_neighbors(data, size=None):
@@ -150,7 +154,7 @@ def find_nearest_neighbors(data, size=None):
 
 def print_object_labels(object_labels):
     """
-    debugging function to print a cloud-mask or cloud-object labels
+    debugging function to print a (cloud) mask or (cloud) object labels
     """
     if np.max(object_labels) > 9:
         raise NotImplementedError

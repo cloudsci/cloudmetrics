@@ -11,15 +11,15 @@ def open_sky(mask, periodic_domain=False, debug=False):
 
     The method analyses rectangular reference areas in the scene defined by
     four extrema in east, west, north and south.  These points are the distance
-    from each cloud-free point to the nearest cloudy pixel in each direction.
-    The largest and average such area are both returned as metrics for the size
-    of the scene's voids (contiguous, cloud-free areas).
+    from each pixel where the mask is 0, to the nearest pixel in each direction
+    where the mask is 1. The largest and average such area are both returned as
+    metrics for the size of the scene's voids (contiguous areas where the mask is 0).
 
     Parameters
     ----------
     mask:            numpy array of shape (npx,npx) - npx is number of pixels
                      (cloud) mask field.
-    periodic_domain: whether the provided cloud mask is on a periodic domain
+    periodic_domain: whether the provided (cloud) mask is on a periodic domain
                      (for example from a LES simulation)
     debug:           whether to produce debugging plot
 
@@ -32,20 +32,20 @@ def open_sky(mask, periodic_domain=False, debug=False):
     a_os_max = 0
     a_os_avg = 0
     for i in range(mask.shape[0]):  # rows
-        cl_ew = np.where(mask[i, :] == 1)[0]  # cloudy pixels
+        cl_ew = np.where(mask[i, :] == 1)[0]  # pixels where mask=1
         for j in range(mask.shape[1]):  # cols
             if mask[i, j] != 1:
 
                 # FIXME for speed -> do this once and store
                 cl_ns = np.where(mask[:, j] == 1)[0]
 
-                ws = np.where(cl_ew < j)[0]  # west side cloudy pixels
+                ws = np.where(cl_ew < j)[0]  # west side mask=1 pixels
                 es = np.where(cl_ew > j)[0]  # east side
                 ns = np.where(cl_ns < i)[0]  # north side
                 ss = np.where(cl_ns > i)[0]  # south side
 
                 # West side
-                if ws.size == 0:  # if no cloudy points left of this pixel
+                if ws.size == 0:  # if no pixels left of this pixel have mask=1
                     if periodic_domain and es.size != 0:
                         w = cl_ew[es[-1]] - mask.shape[1]
                     else:
