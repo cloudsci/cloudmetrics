@@ -5,11 +5,20 @@
 in this directory with filename starting with `test_` is considered a test
 and will be run. These tests are run automatically on all pull-requests
 against the git repository at https://github.com/cloudsci/cloudmetrics and
-can be run locally with `pytest` from the root of the repository:
+can be run locally with `pytest` from the root of the repository.
+
+Everything needed to get a working developing environment set up is stored
+inside `setup.cfg` can be installed with pip by calling:
 
 ```bash
-pip install pytest
-python -m pytest
+python -m pip install -e ".[dev]"
+```
+
+Linting is done with [pre-commit](https://pre-commit.com/), run the following
+command to have linting run automatically for each git commit:
+
+```bash
+pre-commit install
 ```
 
 If the computer you are running on has multiple CPUs it can be advantageous to
@@ -18,7 +27,7 @@ first need to install `pytest-xdist` and run pytest with `-n` to indicate the
 number of parallel workers:
 
 ```bash
-pip install pytest-xdist
+python -m pip install pytest-xdist
 python -m pytest -n <n_cpus>
 ```
 

@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from hilbertcurve.hilbertcurve import HilbertCurve
 
 import cloudmetrics
@@ -23,7 +22,7 @@ def test_hilbert_curve():
     cloud_mask[coords[:, 0], coords[:, 1]] = 1
     cloud_mask[coords_av[:, 0], coords_av[:, 1]] = 1
 
-    fractal_dim = cloudmetrics.fractal_dimension(cloud_mask=cloud_mask)
+    fractal_dim = cloudmetrics.mask.fractal_dimension(cloud_mask=cloud_mask)
 
     np.testing.assert_allclose(fractal_dim, 2.0, atol=1e-4)
 
@@ -37,7 +36,7 @@ def test_random():
     cloud_mask[cloud_mask > 0.5] = 1
     cloud_mask[cloud_mask <= 0.5] = 0
 
-    fractal_dim = cloudmetrics.fractal_dimension(cloud_mask=cloud_mask)
+    fractal_dim = cloudmetrics.mask.fractal_dimension(cloud_mask=cloud_mask)
 
     np.testing.assert_allclose(fractal_dim, 2.0, atol=1e-4)
 
@@ -50,6 +49,6 @@ def test_line():
     cloud_mask = np.zeros((512, 512))
     cloud_mask[:, 250:252] = 1
 
-    fractal_dim = cloudmetrics.fractal_dimension(cloud_mask=cloud_mask)
+    fractal_dim = cloudmetrics.mask.fractal_dimension(cloud_mask=cloud_mask)
 
     np.testing.assert_allclose(fractal_dim, 1.0, atol=1e-4)

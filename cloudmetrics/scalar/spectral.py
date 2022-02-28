@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy import fftpack, ndimage, linalg
+import numpy as np
+from scipy import fftpack, linalg, ndimage
 from scipy.optimize import curve_fit
+
 from ..utils import compute_r_squared
 
 
