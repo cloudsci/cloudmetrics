@@ -58,8 +58,11 @@
   [\#21](https://github.com/cloudsci/cloudmetrics/pull/21). By Leif Denby
   & Martin Janssens (@leifdenby & @martinjanssens)
 
+*maintenance*
+
 - Code cleanup and setup of continuous integration testing
-  [\#19](https://github.com/cloudsci/cloudmetrics/pull/19). By Leif Denby
+  [\#19](https://github.com/cloudsci/cloudmetrics/pull/19),
+  [\#55](https://github.com/cloudsci/cloudmetrics/pull/55). By Leif Denby
   (@leifdenby)
 
 
