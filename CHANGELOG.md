@@ -58,6 +58,12 @@
   [\#21](https://github.com/cloudsci/cloudmetrics/pull/21). By Leif Denby
   & Martin Janssens (@leifdenby & @martinjanssens)
 
+- Refactored spectral metric calculation, now available to calculate all
+  spectral metrics as `cloudmetrics.scalar.compute_all_spectral(...)`
+  [\#30](https://github.com/cloudsci/cloudmetrics/pull/30),
+  [\#36](https://github.com/cloudsci/cloudmetrics/pull/36). By Leif Denby
+  & Martin Janssens (@leifdenby & @martinjanssens)
+
 *maintenance*
 
 - ci action to automatically deploy releases on github to pypi

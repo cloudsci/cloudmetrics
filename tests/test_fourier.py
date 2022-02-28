@@ -48,3 +48,24 @@ def test_spectral_noise(periodic_domain):
     np.testing.assert_allclose(beta_binned, 1, atol=0.1)
     np.testing.assert_allclose(l_spec_median, 2 * np.sqrt(3) * dx, atol=100)
     np.testing.assert_allclose(l_spec_moment, 3 * dx, atol=10)
+
+
+@pytest.mark.parametrize("periodic_domain", [True, False])
+@pytest.mark.parametrize("apply_detrending", [True, False])
+@pytest.mark.parametrize("window", [None, "Planck", "Welch", "Hann"])
+def test_spectral_if_runs(periodic_domain, apply_detrending, window):
+
+    amp = 1
+    dx = 1000
+    sh = 512
+
+    rng = np.random.default_rng(0)
+    cloud_scalar = rng.normal(0, amp, size=sh * sh).reshape((sh, sh))
+
+    k1d, psd_1d_rad, psd_1d_azi = cloudmetrics.scalar.compute_spectra(
+        cloud_scalar,
+        dx=dx,
+        periodic_domain=periodic_domain,
+        apply_detrending=apply_detrending,
+        window=window,
+    )

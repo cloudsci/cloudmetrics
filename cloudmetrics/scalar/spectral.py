@@ -324,7 +324,7 @@ def compute_spectra(
         cloud_scalar, bDt = _detrend(cloud_scalar, [X, Y])
 
     # Windowing
-    if periodic_domain:
+    if not periodic_domain:
         if window == "Planck":
             cloud_scalar = _planck_rad(cloud_scalar)  # Planck-taper window
         elif window == "Welch":
