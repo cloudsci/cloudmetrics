@@ -8,10 +8,10 @@ from .scai_examples import EXAMPLE_DOUBLING_RESOLUTION, EXAMPLES
 
 @pytest.mark.parametrize("test_name", EXAMPLES.keys())
 def test_a(test_name):
-    cloud_mask, scai_value_true = EXAMPLES[test_name]
-    assert cloud_mask.shape == (20, 20)
+    mask, scai_value_true = EXAMPLES[test_name]
+    assert mask.shape == (20, 20)
 
-    cloud_labels = cloudmetrics.objects.label(cloud_mask=cloud_mask, connectivity=1)
+    cloud_labels = cloudmetrics.objects.label(mask=mask, connectivity=1)
 
     scai_value, D0 = cloudmetrics.objects.scai(
         object_labels=cloud_labels,
@@ -29,13 +29,13 @@ def test_resolution_doubling():
     nx, ny = mask.shape
     assert mask_halfdx.shape == (2 * nx, 2 * ny)
 
-    cloud_labels = cloudmetrics.objects.label(cloud_mask=mask, connectivity=1)
+    cloud_labels = cloudmetrics.objects.label(mask=mask, connectivity=1)
     dx = 1.0
     scai_value = cloudmetrics.objects.scai(
         object_labels=cloud_labels, periodic_domain=False, dx=dx
     )
 
-    cloud_labels = cloudmetrics.objects.label(cloud_mask=mask_halfdx, connectivity=1)
+    cloud_labels = cloudmetrics.objects.label(mask=mask_halfdx, connectivity=1)
     dx2 = 0.5
     scai_value_halfdx = cloudmetrics.objects.scai(
         object_labels=cloud_labels,
