@@ -9,6 +9,7 @@ from .geometry import (  # noqa
     mean_perimeter_length,
 )
 from .num_objects import num_objects  # noqa
+from .scai import scai  # noqa
 
 
 def _find_labelled_objects_functions():
