@@ -16,7 +16,7 @@ def _evaluate_metric(metric_name, mask, periodic_domain, object_connectivity=1):
     except AttributeError:
         raise NotImplementedError(f"Object metric `{metric_name}` not implemented")
     if periodic_domain:
-        mask = make_periodic_mask(field=mask, object_connectivity=object_connectivity)
+        mask = make_periodic_mask(mask=mask, object_connectivity=object_connectivity)
         print_object_labels(mask)
 
     object_labels = label_objects(mask=mask, connectivity=object_connectivity)
