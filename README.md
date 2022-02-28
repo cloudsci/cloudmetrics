@@ -1,5 +1,7 @@
 # cloudmetrics
 
+[![cloudmetrics](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-conda.yml)
+
 > **NOTE**: this repository is currently undergoing refactoring to make
 the routines implemented more accessible by external tools and to ensure
 consistency. The version published in Janssens et al 2021 is [available

@@ -60,6 +60,10 @@
 
 *maintenance*
 
+- ci action to automatically deploy releases on github to pypi
+  [\#53](https://github.com/cloudsci/cloudmetrics/pull/53). By Leif Denby
+  (@leifdenby)
+
 - Code cleanup and setup of continuous integration testing
   [\#19](https://github.com/cloudsci/cloudmetrics/pull/19),
   [\#55](https://github.com/cloudsci/cloudmetrics/pull/55). By Leif Denby
