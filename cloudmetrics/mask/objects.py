@@ -3,7 +3,7 @@ Routines for evaluating cloud object metrics directly from cloud masks
 """
 from ..objects import label as label_objects
 from ..objects import metrics as obj_metrics
-from ..utils import make_periodic_cloud_mask, print_object_labels
+from ..utils import make_periodic_cloud_mask
 
 
 def _evaluate_metric(metric_name, cloud_mask, periodic_domain, object_connectivity=1):
@@ -19,13 +19,14 @@ def _evaluate_metric(metric_name, cloud_mask, periodic_domain, object_connectivi
         cloud_mask = make_periodic_cloud_mask(
             field=cloud_mask, object_connectivity=object_connectivity
         )
-        print_object_labels(cloud_mask)
 
     cloud_object_labels = label_objects(
         cloud_mask=cloud_mask, connectivity=object_connectivity
     )
 
-    return metric_function(object_labels=cloud_object_labels)
+    return metric_function(
+        object_labels=cloud_object_labels, periodic_domain=periodic_domain
+    )
 
 
 def _make_mask_function_name(metric_name):
