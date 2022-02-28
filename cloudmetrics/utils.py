@@ -14,7 +14,7 @@ def create_circular_mask(h, w):
     return mask
 
 
-def make_periodic_cloud_mask(field, object_connectivity):
+def make_periodic_mask(field, object_connectivity):
     """
     Apply periodic BCs to cloud mask fields by:
 
@@ -148,18 +148,18 @@ def find_nearest_neighbors(data, size=None):
     return nn_dist
 
 
-def print_object_labels(cloud_object_labels):
+def print_object_labels(object_labels):
     """
     debugging function to print a cloud-mask or cloud-object labels
     """
-    if np.max(cloud_object_labels) > 9:
+    if np.max(object_labels) > 9:
         raise NotImplementedError
 
-    nx, ny = cloud_object_labels.shape
+    nx, ny = object_labels.shape
 
     for i in range(nx):
         for j in range(ny):
-            print(cloud_object_labels.astype(int)[i, j], end="")
+            print(object_labels.astype(int)[i, j], end="")
         print()
 
 
