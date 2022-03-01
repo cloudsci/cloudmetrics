@@ -25,9 +25,7 @@ def _evaluate_metric(metric_name, cloud_mask, periodic_domain, object_connectivi
         cloud_mask=cloud_mask, connectivity=object_connectivity
     )
 
-    return metric_function(
-        object_labels=cloud_object_labels, periodic_domain=periodic_domain
-    )
+    return metric_function(object_labels=cloud_object_labels)
 
 
 def _make_mask_function_name(metric_name):

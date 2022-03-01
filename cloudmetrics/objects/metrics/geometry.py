@@ -3,41 +3,32 @@ import numpy as np
 from ._object_properties import _get_objects_area, _get_objects_property
 
 
-def mean_length_scale(object_labels, periodic_domain=False):
+def mean_length_scale(object_labels):
     """
-    Computes the mean area of all labeled objects, takes the square root, and
-    normalises with the a typical size of the `cloud_mask` from which `object_labels`
-    derives: `L=np.sqrt(cloud_mask.shape().prod())`. To get a length in physical
-    units, multiply the output of this function by `L` and the physical pixel size.
+    Computes the mean area of all labeled objects and takes the square root.
+    Gives a length in number of pixels. To get a length in physical units, multiply
+    the output of this function by the physical pixel size.
 
     Parameters
     ----------
     object_labels : 2-d numpy array
         Field of labelled objects.
-    periodic_domain : bool
-        Flag for periodic domains. Default is False.
 
     Returns
     -------
     mean_length : float
-        Normalised mean length scale.
+        Mean length scale.
 
     """
     objects_area = _get_objects_area(object_labels=object_labels)
-    if periodic_domain:
-        L = np.sqrt(np.prod(np.asarray(object_labels.shape) / 2))
-    else:
-        L = np.sqrt(np.prod(np.asarray(object_labels.shape)))
-    return np.sqrt(np.mean(objects_area)) / L
+    return np.sqrt(np.mean(objects_area))
 
 
-def max_length_scale(object_labels, periodic_domain=False):
+def max_length_scale(object_labels):
     """
-    Finds the area of the largest labeled object in the scene, takes its square
-    root, and normalises with the a typical size of the `cloud_mask` from
-    which `object_labels` derives: `L=np.sqrt(cloud_mask.shape().prod())`. To get
-    a length in physical units, multiply the output of this function by `L`
-    and the physical pixel size.
+    Finds the area of the largest labeled object in the scene and takes its square
+    root. Gives a length in number of pixels. To get a length in physical units,
+    multiply the output of this function by the physical pixel size.
 
     Parameters
     ----------
@@ -47,28 +38,22 @@ def max_length_scale(object_labels, periodic_domain=False):
     Returns
     -------
     max_length : float
-        Normalised maximum length scale.
+        Maximum length scale.
 
     """
     objects_area = _get_objects_area(object_labels=object_labels)
-    if periodic_domain:
-        L = np.sqrt(np.prod(np.asarray(object_labels.shape) / 2))
-    else:
-        L = np.sqrt(np.prod(np.asarray(object_labels.shape)))
-    return np.sqrt(np.max(objects_area)) / L
+    return np.sqrt(np.max(objects_area))
 
 
-def mean_eccentricity(object_labels, periodic_domain=False):
+def mean_eccentricity(object_labels):
     """
-    Computes the area-weighted, mean eccentricity of all labelled objects in the '
+    Computes the area-weighted, mean eccentricity of all labelled objects in the
     scene, approximated as ellipses.
 
     Parameters
     ----------
     object_labels : 2-d numpy array
         Field of labelled objects.
-    periodic_domain : bool
-        Flag for periodic domains. Default is False.
 
     Returns
     -------
@@ -85,12 +70,11 @@ def mean_eccentricity(object_labels, periodic_domain=False):
     return np.sum(objects_area * objects_ecc) / np.sum(objects_area)
 
 
-def mean_perimeter_length(object_labels, periodic_domain=False):
+def mean_perimeter_length(object_labels):
     """
-    Computes the mean perimeter length across all labeled objects, and normalises
-    with the a typical size of the `cloud_mask` from which `object_labels` derives:
-    `L=np.sqrt(cloud_mask.shape().prod())`. To get a length in physical units,
-    multiply the output of this function by `L` and the physical pixel size.
+    Computes the mean perimeter length across all labeled objects. Gives a length
+    in number of pixels. To get a length in physical units, multiply the output
+    of this function by the physical pixel size.
 
     NOTE: the perimeter is calculated as the "perimeter of object which
     approximates the contour as a line through the centers of border pixels
@@ -102,20 +86,14 @@ def mean_perimeter_length(object_labels, periodic_domain=False):
     ----------
     object_labels : 2-d numpy array
         Field of labelled objects.
-    periodic_domain : bool
-        Flag for periodic domains. Default is False.
 
     Returns
     -------
-    max_length : float
-        Nomralised mean perimeter length.
+    mean_perimeter_length : float
+        Mean perimeter length.
 
     """
     objects_perim = _get_objects_property(
         object_labels=object_labels, property_name="perimeter"
     )
-    if periodic_domain:
-        L = np.sqrt(np.prod(np.asarray(object_labels.shape) / 2))
-    else:
-        L = np.sqrt(np.prod(np.asarray(object_labels.shape)))
-    return np.mean(objects_perim) / L
+    return np.mean(objects_perim)

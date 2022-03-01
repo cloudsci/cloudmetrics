@@ -41,17 +41,17 @@ EXAMPLE_MASK_CORNERS_STRING = """
 EXAMPLE_MASK_CORNERS = _parse_example_mask(EXAMPLE_MASK_CORNERS_STRING)
 TRUE_VALUES_PERIODIC_DOMAIN[id(EXAMPLE_MASK_CORNERS)] = dict(
     num_objects=2,
-    max_length_scale=4.0 / 20.0,
+    max_length_scale=4.0,
     # 3^2 + 4^2 = 5^2 => (3^2 + 4^2)/2 = (5/sqrt(2))^2
-    mean_length_scale=5.0 / sqrt(2.0) / 20.0,
-    mean_perimeter_length=(2.0 * 4 + 3.0 * 4) / 2.0 / 20.0,
+    mean_length_scale=5.0 / sqrt(2.0),
+    mean_perimeter_length=(2.0 * 4 + 3.0 * 4) / 2.0,
     mean_eccentricity=0.0,
 )
 TRUE_VALUES_APERIODIC_DOMAIN[id(EXAMPLE_MASK_CORNERS)] = dict(
     num_objects=5,
-    max_length_scale=3.0 / 20.0,
-    mean_length_scale=sqrt((4 * 4.0 + 9) / 5.0) / 20.0,
-    mean_perimeter_length=(2.0 * 4 + 1.0 * 4 * 4) / 5.0 / 20.0,
+    max_length_scale=3.0,
+    mean_length_scale=sqrt((4 * 4.0 + 9) / 5.0),
+    mean_perimeter_length=(2.0 * 4 + 1.0 * 4 * 4) / 5.0,
     mean_eccentricity=0.0,
 )
 
