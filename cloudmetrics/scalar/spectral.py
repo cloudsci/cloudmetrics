@@ -46,7 +46,7 @@ def _get_psd_1d_radial(psd_2d, dx):
 
     kp = 2 * np.pi / L * ndimage.sum(r, r_int, index=rp) / Ns
 
-    psd_1d *= L ** 2 * kp / (2 * np.pi * N ** 2 * Ns)
+    psd_1d *= L**2 * kp / (2 * np.pi * N**2 * Ns)
 
     return psd_1d
 
@@ -192,7 +192,7 @@ def _debug_plot(
     axs[0].axis("off")
     axs[0].set_title("Clouds")
     axs[1].scatter(k1d, psd_1d, s=2.5, c="k")
-    axs[1].plot(k1d, b0 * k1d ** beta, c="k")
+    axs[1].plot(k1d, b0 * k1d**beta, c="k")
     axs[1].scatter(bins_centres, psd_bins, s=2.5, c="C1")
     axs[1].axvline(2 * np.pi / l_spec_mom, c="grey")
 
@@ -205,7 +205,7 @@ def _debug_plot(
     axs[1].set_xticks(locas)
     axs[1].set_xticklabels(labes)
 
-    axs[1].plot(bins_centres, b0_binned * bins_centres ** beta_binned, c="C1")
+    axs[1].plot(bins_centres, b0_binned * bins_centres**beta_binned, c="C1")
     axs[1].annotate("Direct", (0.8, 0.9), xycoords="axes fraction", fontsize=10)
     axs[1].annotate(
         r"$R^2$=" + str(round(r_squared_beta, 3)),
@@ -398,7 +398,7 @@ def spectral_slope(k1d, psd_1d_rad, return_intercept=False):
 
     # Unbiased fit of the power law
     _ = np.seterr(over="ignore")
-    [beta, b0], cov = curve_fit(lambda x, a, b: b * x ** a, k1d, psd_1d_rad)
+    [beta, b0], cov = curve_fit(lambda x, a, b: b * x**a, k1d, psd_1d_rad)
 
     if return_intercept:
         return beta, b0
@@ -444,7 +444,7 @@ def spectral_slope_binned(k1d, psd_1d_rad, n_bins=10, return_intercept=False):
         # Unbiased fit of the power law
         _ = np.seterr(over="ignore")
         [beta, b0], cov = curve_fit(
-            lambda x, a, b: b * x ** a, bins_centres[1:-1], psd_bins[1:-1]
+            lambda x, a, b: b * x**a, bins_centres[1:-1], psd_bins[1:-1]
         )
 
     else:
@@ -519,7 +519,7 @@ def spectral_length_moment(k1d, psd_1d_rad, order=1):
     """
 
     kmom = (
-        np.trapz(psd_1d_rad * k1d ** order, k1d) / np.trapz(psd_1d_rad, k1d)
+        np.trapz(psd_1d_rad * k1d**order, k1d) / np.trapz(psd_1d_rad, k1d)
     ) ** 1 / order
     l_spec = 2 * np.pi / kmom
 

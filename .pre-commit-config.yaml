@@ -14,7 +14,7 @@ repos:
         exclude: ^(Metrics/)
   # https://github.com/python/black#version-control-integration
   - repo: https://github.com/psf/black
-    rev: 21.12b0
+    rev: 22.3.0
     hooks:
       - id: black
       - id: black-jupyter

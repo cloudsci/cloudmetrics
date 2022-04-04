@@ -66,6 +66,11 @@
 
 *maintenance*
 
+- update `black` version to address recent breaking change in black's
+  dependency on `click`
+  [\#59](https://github.com/cloudsci/cloudmetrics/pull/59) By Leif Denby
+  (@leifdenby)
+
 - ci action to automatically deploy releases on github to pypi
   [\#53](https://github.com/cloudsci/cloudmetrics/pull/53). By Leif Denby
   (@leifdenby)
