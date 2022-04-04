@@ -7,9 +7,9 @@ import numpy as np
 from ..utils import compute_r_squared
 
 
-def _debug_plot(cloud_mask, sizes, counts, fractal_dim, r_squared):
+def _debug_plot(mask, sizes, counts, fractal_dim, r_squared):
     fig, ax = plt.subplots(ncols=2, figsize=(8.25, 4))
-    ax[0].imshow(cloud_mask, "gray")
+    ax[0].imshow(mask, "gray")
     ax[0].set_xticks([])
     ax[0].set_yticks([])
     ax[1].loglog(sizes, counts)
@@ -29,15 +29,15 @@ def _boxcount(Z, k):
     return len(np.where((S > 0) & (S < k * k))[0])
 
 
-def fractal_dimension(cloud_mask, debug=False):
+def fractal_dimension(mask, debug=False):
     """
-    Compute box-counting dimension from a binary cloud mask. Adapted from:
+    Compute box-counting dimension from a binary (cloud) mask. Adapted from:
     https://gist.github.com/rougier/e5eafc276a4e54f516ed5559df4242c0
 
     Parameters
     ----------
-    cloud_mask : numpy array of shape (npx,npx) - npx is number of pixels
-        Cloud mask field.
+    mask : numpy array of shape (npx,npx) - npx is number of pixels
+           (cloud) mask field
 
     Returns
     -------
@@ -45,7 +45,7 @@ def fractal_dimension(cloud_mask, debug=False):
         Fractal (box-counting) dimension.
 
     """
-    Z = cloud_mask < 0.5
+    Z = mask < 0.5
     p = min(Z.shape)
     n = 2 ** np.floor(np.log(p) / np.log(2))
     n = int(np.log(n) / np.log(2))  # Number of extractable boxes
@@ -62,6 +62,6 @@ def fractal_dimension(cloud_mask, debug=False):
     fractal_dim = -coeffs[0]
 
     if debug:
-        _debug_plot(cloud_mask, sizes, counts, fractal_dim, r_squared)
+        _debug_plot(mask, sizes, counts, fractal_dim, r_squared)
 
     return fractal_dim

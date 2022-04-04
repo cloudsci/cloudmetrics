@@ -1,6 +1,6 @@
 import skimage.measure as skmeasure
 
 
-def label(cloud_mask, connectivity=1):
-    cloud_object_labels = skmeasure.label(cloud_mask, connectivity=connectivity)
-    return cloud_object_labels
+def label(mask, connectivity=1):
+    object_labels = skmeasure.label(mask, connectivity=connectivity)
+    return object_labels

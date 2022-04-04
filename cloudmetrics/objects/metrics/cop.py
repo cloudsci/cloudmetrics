@@ -14,7 +14,8 @@ def cop(object_labels, min_area=0, periodic_domain=False):
     object_labels : numpy array of shape (npx,npx) - npx is number of pixels
                     containing object labels
     min_area : Minimum cloud size (in number of pixels) considered in
-               computing metric
+               2D Field with numbered object labels.
+    min_area : Minimum object size (in number of pixels) considered in
 
     Returns
     -------
@@ -43,7 +44,7 @@ def cop(object_labels, min_area=0, periodic_domain=False):
             pos_1d = pos[:, d][:, np.newaxis]  # shape (N, 1)
             dist_1d = sd.pdist(pos_1d)  # shape (N * (N - 1) // 2, )
             dist_1d[dist_1d > box * 0.5] -= box
-            dist_sq += dist_1d ** 2  # d^2 = dx^2 + dy^2 + dz^2
+            dist_sq += dist_1d**2  # d^2 = dx^2 + dy^2 + dz^2
         dist = np.sqrt(dist_sq)
     else:
         dist = sd.pdist(pos)

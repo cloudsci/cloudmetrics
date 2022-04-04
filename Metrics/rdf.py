@@ -81,7 +81,7 @@ def pair_correlation_2d(pos, S, r_max, dr, bc, normalize=True):
             pos_1d = pos[:, d][:, np.newaxis]  # shape (N, 1)
             dist_1d = pdist(pos_1d)  # shape (N * (N - 1) // 2, )
             dist_1d[dist_1d > box * 0.5] -= box
-            dist_sq += dist_1d ** 2
+            dist_sq += dist_1d**2
         dist = np.sqrt(dist_sq)
     else:
         dist = pdist(pos)
@@ -102,7 +102,7 @@ def pair_correlation_2d(pos, S, r_max, dr, bc, normalize=True):
         radii[i] = (edges[i] + edges[i + 1]) / 2.0
         rOuter = edges[i + 1]
         rInner = edges[i]
-        g_average[i] = np.mean(g[:, i]) / (np.pi * (rOuter ** 2 - rInner ** 2))
+        g_average[i] = np.mean(g[:, i]) / (np.pi * (rOuter**2 - rInner**2))
 
     return g_average, radii, int_ind
 

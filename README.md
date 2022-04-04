@@ -1,5 +1,7 @@
 # cloudmetrics
 
+[![cloudmetrics](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-conda.yml)
+
 > **NOTE**: this repository is currently undergoing refactoring to make
 the routines implemented more accessible by external tools and to ensure
 consistency. The version published in Janssens et al 2021 is [available
@@ -37,7 +39,7 @@ The table below gives an overview over which metrics are avaiable in the
 | `objects.mean_length_scale`        | ✔️†       | ✔️               |                |
 | `objects.mean_perimeter_length`    | ✔️†       | ✔️               |                |
 | `objects.rdf`                      | TODO     | TODO            |                |
-| `objects.scai`                     | TODO     | TODO            |                |
+| `objects.scai`                     | ✔️†       | ✔️               |                |
 | `scalar.spectral_anisotropy` #2    |          |                 | ✔️              |
 | `scalar.spectral_length_median`#2  |          |                 | ✔️              |
 | `scalar.spectral_length_moment,`#2 |          |                 | ✔️              |

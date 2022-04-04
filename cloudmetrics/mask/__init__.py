@@ -16,7 +16,7 @@ def _find_mask_functions():
 
     def _takes_object_mask_kwarg(fn):
         fn_sig = inspect.signature(fn)
-        return "cloud_mask" in fn_sig.parameters
+        return "mask" in fn_sig.parameters
 
     fns = [
         (fn_name, fn)

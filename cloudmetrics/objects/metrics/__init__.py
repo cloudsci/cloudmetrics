@@ -10,6 +10,7 @@ from .geometry import (  # noqa
 )
 from .iorg import iorg  # noqa
 from .num_objects import num_objects  # noqa
+from .scai import scai  # noqa
 
 
 def _find_labelled_objects_functions():

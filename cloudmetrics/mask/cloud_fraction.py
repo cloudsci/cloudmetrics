@@ -4,20 +4,20 @@
 import numpy as np
 
 
-def cloud_fraction(cloud_mask):
+def cloud_fraction(mask):
     """
     Compute metric(s) for a single field
 
     Parameters
     ----------
     field : numpy array of shape (npx,npx) - npx is number of pixels
-        Cloud mask field.
+            (cloud) mask field.
 
     Returns
     -------
     cf : float
-        Clod fraction.
+        cloud fraction.
 
     """
 
-    return np.count_nonzero(cloud_mask) / cloud_mask.size
+    return np.count_nonzero(mask) / mask.size
