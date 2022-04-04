@@ -116,7 +116,7 @@ class SCAI:
                 pos_1d = pos[:, d][:, np.newaxis]
                 dist_1d = sd.pdist(pos_1d)
                 dist_1d[dist_1d > box * 0.5] -= box
-                dist_sq += dist_1d ** 2
+                dist_sq += dist_1d**2
             dist = np.sqrt(dist_sq)
         else:
             dist = sd.pdist(pos)

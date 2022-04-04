@@ -8,7 +8,7 @@ def test_hilbert_curve():
     """
     Test on Hilbert curve (should have fracDim=2)
     """
-    cloud_mask = np.zeros((512, 512))
+    mask = np.zeros((512, 512))
     p_hil = 8
     n_hil = 2
     dist = 2 ** (p_hil * n_hil)
@@ -19,10 +19,10 @@ def test_hilbert_curve():
     coords = coords.astype(int)
     coords *= 2
     coords_av = ((coords[1:, :] + coords[:-1, :]) / 2).astype(int)
-    cloud_mask[coords[:, 0], coords[:, 1]] = 1
-    cloud_mask[coords_av[:, 0], coords_av[:, 1]] = 1
+    mask[coords[:, 0], coords[:, 1]] = 1
+    mask[coords_av[:, 0], coords_av[:, 1]] = 1
 
-    fractal_dim = cloudmetrics.mask.fractal_dimension(cloud_mask=cloud_mask)
+    fractal_dim = cloudmetrics.mask.fractal_dimension(mask=mask)
 
     np.testing.assert_allclose(fractal_dim, 2.0, atol=1e-4)
 
@@ -32,11 +32,11 @@ def test_random():
     Test on randomly scattered points (should have fractal_dim=2)
     """
 
-    cloud_mask = np.random.rand(512, 512)
-    cloud_mask[cloud_mask > 0.5] = 1
-    cloud_mask[cloud_mask <= 0.5] = 0
+    mask = np.random.rand(512, 512)
+    mask[mask > 0.5] = 1
+    mask[mask <= 0.5] = 0
 
-    fractal_dim = cloudmetrics.mask.fractal_dimension(cloud_mask=cloud_mask)
+    fractal_dim = cloudmetrics.mask.fractal_dimension(mask=mask)
 
     np.testing.assert_allclose(fractal_dim, 2.0, atol=1e-4)
 
@@ -46,9 +46,9 @@ def test_line():
     Test on vertical line (should have fractal_dim=1)
     """
 
-    cloud_mask = np.zeros((512, 512))
-    cloud_mask[:, 250:252] = 1
+    mask = np.zeros((512, 512))
+    mask[:, 250:252] = 1
 
-    fractal_dim = cloudmetrics.mask.fractal_dimension(cloud_mask=cloud_mask)
+    fractal_dim = cloudmetrics.mask.fractal_dimension(mask=mask)
 
     np.testing.assert_allclose(fractal_dim, 1.0, atol=1e-4)

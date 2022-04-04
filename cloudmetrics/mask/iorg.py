@@ -109,7 +109,7 @@ def _check_circle_overlap(new, placedCircles):
     for c in placedCircles:
         dx = min(abs(c.x - new.x), abs(c.xm - new.x), abs(c.xp - new.x))
         dy = min(abs(c.y - new.y), abs(c.ym - new.y), abs(c.yp - new.y))
-        if dx ** 2 + dy ** 2 <= (c.r + new.r) ** 2:
+        if dx**2 + dy**2 <= (c.r + new.r) ** 2:
             return True
     return False
 

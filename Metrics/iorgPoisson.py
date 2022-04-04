@@ -127,7 +127,7 @@ class IOrgPoisson:
         # Poisson
         lam = nnScene.shape[0] / (sh[0] * sh[1])
         binav = (bins[1:] + bins[:-1]) / 2
-        nndcdfRand = 1 - np.exp(-lam * np.pi * binav ** 2)
+        nndcdfRand = 1 - np.exp(-lam * np.pi * binav**2)
 
         ## Compute Iorg ##
         iOrg = np.trapz(nndcdfScene, nndcdfRand)
