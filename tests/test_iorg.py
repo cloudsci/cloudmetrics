@@ -12,7 +12,7 @@ def test_lattice_of_squares(periodic_domain, connectivity):
     1. Regular lattice of squares (iOrg -> 0)
     """
     # 1. Regular lattice of squares
-    mask = np.zeros((512, 512))
+    mask = np.zeros((128, 128))
     mask[::16, ::16] = 1
     mask[1::16, ::16] = 1
     mask[::16, 1::16] = 1

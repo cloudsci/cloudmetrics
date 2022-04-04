@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Methods for computing iorg organisation index
 """
-
-import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -129,25 +128,76 @@ class CloudCircle:
         self.r = r
 
 
+def _compute_inhibition_nearest_neighbour_distribution(
+    object_radii,
+    nn_window,
+    domain_shape,
+    dist_bins,
+    max_iterations=100,
+    debug=False,
+    random_seed=None,
+):
+    """
+    Compute a reference nearest-neigbour distance using the using the
+    inhibition nearest neighbour method as proposed by Benner & Curry (1998)
+    and detailed in Antonissen (2019).
+    """
+    rng = np.random.default_rng(random_seed)
+    # Attempt to randomly place all circles in scene without ovelapping
+    i = 0
+    placed_circles = []
+    place_count = 0
+    while i < len(object_radii) and place_count < max_iterations:
+        new = CloudCircle(object_radii[i], domain_shape, rng)
+        placeable = True
+
+        # If the circles overlap -> Place again
+        if _check_circle_overlap(new, placed_circles):
+            placeable = False
+            place_count += 1
+
+        if placeable:
+            placed_circles.append(new)
+            i += 1
+            place_count = 0
+
+    if place_count == max_iterations:
+        raise Exception("Unable to place circles in this image")
+
+    # Gather positions in array
+    pos_rand = np.zeros((len(placed_circles), 2))
+    for i, placed_circle in enumerate(placed_circles):
+        pos_rand[i, 0] = placed_circle.x
+        pos_rand[i, 1] = placed_circle.y
+
+    # If field has open bcs, do not compute nn distances using
+    # periodic bcs
+    nnd_rand = find_nearest_neighbors(pos_rand, nn_window)
+    nnd_cdf_rand = np.cumsum(np.histogram(nnd_rand, dist_bins)[0]) / len(nnd_rand)
+
+    return nnd_cdf_rand
+
+
 def iorg(
     object_labels,
     periodic_domain=False,
-    max_iterations=100,
-    num_placements=1,
-    random_seed=None,
     debug=False,
+    reference_dist="poisson",
+    reference_dist_kwargs={},
 ):
     """
     Compute the organisation index iOrg (Weger et al. 1992) from a labelled
-    object, using an inhibition nearest neighbour distribution, as proposed by
-    Benner & Curry (1998) and detailed in Antonissen (2019).
+    object,
 
     Parameters
     ----------
-    object_labels:   numpy array of shape (npx,npx) - npx is number of pixels
+    object_labels:   numpy array of shape (npx,npx) or (npx*2, npy*2) if
+                     `periodic_domain == True` - npx is number of pixels
                      containing object labels
     periodic_domain: whether the provided cloud mask is on a periodic domain
-                     (for example from a LES simulation)
+                     (for example from a LES simulation) it which case the
+                     provided labelled objects are assumed to originate from
+                     a domain in the top-left quarter of `object_labels`
     random_seed:     set the random seed used when placing circles
     max_iterations:  maximum number of iterations to use within the algorithm before giving up
     num_placements:  number of times the entire random circle placement routine
@@ -163,106 +213,67 @@ def iorg(
         distribution.
 
     """
-    rng = np.random.default_rng(random_seed)
 
     centroids = _get_objects_property(
         object_labels=object_labels, property_name="centroid"
     )
 
-    cd = _get_objects_property(
-        object_labels=object_labels, property_name="equivalent_diameter"
-    )
-    cr = cd / 2.0
-
-    cr = np.flip(np.sort(cr))  # Largest to smallest
-
     if centroids.shape[0] < 1:
         return float("nan")
 
-    if periodic_domain:
-        sh = [shd // 2 for shd in object_labels.shape]
-        if sh[0] != sh[1]:
-            raise NotImplementedError(sh)
+    print(periodic_domain)
 
-        sz = np.min(sh)  # FIXME won't work for non-square domains
+    if periodic_domain:
+        domain_shape = [shd // 2 for shd in object_labels.shape]
+        if domain_shape[0] != domain_shape[1]:
+            raise NotImplementedError(
+                "iorg calculation isn't currently implemented for non-square"
+                f"periodic domains {[domain_shape[0]]} != {domain_shape[1]}"
+            )
+
+        # won't work for non-square domains, if we fix this we can remove the
+        # above exception
+        nn_window = np.min(domain_shape)
 
         # Move centroids outside the original domain into original domain
-        centroids[centroids[:, 0] >= sh[1], 0] -= sh[1]
-        centroids[centroids[:, 0] < 0, 0] += sh[1]
-        centroids[centroids[:, 1] >= sh[0], 1] -= sh[0]
-        centroids[centroids[:, 1] < 0, 1] += sh[0]
+        centroids[centroids[:, 0] >= domain_shape[1], 0] -= domain_shape[1]
+        centroids[centroids[:, 0] < 0, 0] += domain_shape[1]
+        centroids[centroids[:, 1] >= domain_shape[0], 1] -= domain_shape[0]
+        centroids[centroids[:, 1] < 0, 1] += domain_shape[0]
     else:
-        sh = [shd for shd in object_labels.shape]
-        sz = None
+        domain_shape = list(object_labels.shape)
+        nn_window = None
 
-    nnd_scene = find_nearest_neighbors(centroids, sz)
+    nnd_scene = find_nearest_neighbors(centroids, nn_window)
 
-    iOrgs = np.zeros(num_placements)
-    for c in range(num_placements):
-        # Attempt to randomly place all circles in scene without ovelapping
-        i = 0
-        placed_circles = []
-        place_count = 0
-        while i < len(cr) and place_count < max_iterations:
-            new = CloudCircle(cr[i], sh, rng)
-            placeable = True
+    nbins = 10000
+    dist_bins = np.linspace(
+        0, np.sqrt(domain_shape[0] ** 2 + domain_shape[1] ** 2), nbins
+    )
+    nnd_pdf_scene = np.histogram(nnd_scene, dist_bins)[0]
+    nnd_cdf_scene = np.cumsum(nnd_pdf_scene) / len(nnd_scene)
 
-            # If the circles overlap -> Place again
-            if _check_circle_overlap(new, placed_circles):
-                placeable = False
-                place_count += 1
+    if reference_dist == "poisson":
+        lam = nnd_scene.shape[0] / (domain_shape[0] * domain_shape[1])
+        binav = (dist_bins[1:] + dist_bins[:-1]) / 2
+        nnd_cdf_rand = 1 - np.exp(-lam * np.pi * binav**2)
+    elif reference_dist == "inhibition_nn":
+        object_diameters = _get_objects_property(
+            object_labels=object_labels, property_name="equivalent_diameter"
+        )
+        object_radii = object_diameters / 2.0
+        object_radii = np.flip(np.sort(object_radii))  # Largest to smallest
+        nnd_cdf_rand = _compute_inhibition_nearest_neighbour_distribution(
+            object_radii=object_radii,
+            nn_window=nn_window,
+            domain_shape=domain_shape,
+            debug=debug,
+            dist_bins=dist_bins,
+            **reference_dist_kwargs,
+        )
+    else:
+        raise NotImplementedError(reference_dist)
 
-            if placeable:
-                placed_circles.append(new)
-                i += 1
-                place_count = 0
+    iorg_value = np.trapz(nnd_cdf_scene, nnd_cdf_rand)
 
-        if place_count == max_iterations:
-            # TODO should ideally start over again automatically
-            warnings.warn("Unable to place circles in this image")
-        else:
-            if debug:
-                cloud_mask = object_labels > 0
-                _debug_plot_1(field=cloud_mask, placed_circles=placed_circles)
-
-            # Compute the nearest neighbour distances
-
-            # Gather positions in array
-            pos_rand = np.zeros((len(placed_circles), 2))
-            for i in range(len(placed_circles)):
-                pos_rand[i, 0] = placed_circles[i].x
-                pos_rand[i, 1] = placed_circles[i].y
-
-            # If field has open bcs, do not compute nn distances using
-            # periodic bcs
-            nnd_rand = find_nearest_neighbors(pos_rand, sz)
-            # nndScene  = find_nearest_neighbors(pos_scene,sz)
-
-            # Old bin generation:
-            # nbins = len(nndRand)+1
-            # bmin = np.min([np.min(nndRand),np.min(nndScene)])
-            # bmax = np.max([np.max(nndRand),np.max(nndScene)])
-            # bins = np.linspace(bmin,bmax,nbins)
-
-            # New:
-            nbins = 10000  # <-- Better off fixing nbins at a very large number
-            bins = np.linspace(0, np.sqrt(sh[0] ** 2 + sh[1] ** 2), nbins)
-
-            nnd_cdf_rand = np.cumsum(np.histogram(nnd_rand, bins)[0]) / len(nnd_rand)
-            nnd_cdf_scene = np.cumsum(np.histogram(nnd_scene, bins)[0]) / len(nnd_scene)
-
-            # Compute Iorg
-            iOrg = np.trapz(nnd_cdf_scene, nnd_cdf_rand)
-            iOrgs[c] = iOrg
-            if debug:
-                _debug_plot_2(
-                    field=cloud_mask,
-                    pos_scene=centroids,
-                    pos_rand=pos_rand,
-                    nnd_cdf_rand=nnd_cdf_rand,
-                    nnd_cdf_scene=nnd_cdf_scene,
-                    iOrg=iOrg,
-                )
-
-    # print(iOrgs)
-    return np.mean(iOrgs)
+    return iorg_value
