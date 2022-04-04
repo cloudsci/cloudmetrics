@@ -21,35 +21,35 @@ The table below gives an overview over which metrics are avaiable in the
 `cloudmetrics` package and what input each metric takes.
 
 
-| function within `cloudmetrics`     | `mask` | `object_labels` | `scalar_field` |
-| ---------------------------------- | ------ | --------------- | -------------- |
-| `mask.cloud_fraction`              | ✔️      |                 |                |
-| `mask.fractal_dimension`           | ✔️      |                 |                |
-| `mask.open_sky`                    | ✔️      |                 |                |
-| `mask.orientation`                 | ✔️      |                 |                |
-| `mask.network_nn_dist`             | TODO   |                 |                |
-| `mask.cop`                         | TODO   | TODO            |                |
-| `mask.csd`                         | TODO   | TODO            |                |
-| `objects.iorg`                     | ✔️#1    | TODO            |                |
-| `objects.iorg_poisson`             | (✔️)†   | ✔️               |                |
-| `objects.max_length_scale`         | (✔️)†   | ✔️               |                |
-| `objects.mean_eccentricity`        | (✔️)†   | ✔️               |                |
-| `objects.mean_length_scale`        | (✔️)†   | ✔️               |                |
-| `objects.mean_perimeter_length`    | (✔️)†   | ✔️               |                |
-| `objects.rdf`                      | TODO   | TODO            |                |
-| `objects.scai`                     | TODO   | TODO            |                |
-| `scalar.spectral_anisotropy` #2    |        |                 | ✔️              |
-| `scalar.spectral_length_median`#2  |        |                 | ✔️              |
-| `scalar.spectral_length_moment,`#2 |        |                 | ✔️              |
-| `scalar.spectral_slope`#2          |        |                 | ✔️              |
-| `scalar.spectral_slope_binned`#2   |        |                 | ✔️              |
-| `scalar.woi1` #2                   |        |                 | ✔️              |
-| `scalar.woi2` #2                   |        |                 | ✔️              |
-| `scalar.woi3` #2                   |        |                 | ✔️              |
-| `scalar.mean`                      | req'd  |                 | TODO           |
-| `scalar.var`                       | req'd  |                 | TODO           |
-| `scalar.skew`                      | req'd  |                 | TODO           |
-| `scalar.kurtosis`                  | req'd  |                 | TODO           |
+| function within `cloudmetrics`     | `mask`   | `object_labels` | `scalar_field` |
+| ---------------------------------- | -------- | --------------- | -------------- |
+| `mask.cloud_fraction`              | ✔️        |                 |                |
+| `mask.fractal_dimension`           | ✔️        |                 |                |
+| `mask.open_sky`                    | ✔️        |                 |                |
+| `mask.orientation`                 | ✔️        |                 |                |
+| `mask.network_nn_dist`             | TODO     |                 |                |
+| `mask.cop`                         | ✔️†       | ✔️               |                |
+| `mask.csd`                         | TODO     | TODO            |                |
+| `objects.iorg`                     | ✔️ #1     | TODO            |                |
+| `objects.iorg_poisson`             | TODO     | TODO            |                |
+| `objects.max_length_scale`         | ✔️†       | ✔️               |                |
+| `objects.mean_eccentricity`        | ✔️†       | ✔️               |                |
+| `objects.mean_length_scale`        | ✔️†       | ✔️               |                |
+| `objects.mean_perimeter_length`    | ✔️†       | ✔️               |                |
+| `objects.rdf`                      | TODO     | TODO            |                |
+| `objects.scai`                     | ✔️†       | ✔️               |                |
+| `scalar.spectral_anisotropy` #2    |          |                 | ✔️              |
+| `scalar.spectral_length_median`#2  |          |                 | ✔️              |
+| `scalar.spectral_length_moment,`#2 |          |                 | ✔️              |
+| `scalar.spectral_slope`#2          |          |                 | ✔️              |
+| `scalar.spectral_slope_binned`#2   |          |                 | ✔️              |
+| `scalar.woi1`                      |          |                 | ✔️              |
+| `scalar.woi2`                      |          |                 | ✔️              |
+| `scalar.woi3`                      |          |                 | ✔️              |
+| `scalar.mean`                      | optional |                 | ✔️              |
+| `scalar.var`                       | optional |                 | ✔️              |
+| `scalar.skew`                      | optional |                 | ✔️              |
+| `scalar.kurtosis`                  | optional |                 | ✔️              |
 
 †: for convenience object-based scalars are also made avaiable to operate
 directly on masks, for example `objects.max_length_scale(object_labels=...)`

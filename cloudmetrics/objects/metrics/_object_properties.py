@@ -1,3 +1,5 @@
+from hashlib import sha1
+
 import numpy as np
 from skimage.measure import regionprops
 
@@ -5,9 +7,12 @@ _CACHED_VALUES = dict()
 
 
 def _get_regionprops(object_labels):
-    # use python's memory ID of the labels array for a poor-mans caching to
-    # avoid recalculation of the object properties
-    array_id = id(object_labels)
+    # need a unique ID for each object-label array (for a poor-mans
+    # caching to avoid recalculation of the object properties).
+    # Can't use python's memory ID of the labels array because these can
+    # sometimes get shared if numpy reuses the array memory, instead we compute
+    # a hash
+    array_id = sha1(object_labels)
     if array_id in _CACHED_VALUES:
         return _CACHED_VALUES[array_id]
 

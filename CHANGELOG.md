@@ -6,6 +6,23 @@
 
 *new features*
 
+- Refactor SCAI metric (now available as `cloudmetrics.objects.scai` and
+  `cloudmetrics.mask.scai_objects`) and add test which accounts for change in
+  SCAI value with resolution
+  [\#42](https://github.com/cloudsci/cloudmetrics/pull/42)
+  By Leif Denby & Martin Janssens (@leifdenby & @martinjanssens)
+
+- Add metrics for statistical reductions of scalar fields (either globally or
+  masked) available as `cloudmetrics.scalar.mean`, `cloudmetrics.scalar.var`,
+  `cloudmetrics.scalar.skew` and `cloudmetrics.scalar.kurtosis`
+  [\#46](https://github.com/cloudsci/cloudmetrics/pull/46) By Leif Denby &
+  Martin Janssens (@leifdenby & @martinjanssens)
+
+- Refactored Convective Organisation Potential (COP) metric, now available in
+  `cloudmetrics.objects.cop` and `cloudmetrics.mask.cop_objects`
+  [\#41](https://github.com/cloudsci/cloudmetrics/pull/41) By Leif Denby &
+  Martin Janssens (@leifdenby & @martinjanssens)
+
 - Refactored metrics into common api based on what input each operates on, so
   that metrics are now in submodules called `cloudmetrics.mask`,
   `cloudmetrics.objects` and `cloudmetrics.scalar`.
@@ -41,8 +58,11 @@
   [\#21](https://github.com/cloudsci/cloudmetrics/pull/21). By Leif Denby
   & Martin Janssens (@leifdenby & @martinjanssens)
 
+*maintenance*
+
 - Code cleanup and setup of continuous integration testing
-  [\#19](https://github.com/cloudsci/cloudmetrics/pull/19). By Leif Denby
+  [\#19](https://github.com/cloudsci/cloudmetrics/pull/19),
+  [\#55](https://github.com/cloudsci/cloudmetrics/pull/55). By Leif Denby
   (@leifdenby)
 
 
