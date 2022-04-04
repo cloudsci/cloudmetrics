@@ -9,6 +9,7 @@ from .geometry import (  # noqa
     mean_perimeter_length,
 )
 from .num_objects import num_objects  # noqa
+from .rdf import rdf_integral, rdf_max_value  # noqa
 from .scai import scai  # noqa
 
 

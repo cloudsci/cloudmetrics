@@ -6,3 +6,4 @@ __pycache__/
 
 .*.sw*
 cloudmetrics.egg-info/
+.ipynb_checkpoints/
