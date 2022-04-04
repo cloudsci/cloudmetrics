@@ -87,7 +87,7 @@ def compute_swt(scalar_field, pad_method, wavelet, separation_scale, debug=False
     for shi in scalar_field.shape:
         pow2 = np.log2(shi)
         pow2 = int(pow2 + 1) if pow2 % 1 > 0 else int(pow2)
-        pad = (2 ** pow2 - shi) // 2
+        pad = (2**pow2 - shi) // 2
         pad_sequence.append((pad, pad))
         scale_i.append(pow2)
     scalar_field = pywt.pad(scalar_field, pad_sequence, pad_method)

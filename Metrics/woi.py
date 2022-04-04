@@ -178,7 +178,7 @@ class WOI:
         # Validate wavelet energy spectrum -> if correct total energy should be
         # the same as in image space
         Ewav = np.sum(specs)
-        Eimg = np.mean(cwp ** 2)
+        Eimg = np.mean(cwp**2)
 
         diff = Ewav - Eimg
         if diff < 1e-10:

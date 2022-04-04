@@ -299,7 +299,7 @@ class FourierMetrics:
         lSpec = 1.0 / kcrit
 
         # Spectral length scale as Jonker et al. (2006), using moments:
-        kMom = np.trapz(psd1 * k1d ** self.expMom, k1d) / varTot
+        kMom = np.trapz(psd1 * k1d**self.expMom, k1d) / varTot
         lSpecMom = 1.0 / kMom
 
         # Plotting

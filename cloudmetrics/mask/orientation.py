@@ -4,7 +4,7 @@ import numpy as np
 def _raw_moment(data, i_order, j_order):
     nrows, ncols = data.shape
     y_indices, x_indicies = np.mgrid[:nrows, :ncols]
-    return (data * x_indicies ** i_order * y_indices ** j_order).sum()
+    return (data * x_indicies**i_order * y_indices**j_order).sum()
 
 
 def _moments_cov(data):
