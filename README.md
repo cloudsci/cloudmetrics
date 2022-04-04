@@ -60,7 +60,15 @@ can be called with a mask as `mask.max_object_length_scale(mask=...)`
 #1: needs refactoring to use general object labelling and make iorg method
 available to use on object-labels as input
 
-#2: need refactoring to take `scalar_field` as input
+#2: spectral metrics currently operate on the relevant power spectral densities,
+which must first be computed:
+```
+wavenumbers, psd_1d_radial, psd_1d_azimuthal = scalar.compute_spectra(...)
+spectral_length_moment = scalar.spectral_length_moment(wavenumbers, psd_1d_radial)
+```
+Alternatively, all spectral metrics can be computed simultaneously following the
+standard convention with `spectral_metrics = scalar.compute_all_spectral(scalar_field).
+need refactoring to take `scalar_field` as input
 
 # Installation
 
