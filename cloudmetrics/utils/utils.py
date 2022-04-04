@@ -3,15 +3,41 @@ from scipy.spatial import cKDTree
 from skimage.measure import label, regionprops
 
 
-def create_circular_mask(h, w):
-    center = (int(w / 2), int(h / 2))
-    radius = min(center[0], center[1], w - center[0], h - center[1])
+def find_nearest_neighbors(data, size=None):
+    # FIXME not sure if boxsize (periodic BCs) work if domain is not square
+    tree = cKDTree(data, boxsize=size)
+    dists = tree.query(data, 2)
+    nn_dist = np.sort(dists[0][:, 1])
+    return nn_dist
 
-    Y, X = np.ogrid[:h, :w]
-    dist_from_center = np.sqrt((X - center[0]) ** 2 + (Y - center[1]) ** 2)
 
-    mask = dist_from_center <= radius
-    return mask
+def print_object_labels(cloud_object_labels):
+    """
+    debugging function to print a cloud-mask or cloud-object labels
+    """
+    if np.max(cloud_object_labels) > 9:
+        raise NotImplementedError
+
+    nx, ny = cloud_object_labels.shape
+
+    for i in range(nx):
+        for j in range(ny):
+            print(cloud_object_labels.astype(int)[i, j], end="")
+        print()
+
+
+def compute_r_squared(func, coeffs, x, y):
+
+    # Pseudo-R^2 (equal to R^2 for linear regressions, not interpretable as
+    # variance fraction explained by model for non-linear regression, where
+    # it can be less than zero).
+
+    # fit values, and mean
+    yhat = func(x, coeffs)  # or [p(z) for z in x]
+    ybar = np.sum(y) / len(y)  # or sum(y)/len(y)
+    ssres = np.sum((y - yhat) ** 2)  # or sum([ (yihat - ybar)**2 for yihat in yhat])
+    sstot = np.sum((y - ybar) ** 2)  # or sum([ (yi - ybar)**2 for yi in y])
+    return 1 - ssres / sstot
 
 
 def make_periodic_cloud_mask(field, object_connectivity):
@@ -138,40 +164,3 @@ def make_periodic_cloud_mask(field, object_connectivity):
             cld_lbl[region.coords[:, 0] + shift_y, region.coords[:, 1] + shift_x] = 1
 
     return np.where(cld_lbl > 0, 1, 0)
-
-
-def find_nearest_neighbors(data, size=None):
-    # FIXME not sure if boxsize (periodic BCs) work if domain is not square
-    tree = cKDTree(data, boxsize=size)
-    dists = tree.query(data, 2)
-    nn_dist = np.sort(dists[0][:, 1])
-    return nn_dist
-
-
-def print_object_labels(cloud_object_labels):
-    """
-    debugging function to print a cloud-mask or cloud-object labels
-    """
-    if np.max(cloud_object_labels) > 9:
-        raise NotImplementedError
-
-    nx, ny = cloud_object_labels.shape
-
-    for i in range(nx):
-        for j in range(ny):
-            print(cloud_object_labels.astype(int)[i, j], end="")
-        print()
-
-
-def compute_r_squared(func, coeffs, x, y):
-
-    # Pseudo-R^2 (equal to R^2 for linear regressions, not interpretable as
-    # variance fraction explained by model for non-linear regression, where
-    # it can be less than zero).
-
-    # fit values, and mean
-    yhat = func(x, coeffs)  # or [p(z) for z in x]
-    ybar = np.sum(y) / len(y)  # or sum(y)/len(y)
-    ssres = np.sum((y - yhat) ** 2)  # or sum([ (yihat - ybar)**2 for yihat in yhat])
-    sstot = np.sum((y - ybar) ** 2)  # or sum([ (yi - ybar)**2 for yi in y])
-    return 1 - ssres / sstot

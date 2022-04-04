@@ -78,3 +78,8 @@ import cloudmetrics
 
 iorg = cloudmetrics.iorg(cloud_mask=da_cloudmask)
 ```
+
+# External libraries used
+
+- [rdfpy](https://github.com/by256/rdfpy) for estimating the radial
+  distribution function

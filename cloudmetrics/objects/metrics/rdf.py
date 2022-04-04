@@ -4,7 +4,9 @@ from scipy.spatial.distance import pdist, squareform
 from ._object_properties import _get_objects_property
 
 
-def pair_correlation_2d(pos, S, r_max, dr, periodic_domain, normalize=True):
+def pair_correlation_2d(
+    pos, domain_shape, dist_cutoff, dr, periodic_domain, normalize=True
+):
     """
     Pair correlation function, adapted from:
     https://github.com/cfinch/colloid/blob/master/adsorption/analysis.py
@@ -21,7 +23,7 @@ def pair_correlation_2d(pos, S, r_max, dr, periodic_domain, normalize=True):
     Arguments:
         pos             array of positions of shape (nPos,nDim), columns are
                         orderered x, y, ...
-        S               length of each side of the square region of the plane
+        domain_shape    domain shape
         r_max           distance from (open) boundary where objects are ignored
         dr              increment for increasing radius of annulus
         periodic_domain assume periodic boundary conditions if `True`
@@ -29,19 +31,24 @@ def pair_correlation_2d(pos, S, r_max, dr, periodic_domain, normalize=True):
         g(r)            a numpy array containing the correlation function g(r)
         radii           a numpy array containing the radii of the
                         annuli used to compute g(r)
-        reference_indices   indices of reference particles
     """
+    # work out
+    mins = np.min(pos, axis=0)
+    maxs = np.max(pos, axis=0)
+    # dimensions of box
+    dims = maxs - mins
+    r_max = (np.min(dims) / 2) * dist_cutoff
+
+    # Extract domain size
+    Sx, Sy = domain_shape
 
     # Number of particles in ring/area of ring/number of reference
     # particles/number density
     # area of ring = pi*(r_outer**2 - r_inner**2)
 
-    # Extract domain size
-    (Sy, Sx) = S if len(S) == 2 else (S, S)
-
     # Find particles which are close enough to the box center that a circle of radius
     # r_max will not cross any edge of the box, if no periodic bcs
-    if periodic_domain != "periodic":
+    if not periodic_domain:
         bools1 = pos[:, 0] > r_max  # Valid centroids from left boundary
         bools2 = pos[:, 0] < (Sx - r_max)  # Valid centroids from right boundary
         bools3 = pos[:, 1] > r_max  # Valid centroids from top boundary
@@ -50,30 +57,30 @@ def pair_correlation_2d(pos, S, r_max, dr, periodic_domain, normalize=True):
     else:
         int_ind = np.arange(pos.shape[0])
 
-    nCl = len(int_ind)
+    n_cl = len(int_ind)
     pos = pos[int_ind, :]
 
     # Make bins
     edges = np.arange(0.0, r_max + dr, dr)  # Annulus edges
-    nInc = len(edges) - 1
-    g = np.zeros([nCl, nInc])  # RDF for all interior particles
-    radii = np.zeros(nInc)
+    n_inc = len(edges) - 1
+    g_rdf = np.zeros([n_cl, n_inc])  # RDF for all interior particles
+    radii = np.zeros(n_inc)
 
     # Define normalisation based on the used region and particles
-    if periodic_domain == "periodic":
+    if periodic_domain:
         number_density = float(pos.shape[0]) / float((Sx * Sy))
     else:
         number_density = float(pos.shape[0]) / float(((Sx - r_max) * (Sy - r_max)))
 
     # Compute pairwise distances
-    if periodic_domain == "periodic":
-        dist_sq = np.zeros(nCl * (nCl - 1) // 2)  # to match the result of pdist
+    if periodic_domain:
+        dist_sq = np.zeros(n_cl * (n_cl - 1) // 2)  # to match the result of pdist
         for d in range(pos.shape[1]):
-            box = S[pos.shape[1] - d - 1]  # to match x,y ordering in pos
+            box = domain_shape[pos.shape[1] - d - 1]  # to match x,y ordering in pos
             pos_1d = pos[:, d][:, np.newaxis]  # shape (N, 1)
             dist_1d = pdist(pos_1d)  # shape (N * (N - 1) // 2, )
             dist_1d[dist_1d > box * 0.5] -= box
-            dist_sq += dist_1d ** 2
+            dist_sq += dist_1d**2
         dist = np.sqrt(dist_sq)
     else:
         dist = pdist(pos)
@@ -82,25 +89,25 @@ def pair_correlation_2d(pos, S, r_max, dr, periodic_domain, normalize=True):
     np.fill_diagonal(dist, 2 * r_max)  # Don't want distance to self to count
 
     # Count objects per ring
-    for p in range(nCl):
+    for p in range(n_cl):
         result, bins = np.histogram(dist[p, :], bins=edges)
         if normalize:
             result = result / number_density
-        g[p, :] = result
+        g_rdf[p, :] = result
 
     # Average g(r) for all interior particles and compute radii
-    g_average = np.zeros(nInc)
-    for i in range(nInc):
+    g_average = np.zeros(n_inc)
+    for i in range(n_inc):
         radii[i] = (edges[i] + edges[i + 1]) / 2.0
-        rOuter = edges[i + 1]
-        rInner = edges[i]
-        g_average[i] = np.mean(g[:, i]) / (np.pi * (rOuter ** 2 - rInner ** 2))
+        r_outer = edges[i + 1]
+        r_inner = edges[i]
+        g_average[i] = np.mean(g_rdf[:, i]) / (np.pi * (r_outer**2 - r_inner**2))
 
-    return g_average, radii, int_ind
+    return g_average, radii
 
 
 def _plot(field, rad, rdf, rdfM, rdfI, rdfD):
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt  # noqa
 
     axF = "axes fraction"
     fig, axs = plt.subplots(ncols=2, figsize=(8.5, 4))
@@ -116,61 +123,88 @@ def _plot(field, rad, rdf, rdfM, rdfI, rdfD):
     plt.show()
 
 
-def metric(object_labels, periodic_domain=False, r_max=20, dx=1, dr=1, min_area=0):
+def estimate_rdf(object_labels, periodic_domain=False, dist_cutoff=0.9, dr=1):
     """
-    Compute the Radial Distribution Function between objects (rdf)
-    and derived metrics, from a cloud mask. Can compute the maximum of the
-    RDF (rdfMax), the difference between minimum and maximum (rdfDiff). The
-    implementation is based off:
+    Compute discrete estimate of the Radial Distribution Function between
+    objects (rdf) and return its value at discrete distances (in pixel space).
+    To get the distribution in terms of real-space distance you should scale
+    the distance returned by the grid-spacing.
+
+    NOTE: the implementation assumes that the underlying grid of the
+    object-labels in isometric.
+
+    The implementation is based off:
     https://github.com/cfinch/colloid/blob/master/adsorption/analysis.py
 
     Parameters
     ----------
-    object_labels : numpy array of shape (npx,npx) - npx is number of pixels
-        Cloud mask field.
-    S     : Tuple of the input field's size (is different from field.shape
-            if periodic BCs are used)
-    r_max : How far away to compute the rdf FIXME This is sensitive to each case!!
-    dx    : pixel resolution
-    dr    : radial bin width
+    object_labels:
+        numpy array of shape (npx,npx) - npx is number of pixels Cloud mask
+        field.
+    dist_cutoff:
+        Maximum distance to compute radial distribution function over as
+        fraction of the largest pair-wise distance between any two objects
+    dr:
+        radial bin width
 
     Returns
     -------
-    rdfM : float
-        Maximum of the radial distribution function.
-    rdfI : float
-        Integral of the radial distribution function.
-    rdfD : float
-        Max-min difference of the radial distribution function.
-
+    rdf:
+        numpy array of RDF value estimates
+    pixel_dist:
+        numpy array of pixel-space distances where the RDF values were estimated
     """
-    raise NotImplementedError("not sure what value of S to use")
-    S = None
-    area = _get_objects_property(object_labels=object_labels, property_name="area")
+
     centroids = _get_objects_property(
         object_labels=object_labels, property_name="centroid"
     )
-
-    idx_large_objects = area > min_area
-    if np.count_nonzero(idx_large_objects) == 0:
-        return float("nan"), float("nan"), float("nan")
-
-    area = area[idx_large_objects]
-    pos = centroids[idx_large_objects, :]
+    if periodic_domain:
+        raise NotImplementedError("not sure what value of S to use")
+    else:
+        domain_shape = object_labels.shape
 
     # TODO set dr based on field size and object number, results are
     # sensitive to this
-    rdf, rad, tmp = pair_correlation_2d(
-        pos=pos,
-        S=S,
-        r_max=r_max,
+    rdf, pixel_dist = pair_correlation_2d(
+        pos=centroids,
+        dist_cutoff=dist_cutoff,
         dr=dr,
         periodic_domain=periodic_domain,
         normalize=True,
+        domain_shape=domain_shape,
     )
-    rad *= dx
-    rdfM = np.max(rdf)
-    rdfI = np.trapz(rdf, rad)
-    rdfD = np.max(rdf) - rdf[-1]
+    return rdf, pixel_dist
 
-    return rdfM, rdfI, rdfD
+
+_RDF_FUNC_DOCSTRING_TEMPLATE = """
+    Compute discrete estimate of the Radial Distribution Function between
+    objects (rdf) and compute the {metric} of this distribution
+"""
+
+
+def rdf_max_value(object_labels, periodic_domain=False, dist_cutoff=0.9, dr=1):
+    rdf, _ = estimate_rdf(
+        object_labels=object_labels,
+        periodic_domain=periodic_domain,
+        dist_cutoff=dist_cutoff,
+        dr=dr,
+    )
+    return np.max(rdf)
+
+
+rdf_max_value.__doc__ = _RDF_FUNC_DOCSTRING_TEMPLATE.format(metric="max-value")
+
+
+def rdf_integral(object_labels, periodic_domain=False, dist_cutoff=0.9, dx=1, dr=1):
+    rdf, pixel_dist = estimate_rdf(
+        object_labels=object_labels,
+        periodic_domain=periodic_domain,
+        dist_cutoff=dist_cutoff,
+        dr=dr,
+    )
+    rad = dx * pixel_dist
+
+    return np.trapz(rdf, rad)
+
+
+rdf_integral.__doc__ = _RDF_FUNC_DOCSTRING_TEMPLATE.format(metric="integral")

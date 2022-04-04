@@ -8,8 +8,8 @@ from .geometry import (  # noqa
     mean_length_scale,
     mean_perimeter_length,
 )
-from .rdf import rdf  # noqa
 from .num_objects import num_objects  # noqa
+from .rdf import rdf_integral, rdf_max_value  # noqa
 from .scai import scai  # noqa
 
 
