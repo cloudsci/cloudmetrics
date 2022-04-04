@@ -126,7 +126,7 @@ def metric(object_labels, periodic_domain=False, r_max=20, dx=1, dr=1, min_area=
 
     Parameters
     ----------
-    field : numpy array of shape (npx,npx) - npx is number of pixels
+    object_labels : numpy array of shape (npx,npx) - npx is number of pixels
         Cloud mask field.
     S     : Tuple of the input field's size (is different from field.shape
             if periodic BCs are used)
