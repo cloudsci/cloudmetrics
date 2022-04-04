@@ -8,22 +8,22 @@ import pywt
 _CACHED_VALUES = dict()
 
 
-def _get_swt(cloud_scalar, pad_method, wavelet, separation_scale):
+def _get_swt(scalar_field, pad_method, wavelet, separation_scale):
     # use python's memory ID of the swt dict for a poor-mans caching to
     # avoid recalculating it
-    array_id = id(cloud_scalar)
+    array_id = id(scalar_field)
     if array_id in _CACHED_VALUES:
         return _CACHED_VALUES[array_id]
 
-    swt = compute_swt(cloud_scalar, pad_method, wavelet, separation_scale)
+    swt = compute_swt(scalar_field, pad_method, wavelet, separation_scale)
     _CACHED_VALUES[array_id] = swt
     return swt
 
 
-def _debug_plot(cloud_scalar, k, specs):
+def _debug_plot(scalar_field, k, specs):
     labs = ["Horizontal", "Vertical", "Diagonal"]
     fig, axs = plt.subplots(ncols=2, figsize=(8, 4))
-    axs[0].imshow(cloud_scalar, "gist_ncar")
+    axs[0].imshow(scalar_field, "gist_ncar")
     axs[0].set_xticks([])
     axs[0].set_yticks([])
     axs[0].set_title("CWP")
@@ -38,7 +38,7 @@ def _debug_plot(cloud_scalar, k, specs):
     plt.show()
 
 
-def compute_swt(cloud_scalar, pad_method, wavelet, separation_scale, debug=False):
+def compute_swt(scalar_field, pad_method, wavelet, separation_scale, debug=False):
     """
     Computes the stationary/undecimated Direct Wavelet Transform
     (SWT, https://pywavelets.readthedocs.io/en/latest/ref/swt-stationary-wavelet-transform.html#multilevel-2d-swt2)
@@ -46,8 +46,8 @@ def compute_swt(cloud_scalar, pad_method, wavelet, separation_scale, debug=False
 
     Parameters
     ----------
-    cloud_scalar : numpy array of shape (npx,npx) - npx is number of pixels
-        Cloud scalar input.
+    scalar_field : numpy array of shape (npx,npx) - npx is number of pixels
+        (Cloud) scalar input.
     pad_method : string, optional
         Which type of padding to use,
     wavelet : string, optional
@@ -84,17 +84,17 @@ def compute_swt(cloud_scalar, pad_method, wavelet, separation_scale, debug=False
     # Pad if necessary
     pad_sequence = []
     scale_i = []
-    for shi in cloud_scalar.shape:
+    for shi in scalar_field.shape:
         pow2 = np.log2(shi)
         pow2 = int(pow2 + 1) if pow2 % 1 > 0 else int(pow2)
         pad = (2**pow2 - shi) // 2
         pad_sequence.append((pad, pad))
         scale_i.append(pow2)
-    cloud_scalar = pywt.pad(cloud_scalar, pad_sequence, pad_method)
+    scalar_field = pywt.pad(scalar_field, pad_sequence, pad_method)
 
     # Compute wavelet coefficients
     scale_max = np.max(scale_i)  # FIXME won't work for non-square scenes
-    coeffs = pywt.swt2(cloud_scalar, wavelet, scale_max, norm=True, trim_approx=True)
+    coeffs = pywt.swt2(scalar_field, wavelet, scale_max, norm=True, trim_approx=True)
 
     # Structure of coeffs:
     # - coeffs    -> list with n_scales indices. Each scale is a 2-power of
@@ -134,24 +134,24 @@ def compute_swt(cloud_scalar, pad_method, wavelet, separation_scale, debug=False
     Esd = np.sum(specS, axis=0)
 
     if debug:
-        _debug_plot(cloud_scalar, k, specs)
+        _debug_plot(scalar_field, k, specs)
     return Ebar, Elbar, Esbar, Eld, Esd
 
 
-def woi1(cloud_scalar, pad_method="periodic", wavelet="haar", separation_scale=5):
+def woi1(scalar_field, pad_method="periodic", wavelet="haar", separation_scale=5):
     """
     Computes the first Wavelet Organisation Index WOI1 proposed by
     Brune et al. (2018) https://doi.org/10.1002/qj.3409 from the stationary/undecimated
     Direct Wavelet Transform (https://pywavelets.readthedocs.io/en/latest/ref/swt-stationary-wavelet-transform.html#multilevel-2d-swt2)
     of a scalar field. Based off https://rdrr.io/cran/calcWOI/, but does not
-    mirror, taper or blow the `cloud_scalar` up. Instead, preprocessing the
-    `cloud_scalar` input is limited to padding fields that do not have
+    mirror, taper or blow the `scalar_field` up. Instead, preprocessing the
+    `scalar_field` input is limited to padding fields that do not have
     dimensions that are a power of 2 (all padding methods in pywt are available).
 
     Parameters
     ----------
-    cloud_scalar : numpy array of shape (npx,npx) - npx is number of pixels
-        Cloud scalar input. Can be any field of choice (Brune et al. (2018) use
+    scalar_field : numpy array of shape (npx,npx) - npx is number of pixels
+        (Cloud) scalar input. Can be any field of choice (Brune et al. (2018) use
         rain rates; Janssens et al. (2021) use liquid water path).
     periodic_domain : Bool, optional
         Whether the domain is periodic. If False, mirror the domain in all
@@ -174,12 +174,12 @@ def woi1(cloud_scalar, pad_method="periodic", wavelet="haar", separation_scale=5
         First wavelet organisation index.
     """
     Ebar, Elbar, Esbar, Eld, Esd = _get_swt(
-        cloud_scalar, pad_method, wavelet, separation_scale
+        scalar_field, pad_method, wavelet, separation_scale
     )
     return Elbar / Ebar
 
 
-def woi2(cloud_scalar, pad_method="periodic", wavelet="haar", separation_scale=5):
+def woi2(scalar_field, pad_method="periodic", wavelet="haar", separation_scale=5):
     """
     Computes the second Wavelet Organisation Index WOI2 proposed by
     Brune et al. (2018) https://doi.org/10.1002/qj.3409 (see :func:`cloudmetrics.metrics.woi1`
@@ -187,8 +187,8 @@ def woi2(cloud_scalar, pad_method="periodic", wavelet="haar", separation_scale=5
 
     Parameters
     ----------
-    cloud_scalar : numpy array of shape (npx,npx) - npx is number of pixels
-        Cloud scalar input.
+    scalar_field : numpy array of shape (npx,npx) - npx is number of pixels
+        (Cloud) scalar input.
     periodic_domain : Bool, optional
         Whether the domain is periodic.
     pad_method : string, optional
@@ -206,12 +206,12 @@ def woi2(cloud_scalar, pad_method="periodic", wavelet="haar", separation_scale=5
     """
 
     Ebar, Elbar, Esbar, Eld, Esd = _get_swt(
-        cloud_scalar, pad_method, wavelet, separation_scale
+        scalar_field, pad_method, wavelet, separation_scale
     )
-    return (Elbar + Esbar) / cloud_scalar[cloud_scalar > 0].size
+    return (Elbar + Esbar) / scalar_field[scalar_field > 0].size
 
 
-def woi3(cloud_scalar, pad_method="periodic", wavelet="haar", separation_scale=5):
+def woi3(scalar_field, pad_method="periodic", wavelet="haar", separation_scale=5):
     """
     Computes the second Wavelet Organisation Index WOI3 proposed by
     Brune et al. (2018) https://doi.org/10.1002/qj.3409 (see :func:`cloudmetrics.metrics.woi1`
@@ -219,8 +219,8 @@ def woi3(cloud_scalar, pad_method="periodic", wavelet="haar", separation_scale=5
 
     Parameters
     ----------
-    cloud_scalar : numpy array of shape (npx,npx) - npx is number of pixels
-        Cloud scalar input.
+    scalar_field : numpy array of shape (npx,npx) - npx is number of pixels
+        (Cloud) scalar input.
     periodic_domain : Bool, optional
         Whether the domain is periodic.
     pad_method : string, optional
@@ -238,7 +238,7 @@ def woi3(cloud_scalar, pad_method="periodic", wavelet="haar", separation_scale=5
     """
 
     Ebar, Elbar, Esbar, Eld, Esd = _get_swt(
-        cloud_scalar, pad_method, wavelet, separation_scale
+        scalar_field, pad_method, wavelet, separation_scale
     )
 
     if Elbar == 0:

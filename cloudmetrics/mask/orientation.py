@@ -20,18 +20,19 @@ def _moments_cov(data):
     return cov
 
 
-def orientation(cloud_mask, debug=False, periodic_domain=False):
+def orientation(mask, debug=False, periodic_domain=False):
     """
-    Compute a measure for a single cloud_mask's degree of directional alignment,
-    using the cloud_mask's raw image moment covariance matrix. Code based on:
-    https://github.com/alyssaq/blog/blob/master/posts/150114-054922_computing-the-axes-or-orientation-of-a-blob.md.
+    Compute a measure for a single (cloud) mask's degree of directional alignment,
+    using the (cloud) mask's raw image moment covariance matrix.
+
+    Code based on: https://github.com/alyssaq/blog/blob/master/posts/150114-054922_computing-the-axes-or-orientation-of-a-blob.md.
     Note that this function currently does not support periodic boundary
     conditions (use the wavelet-based orientation measure woi3 for such scenes).
 
     Parameters
     ----------
-    cloud_mask : numpy array of shape (npx,npx) - npx is number of pixels
-        Cloud mask field.
+    mask : numpy array of shape (npx,npx) - npx is number of pixels
+           (cloud) mask field.
 
     Returns
     -------
@@ -45,7 +46,7 @@ def orientation(cloud_mask, debug=False, periodic_domain=False):
     if periodic_domain:
         raise NotImplementedError(periodic_domain)
 
-    cov = _moments_cov(cloud_mask)
+    cov = _moments_cov(mask)
     if np.isnan(cov).any() or np.isinf(cov).any():
         return np.nan
 
@@ -53,12 +54,12 @@ def orientation(cloud_mask, debug=False, periodic_domain=False):
     orie = np.sqrt(1 - np.min(evals) / np.max(evals))
 
     if debug:
-        _debug_plot(cloud_mask=cloud_mask, evecs=evecs, orie=orie, evals=evals)
+        _debug_plot(mask=mask, evecs=evecs, orie=orie, evals=evals)
 
     return orie
 
 
-def _debug_plot(cloud_mask, evals, evecs, orie):
+def _debug_plot(mask, evals, evecs, orie):
     import matplotlib.pyplot as plt
 
     sort_indices = np.argsort(evals)[::-1]
@@ -67,12 +68,12 @@ def _debug_plot(cloud_mask, evals, evecs, orie):
     evalsn = evals[sort_indices] / evals[sort_indices][0]
 
     scale = 10
-    ox = int(cloud_mask.shape[1] / 2)
-    oy = int(cloud_mask.shape[0] / 2)
+    ox = int(mask.shape[1] / 2)
+    oy = int(mask.shape[0] / 2)
     lw = 5
 
     _, ax = plt.subplots()
-    ax.imshow(cloud_mask, "gray")
+    ax.imshow(mask, "gray")
     # plt.scatter(ox+x_v1*-scale*2,oy+y_v1*-scale*2,s=100)
     ax.plot(
         [ox - x_v1 * scale * evalsn[0], ox + x_v1 * scale * evalsn[0]],

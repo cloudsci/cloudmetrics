@@ -172,7 +172,7 @@ def _bin_average(k1d, psd_1d_rad, n_bins):
 
 
 def _debug_plot(
-    cloud_scalar,
+    scalar,
     k1d,
     psd_1d,
     b0,
@@ -188,9 +188,9 @@ def _debug_plot(
 ):
 
     fig, axs = plt.subplots(ncols=2, figsize=(8, 4))
-    axs[0].imshow(cloud_scalar, "gray")
+    axs[0].imshow(scalar, "gray")
     axs[0].axis("off")
-    axs[0].set_title("Clouds")
+    axs[0].set_title("Scalar field")
     axs[1].scatter(k1d, psd_1d, s=2.5, c="k")
     axs[1].plot(k1d, b0 * k1d**beta, c="k")
     axs[1].scatter(bins_centres, psd_bins, s=2.5, c="C1")
@@ -263,17 +263,17 @@ def _debug_plot(
 
 
 def compute_spectra(
-    cloud_scalar, dx=1, periodic_domain=False, apply_detrending=False, window=None
+    scalar_field, dx=1, periodic_domain=False, apply_detrending=False, window=None
 ):
     """
-    Compute energy-preserving 2D FFT of input cloud_scalar field, which is
+    Compute energy-preserving 2D FFT of input `scalar_field`, which is
     assued to be square, computes the spectral power of this field and
     decomposes this into radial and azimuthal power spectral densities.
 
     Parameters
     ----------
-    cloud_scalar : numpy array of shape (npx,npx) - npx is number of pixels
-            Cloud scalar field.
+    scalar_field : numpy array of shape (npx,npx) - npx is number of pixels
+            (Cloud) scalar field.
     dx : int, optional
         Horizontal (uniform) grid spacing, for computing wavenumbers. The
         default is 1.
@@ -294,15 +294,15 @@ def compute_spectra(
         Radial 1D wavenumbers of the FFT, whose wavelength is 2*pi/k1d. These are
         the coordinates at which psd_1d_rad is defined.
     psd_1d_rad: 1D numpy array
-        Radial 1D power spectral density of the cloud_scalar field.
+        Radial 1D power spectral density of the scalar_field.
     psd_1d_azi: 1D numpy array
-        Azimuthal 1D power spectral density of the cloud_scalar field.
+        Azimuthal 1D power spectral density of the scalar_field.
     """
 
     # TODO: This explicitly assumes square domains
-    if cloud_scalar.shape[0] != cloud_scalar.shape[1]:
+    if scalar_field.shape[0] != scalar_field.shape[1]:
         raise NotImplementedError(
-            f"nx != ny ({cloud_scalar.shape[1]} != {cloud_scalar.shape[0]})"
+            f"nx != ny ({scalar_field.shape[1]} != {scalar_field.shape[0]})"
         )
 
     # General observations
@@ -317,30 +317,30 @@ def compute_spectra(
     # Detrending
     if apply_detrending:
         [X, Y] = np.meshgrid(
-            np.arange(cloud_scalar.shape[0]),
-            np.arange(cloud_scalar.shape[1]),
+            np.arange(scalar_field.shape[0]),
+            np.arange(scalar_field.shape[1]),
             indexing="ij",
         )
-        cloud_scalar, bDt = _detrend(cloud_scalar, [X, Y])
+        scalar_field, bDt = _detrend(scalar_field, [X, Y])
 
     # Windowing
     if not periodic_domain:
         if window == "Planck":
-            cloud_scalar = _planck_rad(cloud_scalar)  # Planck-taper window
+            scalar_field = _planck_rad(scalar_field)  # Planck-taper window
         elif window == "Welch":
-            cloud_scalar = _welch_rad(cloud_scalar)  # Welch window
+            scalar_field = _welch_rad(scalar_field)  # Welch window
         elif window == "Hann":
-            cloud_scalar = _hann_rad(cloud_scalar)  # Hann window
+            scalar_field = _hann_rad(scalar_field)  # Hann window
 
     # FFT
-    F = fftpack.fft2(cloud_scalar)  # 2D FFT (no prefactor)
+    F = fftpack.fft2(scalar_field)  # 2D FFT (no prefactor)
     F = fftpack.fftshift(F)  # Shift so k0 is centred
-    psd_2d = np.abs(F) ** 2 / np.prod(cloud_scalar.shape)  # Energy-preserving 2D PSD
+    psd_2d = np.abs(F) ** 2 / np.prod(scalar_field.shape)  # Energy-preserving 2D PSD
     psd_1d_rad = _get_psd_1d_radial(psd_2d, dx)  # Azimuthal integral-> 1D radial PSD
     psd_1d_azi = _get_psd_1d_azimuthal(psd_2d)  # Radial integral -> Sector 1D PSD
 
     # Wavenumbers
-    N = np.min(cloud_scalar.shape)
+    N = np.min(scalar_field.shape)
     L = dx * N
     k1d = 2 * np.pi / L * np.arange(1, N // 2 + 1)
 
@@ -372,7 +372,7 @@ def spectral_slope(k1d, psd_1d_rad, return_intercept=False):
     """
     Compute a least squares fit of the slope of the 1D radial PSD, which turns
     out to be a reasonable measure for the dominant length scale of the
-    cloud_scalar.
+    scalar_field.
 
     Parameters
     ----------
@@ -527,7 +527,7 @@ def spectral_length_moment(k1d, psd_1d_rad, order=1):
 
 
 def compute_all_spectral(
-    cloud_scalar,
+    scalar_field,
     dx=1,
     periodic_domain=False,
     apply_detrending=False,
@@ -538,7 +538,7 @@ def compute_all_spectral(
 ):
 
     k1d, psd_1d_rad, psd_1d_azi = compute_spectra(
-        cloud_scalar,
+        scalar_field,
         dx=dx,
         periodic_domain=periodic_domain,
         apply_detrending=apply_detrending,
@@ -561,7 +561,7 @@ def compute_all_spectral(
 
     if debug:
         _debug_plot(
-            cloud_scalar,
+            scalar_field,
             k1d,
             psd_1d_rad,
             b0,

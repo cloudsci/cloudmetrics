@@ -155,11 +155,11 @@ def _make_mask_function_name(metric_name):
 
 
 @pytest.mark.parametrize(
-    "cloud_mask, metric_name, periodic_domain, metric_value_true, comp_function",
+    "mask, metric_name, periodic_domain, metric_value_true, comp_function",
     TESTSETS,
 )
-def test_metric_on_cloud_mask(
-    cloud_mask, metric_name, periodic_domain, metric_value_true, comp_function
+def test_metric_on_mask(
+    mask, metric_name, periodic_domain, metric_value_true, comp_function
 ):
     # test for evaluation with `cloudmetrics.{op}_cloud_{measure}`, e.g.
     # `cloudmetrics.mean_cloud_length_scale`
@@ -170,5 +170,5 @@ def test_metric_on_cloud_mask(
             f"Function for computing metric `{mask_metric_function_name}` wasn't found"
         )
 
-    metric_value = metric_fn(cloud_mask=cloud_mask, periodic_domain=periodic_domain)
+    metric_value = metric_fn(mask=mask, periodic_domain=periodic_domain)
     comp_function(metric_value, metric_value_true)
