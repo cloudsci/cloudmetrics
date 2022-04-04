@@ -42,7 +42,7 @@ def test_spectral_noise(periodic_domain):
     l_spec_median = cloudmetrics.scalar.spectral_length_median(k1d, psd_1d_rad)
     l_spec_moment = cloudmetrics.scalar.spectral_length_moment(k1d, psd_1d_rad)
 
-    np.testing.assert_allclose(variance_psd, amp ** 2 * np.pi / 4, 0.01)
+    np.testing.assert_allclose(variance_psd, amp**2 * np.pi / 4, 0.01)
     np.testing.assert_allclose(anisotropy, 0.0, atol=0.1)
     np.testing.assert_allclose(beta, 1, atol=0.01)
     np.testing.assert_allclose(beta_binned, 1, atol=0.1)
