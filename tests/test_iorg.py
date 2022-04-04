@@ -21,7 +21,7 @@ def test_lattice_of_squares(periodic_domain, connectivity):
     if periodic_domain:
         mask = make_periodic_mask(mask, object_connectivity=connectivity)
 
-    i_org = cloudmetrics.mask.iorg(
+    i_org = cloudmetrics.mask.iorg_objects(
         mask,
         periodic_domain=periodic_domain,
     )
@@ -42,7 +42,7 @@ def test_random_points(periodic_domain, connectivity):
     if periodic_domain:
         mask = make_periodic_mask(mask, object_connectivity=connectivity)
 
-    i_org = cloudmetrics.mask.iorg(
+    i_org = cloudmetrics.mask.iorg_objects(
         mask,
         periodic_domain=periodic_domain,
     )
@@ -72,7 +72,7 @@ def test_single_uniform_circle(periodic_domain, connectivity):
     if periodic_domain:
         mask = make_periodic_mask(mask, object_connectivity=connectivity)
 
-    i_org = cloudmetrics.mask.iorg(
+    i_org = cloudmetrics.mask.iorg_objects(
         mask,
         periodic_domain=periodic_domain,
     )
