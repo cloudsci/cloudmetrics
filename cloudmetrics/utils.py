@@ -30,6 +30,9 @@ def make_periodic_mask(mask, object_connectivity):
     ----------
     field : (npx,npx) numpy array
         (Cloud) mask field
+    object_connectivity:
+        Maximum number of orthogonal hops to consider a pixel/voxel as a
+        neighbor. Accepted values are ranging from 1 to input.ndim
 
     Returns
     -------
@@ -37,10 +40,7 @@ def make_periodic_mask(mask, object_connectivity):
     to contiguous structures crossing the northern/eastern boundaries.
 
     """
-
-    # Questions remaining:
-    # - How to handle regions whose cog lies outside the original image?
-
+    # TODO: How to handle regions whose cog lies outside the original image?
     ny, nx = mask.shape
 
     # Create array with extra cells in y and x direction to handle periodic BCs
