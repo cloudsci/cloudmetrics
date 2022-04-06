@@ -32,8 +32,7 @@ The table below gives an overview over which metrics are avaiable in the
 | `mask.network_nn_dist`             | TODO     |                 |                |
 | `mask.cop`                         | ✔️†       | ✔️               |                |
 | `mask.csd`                         | TODO     | TODO            |                |
-| `objects.iorg`                     | ✔️ #1     | TODO            |                |
-| `objects.iorg_poisson`             | TODO     | TODO            |                |
+| `objects.iorg`                     | ✔️†       | ✔️               |                |
 | `objects.max_length_scale`         | ✔️†       | ✔️               |                |
 | `objects.mean_eccentricity`        | ✔️†       | ✔️               |                |
 | `objects.mean_length_scale`        | ✔️†       | ✔️               |                |
@@ -55,7 +54,9 @@ The table below gives an overview over which metrics are avaiable in the
 
 †: for convenience object-based scalars are also made avaiable to operate
 directly on masks, for example `objects.max_length_scale(object_labels=...)`
-can be called with a mask as `mask.max_object_length_scale(mask=...)`
+can be called with a mask as `mask.max_object_length_scale(mask=...)` and
+`objects.iorg(object_labels=...)` can be called with
+`mask.iorg_objects(mask=...)`.
 
 #1: needs refactoring to use general object labelling and make iorg method
 available to use on object-labels as input
@@ -81,10 +82,11 @@ $> pip install git+https://github.com/cloudsci/cloudmetrics
 
 # Usage
 
-To use the `cloudmetrics` package simply import `cloudmetrics` and use the metric function you are interested in:
+To use the `cloudmetrics` package simply import `cloudmetrics` and use the
+metric function you are interested in:
 
 ```python
 import cloudmetrics
 
-iorg = cloudmetrics.iorg(cloud_mask=da_cloudmask)
+iorg = cloudmetrics.iorg_objects(mask=da_cloudmask)
 ```
