@@ -15,6 +15,7 @@ def iorg(
     object_labels,
     periodic_domain=False,
     reference_dist="poisson",
+    n_dist_bins=10000,
     reference_dist_kwargs={},
 ):
     """
@@ -38,18 +39,16 @@ def iorg(
                             use inhibition nearest neighbour distribution as
                             proposed in Benner & Curry (1998) and detailed in
                             Antonissen (2019).
+    n_dist_bins:     number of bins to compute the distribution of the
+                     nearest-neighbour distances over
 
-    max_iterations:  maximum number of iterations to use within the algorithm
-                     before giving up
-    num_placements:  number of times the entire random circle placement routine
-                     is carried out, and thus number of different random
-                     nearest neighbour distance cumulative density functions
-                     are computed. The function output is an average over the
-                     num_placements different values of iorg this generates.
+    reference_dist_kwargs:
+                     dictionary of keyword arguments to pass to reference
+                     distribution function
 
     Returns
     -------
-    iOrg : float
+    iOrg: float
         Organisation index calculated from comparison to selected reference
         distribution
 
@@ -85,10 +84,9 @@ def iorg(
 
     nnd_scene = find_nearest_neighbors(centroids, nn_window)
 
-    nbins = 10000
-    dist_bins = np.linspace(
-        0, np.sqrt(domain_shape[0] ** 2 + domain_shape[1] ** 2), nbins
-    )
+    n_dist_bins = 10000
+    bin_max = np.sqrt(domain_shape[0] ** 2 + domain_shape[1] ** 2)
+    dist_bins = np.linspace(0, bin_max, n_dist_bins)
     nnd_pdf_scene = np.histogram(nnd_scene, dist_bins)[0]
     nnd_cdf_scene = np.cumsum(nnd_pdf_scene) / len(nnd_scene)
 
