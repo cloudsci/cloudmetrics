@@ -221,8 +221,6 @@ def iorg(
     if centroids.shape[0] < 1:
         return float("nan")
 
-    print(periodic_domain)
-
     if periodic_domain:
         domain_shape = [shd // 2 for shd in object_labels.shape]
         if domain_shape[0] != domain_shape[1]:
