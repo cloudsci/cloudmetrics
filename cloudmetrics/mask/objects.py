@@ -8,7 +8,9 @@ from ..objects import metrics as obj_metrics
 from ..utils import make_periodic_mask
 
 
-def _evaluate_metric(metric_name, mask, periodic_domain, object_connectivity=1):
+def _evaluate_metric(
+    metric_name, mask, periodic_domain, object_connectivity=1, **kwargs
+):
     """
     Identify individual (cloud) objects in the (cloud) mask and compute a
     specific metric on these objects
@@ -22,7 +24,8 @@ def _evaluate_metric(metric_name, mask, periodic_domain, object_connectivity=1):
 
     object_labels = label_objects(mask=mask, connectivity=object_connectivity)
 
-    metric_kwargs = dict(object_labels=object_labels)
+    metric_kwargs = dict(kwargs)
+    metric_kwargs["object_labels"] = object_labels
     fn_sig = inspect.signature(metric_function)
     if "periodic_domain" in fn_sig.parameters:
         metric_kwargs["periodic_domain"] = periodic_domain
@@ -52,13 +55,14 @@ def _make_mask_function_name(metric_name):
 
 
 _OBJECT_FUNCTION_TEMPLATE = """
-def {function_name}(mask, periodic_domain, object_connectivity=1):
+def {function_name}(mask, periodic_domain, object_connectivity=1, **kwargs):
     '''{docstring}'''
     return _evaluate_metric(
         metric_name="{metric_name}",
         mask=mask,
         periodic_domain=periodic_domain,
         object_connectivity=object_connectivity,
+        **kwargs
     )
 """
 

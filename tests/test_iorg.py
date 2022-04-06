@@ -2,33 +2,54 @@ import numpy as np
 import pytest
 
 import cloudmetrics
-from cloudmetrics.utils import create_circular_mask
+from cloudmetrics.old import iorg as iorg_old
+from cloudmetrics.old import iorgPoisson as iorgp_old
+from cloudmetrics.utils import create_circular_mask, make_periodic_mask
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
 @pytest.mark.parametrize("connectivity", [1, 2])
-def test_lattice_of_squares(periodic_domain, connectivity):
+@pytest.mark.parametrize("reference_dist", ["poisson", "inhibition_nn"])
+def test_lattice_of_squares(periodic_domain, connectivity, reference_dist):
     """
     1. Regular lattice of squares (iOrg -> 0)
     """
     # 1. Regular lattice of squares
-    mask = np.zeros((64, 64))
+    mask = np.zeros((512, 512))
     mask[::16, ::16] = 1
     mask[1::16, ::16] = 1
     mask[::16, 1::16] = 1
     mask[1::16, 1::16] = 1
 
+    if reference_dist == "poisson":
+        old = iorgp_old.IOrgPoisson()
+    else:
+        old = iorg_old.IOrg()
+
+    old.areaMin = 0
+    mask_old = mask.copy()
+    if periodic_domain:
+        old.bc = "periodic"
+        mask_old = make_periodic_mask(mask_old, object_connectivity=connectivity)
+    else:
+        old.bc = None
+
+    value_old = old.metric(mask_old)
+
     i_org = cloudmetrics.mask.iorg_objects(
         mask,
         periodic_domain=periodic_domain,
+        reference_dist=reference_dist,
     )
 
     np.testing.assert_allclose(i_org, 0.0, atol=0.1)
+    np.testing.assert_allclose(i_org, value_old, atol=0.1)
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
 @pytest.mark.parametrize("connectivity", [1, 2])
-def test_random_points(periodic_domain, connectivity):
+@pytest.mark.parametrize("reference_dist", ["poisson", "inhibition_nn"])
+def test_random_points(periodic_domain, connectivity, reference_dist):
     """
     2. Randomly scattered points (iOrg -> 0.5)
     """
@@ -46,7 +67,8 @@ def test_random_points(periodic_domain, connectivity):
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
 @pytest.mark.parametrize("connectivity", [1, 2])
-def test_single_uniform_circle(periodic_domain, connectivity):
+@pytest.mark.parametrize("reference_dist", ["poisson", "inhibition_nn"])
+def test_single_uniform_circle(periodic_domain, connectivity, reference_dist):
     """
     3. One large, uniform circle with noise around it (iOrg -> 1)
     """
