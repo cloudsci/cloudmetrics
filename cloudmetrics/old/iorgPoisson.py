@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from skimage.measure import label, regionprops
-from tqdm import tqdm
 
 from .utils import cKDTreeMethod, createCircularMask, findFiles, getField, periodic
 
@@ -239,7 +238,7 @@ class IOrgPoisson:
 
         # Main loop over files
         with mp.Pool(processes=self.nproc) as pool:
-            iOrg = list(tqdm(pool.imap(self.getcalc, files), total=len(files)))
+            iOrg = list(pool.imap(self.getcalc, files), total=len(files))
 
         if self.save:
             dfMetrics["iOrgPoiss"].loc[dates] = iOrg
