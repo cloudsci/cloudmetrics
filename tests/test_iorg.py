@@ -2,9 +2,7 @@ import numpy as np
 import pytest
 
 import cloudmetrics
-from cloudmetrics.old import iorg as iorg_old
-from cloudmetrics.old import iorgPoisson as iorgp_old
-from cloudmetrics.utils import create_circular_mask, make_periodic_mask
+from cloudmetrics.utils import create_circular_mask
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
@@ -21,21 +19,6 @@ def test_lattice_of_squares(periodic_domain, connectivity, reference_dist):
     mask[::16, 1::16] = 1
     mask[1::16, 1::16] = 1
 
-    if reference_dist == "poisson":
-        old = iorgp_old.IOrgPoisson()
-    else:
-        old = iorg_old.IOrg()
-
-    old.areaMin = 0
-    mask_old = mask.copy()
-    if periodic_domain:
-        old.bc = "periodic"
-        mask_old = make_periodic_mask(mask_old, object_connectivity=connectivity)
-    else:
-        old.bc = None
-
-    value_old = old.metric(mask_old)
-
     i_org = cloudmetrics.mask.iorg_objects(
         mask,
         periodic_domain=periodic_domain,
@@ -43,7 +26,6 @@ def test_lattice_of_squares(periodic_domain, connectivity, reference_dist):
     )
 
     np.testing.assert_allclose(i_org, 0.0, atol=0.1)
-    np.testing.assert_allclose(i_org, value_old, atol=0.1)
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
