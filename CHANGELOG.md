@@ -6,6 +6,13 @@
 
 *new features*
 
+- Refactor iorg metric to use object-labels as argument (now available as
+  `cloudmetrics.mask.iorg_objects` and `cloudmetrics.objects.iorg`) and combine
+  methods using either a) inhibition nearest-neighbour or b) Poisson reference
+  distribution into single function taking `reference_dist` as argument.
+  [\#54](https://github.com/cloudsci/cloudmetrics/pull/54) By Leif Denby
+  (@leifdenby)
+
 - Refactor SCAI metric (now available as `cloudmetrics.objects.scai` and
   `cloudmetrics.mask.scai_objects`) and add test which accounts for change in
   SCAI value with resolution

@@ -8,6 +8,7 @@ from .geometry import (  # noqa
     mean_length_scale,
     mean_perimeter_length,
 )
+from .iorg import iorg  # noqa
 from .num_objects import num_objects  # noqa
 from .scai import scai  # noqa
 
