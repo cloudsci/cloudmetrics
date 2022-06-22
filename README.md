@@ -32,19 +32,18 @@ The table below gives an overview over which metrics are avaiable in the
 | `mask.network_nn_dist`             | TODO     |                 |                |
 | `mask.cop`                         | ✔️†       | ✔️               |                |
 | `mask.csd`                         | TODO     | TODO            |                |
-| `objects.iorg`                     | ✔️ #1     | TODO            |                |
-| `objects.iorg_poisson`             | TODO     | TODO            |                |
+| `objects.iorg`                     | ✔️†       | ✔️               |                |
 | `objects.max_length_scale`         | ✔️†       | ✔️               |                |
 | `objects.mean_eccentricity`        | ✔️†       | ✔️               |                |
 | `objects.mean_length_scale`        | ✔️†       | ✔️               |                |
 | `objects.mean_perimeter_length`    | ✔️†       | ✔️               |                |
 | `objects.rdf`                      | TODO     | TODO            |                |
 | `objects.scai`                     | ✔️†       | ✔️               |                |
-| `scalar.spectral_anisotropy` #2    |          |                 | ✔️              |
-| `scalar.spectral_length_median`#2  |          |                 | ✔️              |
-| `scalar.spectral_length_moment,`#2 |          |                 | ✔️              |
-| `scalar.spectral_slope`#2          |          |                 | ✔️              |
-| `scalar.spectral_slope_binned`#2   |          |                 | ✔️              |
+| `scalar.spectral_anisotropy` #1    |          |                 | ✔️              |
+| `scalar.spectral_length_median`#1  |          |                 | ✔️              |
+| `scalar.spectral_length_moment,`#1 |          |                 | ✔️              |
+| `scalar.spectral_slope`#1          |          |                 | ✔️              |
+| `scalar.spectral_slope_binned`#1   |          |                 | ✔️              |
 | `scalar.woi1`                      |          |                 | ✔️              |
 | `scalar.woi2`                      |          |                 | ✔️              |
 | `scalar.woi3`                      |          |                 | ✔️              |
@@ -57,10 +56,7 @@ The table below gives an overview over which metrics are avaiable in the
 directly on masks, for example `objects.max_length_scale(object_labels=...)`
 can be called with a mask as `mask.max_object_length_scale(mask=...)`
 
-#1: needs refactoring to use general object labelling and make iorg method
-available to use on object-labels as input
-
-#2: spectral metrics currently operate on the relevant power spectral densities,
+#1: spectral metrics currently operate on the relevant power spectral densities,
 which must first be computed:
 ```
 wavenumbers, psd_1d_radial, psd_1d_azimuthal = scalar.compute_spectra(...)
