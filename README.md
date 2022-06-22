@@ -13,9 +13,10 @@ https://github.com/cloudsci/cloudmetrics/issues/20
 The `cloudmetrics` package contains python routines to compute metrics
 from 2D cloud fields to characterise cloud patterns in these fields. Most
 methods operate on a `cloud-mask` (i.e. a boolean true-false field)
-indicating where clouds exist, some work on individually labelled cloud objects
-(which can be produced from a cloud-mask) and finally some work on 2D cloud
-scalar-fields (defining for example the cloud-liquid water or cloud-top height).
+indicating where clouds exist, some work on individually labelled (with a
+unique integer ID) cloud objects (which can be produced from a cloud-mask) and
+finally some work on 2D cloud scalar-fields (defining for example the
+cloud-liquid water or cloud-top height).
 
 ## Implemented metrics
 
@@ -64,12 +65,16 @@ available to use on object-labels as input
 
 # Installation
 
-Until `cloudmetrics` appears on pipy the package can be installed directly
-from github
+To install the most recent version of `cloudmetrics` from pypi you can use `pip`:
 
 ```bash
-$> pip install git+https://github.com/cloudsci/cloudmetrics
+$> pip install cloudmetrics
 ```
+
+If you plan to add/modify `cloudmetrics` (contribution via pull-requests are
+very welcome!) you should check out the [development
+notes](https://github.com/cloudsci/cloudmetrics/blob/master/docs/developing.md)
+for how to get set up with a local copy of the codebase.
 
 # Usage
 
@@ -80,3 +85,15 @@ import cloudmetrics
 
 iorg = cloudmetrics.iorg(cloud_mask=da_cloudmask)
 ```
+
+As you can see in the table above the metrics are organised by the input they
+take, either object masks, labelled-object arrays and/or 2D scalar fields you
+want to perform reductions on.
+
+*Note on periodic domains*: internally `cloudmetrics` represents objects on
+periodic domains by doubling the xy-size of any input mask provided, and moving
+any objects that straddle the boundary to ensure they are spatially contiguous.
+This means that all functions which take 2D arrays of object-labels as input
+assume that all labelled objects are spatially contiguous and that the provided
+input is actually `2*nx x 2*ny` (for an actual input domain spanning `nx` by
+`nx`).
