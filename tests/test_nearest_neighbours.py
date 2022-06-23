@@ -46,6 +46,24 @@ EXAMPLES["near_edge"] = (
     [5, 5],
 )
 
+EXAMPLES["diagonal_straddle"] = (
+    _parse_example_mask(
+        """
+1100000001
+1000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000010
+1000000000
+"""
+    ),
+    [np.sqrt(8), np.sqrt(8)],
+)
+
 
 @pytest.mark.parametrize("example", EXAMPLES.values())
 def test_nearest_neighbors(example):
