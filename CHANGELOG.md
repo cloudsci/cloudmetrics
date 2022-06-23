@@ -71,6 +71,11 @@
   [\#36](https://github.com/cloudsci/cloudmetrics/pull/36). By Leif Denby
   & Martin Janssens (@leifdenby & @martinjanssens)
 
+- Add tests for producing spatially-continuous object masks and for computing
+  nearest-neighbor distances on periodic domains
+  [\#61](https://github.com/cloudsci/cloudmetrics/pull/61). @leifdenby &
+  @martinjanssens
+
 *maintenance*
 
 - update `black` version to address recent breaking change in black's
