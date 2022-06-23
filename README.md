@@ -2,14 +2,6 @@
 
 [![cloudmetrics](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-conda.yml)
 
-> **NOTE**: this repository is currently undergoing refactoring to make
-the routines implemented more accessible by external tools and to ensure
-consistency. The version published in Janssens et al 2021 is [available
-tagged as version
-v0.1.0](https://github.com/cloudsci/cloudmetrics/tree/v0.1.0). Progress on
-the refactoring can be followed in issue
-https://github.com/cloudsci/cloudmetrics/issues/20
-
 The `cloudmetrics` package contains python routines to compute metrics
 from 2D cloud fields to characterise cloud patterns in these fields. Most
 methods operate on a `cloud-mask` (i.e. a boolean true-false field)
@@ -17,6 +9,19 @@ indicating where clouds exist, some work on individually labelled (with a
 unique integer ID) cloud objects (which can be produced from a cloud-mask) and
 finally some work on 2D cloud scalar-fields (defining for example the
 cloud-liquid water or cloud-top height).
+
+> **NOTE**: the `cloudmetrics` package contained in this repository is
+> refactored from work published in [Janssens et al
+> 2021](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2020GL091001),
+> this was done to make the routines implemented more accessible by external
+> tools and to ensure consistency. Not all functionality has been retained or
+> fully refactored, in particular functionality to allow for bulk-processing of
+> input files is in the
+> [cloudmetrics-pipline](https://github.com/cloudsci/cloudmetrics-pipeline)
+> package. Progress on the refactoring can be followed in issue
+> https://github.com/cloudsci/cloudmetrics/issues/20. The version published in
+> Janssens et al 2021 is [available tagged as version
+> v0.1.0](https://github.com/cloudsci/cloudmetrics/tree/v0.1.0).
 
 ## Implemented metrics
 
@@ -66,7 +71,7 @@ wavenumbers, psd_1d_radial, psd_1d_azimuthal = scalar.compute_spectra(...)
 spectral_length_moment = scalar.spectral_length_moment(wavenumbers, psd_1d_radial)
 ```
 Alternatively, all spectral metrics can be computed simultaneously following the
-standard convention with `spectral_metrics = scalar.compute_all_spectral(scalar_field).
+standard convention with `spectral_metrics = scalar.compute_all_spectral(scalar_field)`.
 need refactoring to take `scalar_field` as input
 
 # Installation
@@ -103,4 +108,5 @@ any objects that straddle the boundary to ensure they are spatially contiguous.
 This means that all functions which take 2D arrays of object-labels as input
 assume that all labelled objects are spatially contiguous and that the provided
 input is actually `2*nx x 2*ny` (for an actual input domain spanning `nx` by
-`nx`).
+`nx`). All metric functions that operate on masks handle the domain-doubling
+internally and so do not require any modification to the masks before calling.
