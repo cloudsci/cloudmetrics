@@ -4,6 +4,16 @@
 
 [Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.1.0...v0.2.0)
 
+First release of `cloudmetrics` package! All methods that operate on masks are
+available in `cloudmetrics.mask` (e.g.
+`cloudmetrics.mask.fractal_dimension(mask)`), those that operate on
+labelled-objects are in `cloudmetrics.objects` (e.g.
+`cloudmetrics.objects.iorg(labelled_objects)`) and can be used directly on
+masks with wrapped function calls in `cloudmetrics.mask.{metric_name}_objects`
+(e.g. `cloudmetrics.mask.iorg_objects(mask)`). Finally, all metrics that
+operate on scalar fields are in `cloudmetrics.scalar` (e.g.
+`cloudmetrics.scalar.kurtosis(scalar_field, mask)`).
+
 *new features*
 
 - Refactor iorg metric to use object-labels as argument (now available as
