@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/cloudsci/cloudmetrics/tree/HEAD)
+## [v0.2.0](https://github.com/cloudsci/cloudmetrics/tree/v0.2.0)
 
-[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.1.0...HEAD)
+[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.1.0...v0.2.0)
 
 *new features*
 
@@ -77,6 +77,9 @@
   @martinjanssens
 
 *maintenance*
+
+- set up package versioning with `setuptools_scm` and create v0.2.0 release
+  [\#62](https://github.com/cloudsci/cloudmetrics/pull/62) By @leifdenby
 
 - update `black` version to address recent breaking change in black's
   dependency on `click`
