@@ -2,12 +2,13 @@ import numpy as np
 import pytest
 
 import cloudmetrics
-from cloudmetrics.utils import create_circular_mask, make_periodic_mask
+from cloudmetrics.utils import create_circular_mask
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
 @pytest.mark.parametrize("connectivity", [1, 2])
-def test_lattice_of_squares(periodic_domain, connectivity):
+@pytest.mark.parametrize("reference_dist", ["poisson", "inhibition_nn"])
+def test_lattice_of_squares(periodic_domain, connectivity, reference_dist):
     """
     1. Regular lattice of squares (iOrg -> 0)
     """
@@ -18,22 +19,19 @@ def test_lattice_of_squares(periodic_domain, connectivity):
     mask[::16, 1::16] = 1
     mask[1::16, 1::16] = 1
 
-    if periodic_domain:
-        mask = make_periodic_mask(mask, object_connectivity=connectivity)
-
-    i_org = cloudmetrics.mask.iorg(
+    i_org = cloudmetrics.mask.iorg_objects(
         mask,
         periodic_domain=periodic_domain,
-        connectivity=connectivity,
-        area_min=0,
-        random_seed=0,
+        reference_dist=reference_dist,
     )
+
     np.testing.assert_allclose(i_org, 0.0, atol=0.1)
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
 @pytest.mark.parametrize("connectivity", [1, 2])
-def test_random_points(periodic_domain, connectivity):
+@pytest.mark.parametrize("reference_dist", ["poisson", "inhibition_nn"])
+def test_random_points(periodic_domain, connectivity, reference_dist):
     """
     2. Randomly scattered points (iOrg -> 0.5)
     """
@@ -42,22 +40,17 @@ def test_random_points(periodic_domain, connectivity):
     mask = np.zeros((512, 512))
     mask[posScene[:, 0], posScene[:, 1]] = 1
 
-    if periodic_domain:
-        mask = make_periodic_mask(mask, object_connectivity=connectivity)
-
-    i_org = cloudmetrics.mask.iorg(
+    i_org = cloudmetrics.mask.iorg_objects(
         mask,
         periodic_domain=periodic_domain,
-        connectivity=connectivity,
-        area_min=0,
-        random_seed=0,
     )
     np.testing.assert_allclose(i_org, 0.5, atol=0.1)
 
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
 @pytest.mark.parametrize("connectivity", [1, 2])
-def test_single_uniform_circle(periodic_domain, connectivity):
+@pytest.mark.parametrize("reference_dist", ["poisson", "inhibition_nn"])
+def test_single_uniform_circle(periodic_domain, connectivity, reference_dist):
     """
     3. One large, uniform circle with noise around it (iOrg -> 1)
     """
@@ -75,14 +68,8 @@ def test_single_uniform_circle(periodic_domain, connectivity):
     mask[:maw, :maw] += tadd
     mask[mask > 1] = 1
 
-    if periodic_domain:
-        mask = make_periodic_mask(mask, object_connectivity=connectivity)
-
-    i_org = cloudmetrics.mask.iorg(
+    i_org = cloudmetrics.mask.iorg_objects(
         mask,
         periodic_domain=periodic_domain,
-        connectivity=connectivity,
-        area_min=0,
-        random_seed=0,
     )
     np.testing.assert_allclose(i_org, 1.0, atol=0.1)
