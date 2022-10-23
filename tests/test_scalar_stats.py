@@ -37,7 +37,7 @@ def _generate_example(measure, N=10, Nc=10):
     return mask, scalar_field, value_field, value_masked
 
 
-@pytest.mark.parametrize("measure", "mean var skew kurtosis".split())
+@pytest.mark.parametrize("measure", "mean var skew kurtosis std".split())
 def test_masked_statistic(measure):
     mask, scalar_field, value_field_true, value_masked_true = _generate_example(
         measure=measure
