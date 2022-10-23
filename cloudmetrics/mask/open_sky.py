@@ -4,7 +4,7 @@
 import numpy as np
 
 
-def open_sky(mask, periodic_domain=False, debug=False):
+def open_sky(mask, return_avg=False, periodic_domain=False, debug=False):
     """
     Compute "open sky" metric proposed by Antonissen (2018) for a single
     (cloud) mask (see http://resolver.tudelft.nl/uuid:d868273a-b028-4273-8380-ff1628ecabd5).
@@ -22,6 +22,8 @@ def open_sky(mask, periodic_domain=False, debug=False):
     periodic_domain: whether the provided (cloud) mask is on a periodic domain
                      (for example from a LES simulation)
     debug:           whether to produce debugging plot
+    return_avg:      whether to return average value (as well as the max) of
+                     the open sky metric
 
     Returns
     -------
@@ -93,7 +95,10 @@ def open_sky(mask, periodic_domain=False, debug=False):
     if debug:
         _debug_plot(mask=mask, osc=osc, wmax=wmax, nmax=nmax, emax=emax, smax=smax)
 
-    return os_max, a_os_avg
+    if not return_avg:
+        return os_max
+    else:
+        return os_max, a_os_avg
 
 
 def _debug_plot(mask, osc, wmax, nmax, emax, smax):
