@@ -55,6 +55,7 @@ The table below gives an overview over which metrics are avaiable in the
 | `scalar.woi3`                      |          |                 | ✔️              |
 | `scalar.mean`                      | optional |                 | ✔️              |
 | `scalar.var`                       | optional |                 | ✔️              |
+| `scalar.std`                       | optional |                 | ✔️              |
 | `scalar.skew`                      | optional |                 | ✔️              |
 | `scalar.kurtosis`                  | optional |                 | ✔️              |
 
