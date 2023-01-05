@@ -12,8 +12,9 @@ def open_sky(mask, summary_measure="max", periodic_domain=False, debug=False):
     The method analyses rectangular reference areas in the scene defined by
     four extrema in east, west, north and south.  These points are the distance
     from each pixel where the mask is 0, to the nearest pixel in each direction
-    where the mask is 1. The largest and average such area are both returned as
-    metrics for the size of the scene's voids (contiguous areas where the mask is 0).
+    where the mask is 1. Both the largest and average of such areas can be
+    return as measures of size of the scene's voids (contiguous areas where the
+    mask is 0).
 
     NOTE: for situations where the large clear-sky swaths are absent from the
     `mask` (for example in LES simulations) returning the `mean` rather than
