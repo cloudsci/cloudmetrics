@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased](https://github.com/cloudsci/cloudmetrics/tree/HEAD)
+
+[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.2.0...HEAD)
+
+*new features*
+
+- scalar field standard deviation metric, available as `scalar.std`
+  [\#64](https://github.com/cloudsci/cloudmetrics/pull/64) By Leif Denby
+  (@leifdenby)
+
 ## [v0.2.0](https://github.com/cloudsci/cloudmetrics/tree/v0.2.0)
 
 [Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.1.0...v0.2.0)
