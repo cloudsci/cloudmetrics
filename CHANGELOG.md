@@ -10,6 +10,12 @@
   default [\#65](https://github.com/cloudsci/cloudmetrics/pull/65) Leif Denby
   (@leifdenby)
 
+*maintenance*
+
+- add zenodo DOI badge and citation information
+  [\#66](https://github.com/cloudsci/cloudmetrics/pull/66) Leif Denby
+  (@leifdenby)
+
 ## [v0.2.0](https://github.com/cloudsci/cloudmetrics/tree/v0.2.0)
 
 [Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.1.0...v0.2.0)
