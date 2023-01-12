@@ -4,6 +4,12 @@
 
 [Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.2.0...HEAD)
 
+*new features*
+
+- scalar field standard deviation metric, available as `scalar.std`
+  [\#64](https://github.com/cloudsci/cloudmetrics/pull/64) By Leif Denby
+  (@leifdenby)
+
 *changed defaults*
 
 - open-sky metric calculation (`mask.open_sky`) now only returns max-value by
@@ -15,6 +21,7 @@
 - add zenodo DOI badge and citation information
   [\#66](https://github.com/cloudsci/cloudmetrics/pull/66) Leif Denby
   (@leifdenby)
+
 
 ## [v0.2.0](https://github.com/cloudsci/cloudmetrics/tree/v0.2.0)
 
