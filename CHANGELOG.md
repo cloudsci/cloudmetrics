@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased](https://github.com/cloudsci/cloudmetrics/tree/HEAD)
+
+[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.2.0...HEAD)
+
+*changed defaults*
+
+- open-sky metric calculation (`mask.open_sky`) now only returns max-value by
+  default [\#65](https://github.com/cloudsci/cloudmetrics/pull/65) Leif Denby
+  (@leifdenby)
+
 ## [v0.2.0](https://github.com/cloudsci/cloudmetrics/tree/v0.2.0)
 
 [Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.1.0...v0.2.0)
