@@ -1,3 +1,4 @@
+import numpy as np
 import scipy as sp
 
 
@@ -87,3 +88,25 @@ def kurtosis(scalar_field, mask=None):
         return sp.stats.kurtosis(scalar_field)
     else:
         return sp.stats.kurtosis(scalar_field[mask])
+
+
+def std(scalar_field, mask=None):
+    """
+    Compute the (optionally masked) standard deviation of scalar field
+
+    Parameters
+    ----------
+    scalar_field : numpy array of shape (npx,npx) - npx is number of pixels
+        Scalar for which to calculate the standard deviation.
+    mask : Optional (Boolean) mask. If passed, the deviation will be computed over the
+        masked (True) pixels.
+
+    Returns
+    -------
+    std : float
+        Standard deviation over the (masked) field
+    """
+    if mask is None:
+        return np.std(scalar_field)
+
+    return np.std(scalar_field[mask])
