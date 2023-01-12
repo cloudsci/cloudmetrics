@@ -4,7 +4,7 @@
 import numpy as np
 
 
-def open_sky(mask, periodic_domain=False, debug=False):
+def open_sky(mask, summary_measure="max", periodic_domain=False, debug=False):
     """
     Compute "open sky" metric proposed by Antonissen (2018) for a single
     (cloud) mask (see http://resolver.tudelft.nl/uuid:d868273a-b028-4273-8380-ff1628ecabd5).
@@ -12,8 +12,13 @@ def open_sky(mask, periodic_domain=False, debug=False):
     The method analyses rectangular reference areas in the scene defined by
     four extrema in east, west, north and south.  These points are the distance
     from each pixel where the mask is 0, to the nearest pixel in each direction
-    where the mask is 1. The largest and average such area are both returned as
-    metrics for the size of the scene's voids (contiguous areas where the mask is 0).
+    where the mask is 1. Both the largest (default) and average of such areas
+    can be return as measures of size of the scene's voids (contiguous areas
+    where the mask is 0).
+
+    NOTE: for situations where the large clear-sky swaths are absent from the
+    `mask` (for example in LES simulations) returning the `mean` rather than
+    the `max` may be better for distinguishing scenes which are similar
 
     Parameters
     ----------
@@ -22,11 +27,12 @@ def open_sky(mask, periodic_domain=False, debug=False):
     periodic_domain: whether the provided (cloud) mask is on a periodic domain
                      (for example from a LES simulation)
     debug:           whether to produce debugging plot
+    summary_measure: measure used in summarising the open-sky areas found in mask
 
     Returns
     -------
-    os_max, os_avg : tuple of floats
-        Maximum and average open sky parameter, assuming a rectangular reference area.
+    open_sky:        `summary_measure` (default "max") of open-sky regions
+                     identified in mask
 
     """
     a_os_max = 0
@@ -87,13 +93,18 @@ def open_sky(mask, periodic_domain=False, debug=False):
                     a_os_max = a_os
                     osc = [i, j]
                     nmax, smax, emax, wmax = n, s, e, w
-    a_os_avg = a_os_avg / mask[mask == 0].size / mask.size
-    os_max = a_os_max / mask.size
 
     if debug:
         _debug_plot(mask=mask, osc=osc, wmax=wmax, nmax=nmax, emax=emax, smax=smax)
 
-    return os_max, a_os_avg
+    if summary_measure == "max":
+        os_max = a_os_max / mask.size
+        return os_max
+    elif summary_measure == "mean":
+        a_os_avg = a_os_avg / mask[mask == 0].size / mask.size
+        return a_os_avg
+    else:
+        raise NotImplementedError(summary_measure)
 
 
 def _debug_plot(mask, osc, wmax, nmax, emax, smax):
