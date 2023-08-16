@@ -35,6 +35,13 @@ def open_sky(mask, summary_measure="max", periodic_domain=False, debug=False):
                      identified in mask
 
     """
+    if np.all(mask == 1):
+        # fully cloudy mask has no open sky
+        return 0.0
+    elif np.all(mask == 0):
+        # no cloud mask is all open sky
+        return 1.0
+
     a_os_max = 0
     a_os_avg = 0
     for i in range(mask.shape[0]):  # rows
