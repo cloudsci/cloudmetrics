@@ -96,7 +96,7 @@ metric function you are interested in:
 ```python
 import cloudmetrics
 
-iorg = cloudmetrics.iorg_objects(mask=da_cloudmask)
+iorg = cloudmetrics.mask.iorg_objects(mask=da_cloudmask, periodic_domain=False)
 ```
 
 As you can see in the table above the metrics are organised by the input they
