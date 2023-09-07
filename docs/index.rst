@@ -10,6 +10,8 @@ Welcome to cloudmetrics's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+The cloudmetrics package allows you to easily compute a large collection of metrics.
+
 
 
 Indices and tables
