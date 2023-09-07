@@ -8,13 +8,13 @@ repos:
       - id: check-yaml
   # isort should run before black as black sometimes tweaks the isort output
   - repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
+    rev: 5.11.5
     hooks:
       - id: isort
         exclude: ^(Metrics/)
   # https://github.com/python/black#version-control-integration
   - repo: https://github.com/psf/black
-    rev: 21.12b0
+    rev: 22.3.0
     hooks:
       - id: black
       - id: black-jupyter

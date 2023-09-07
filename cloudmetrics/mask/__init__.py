@@ -3,7 +3,6 @@ import sys
 
 from .cloud_fraction import cloud_fraction  # noqa
 from .fractal_dimension import fractal_dimension  # noqa
-from .iorg import iorg  # noqa
 from .objects import *  # noqa
 from .open_sky import open_sky  # noqa
 from .orientation import orientation  # noqa
@@ -17,7 +16,7 @@ def _find_mask_functions():
 
     def _takes_object_mask_kwarg(fn):
         fn_sig = inspect.signature(fn)
-        return "cloud_mask" in fn_sig.parameters
+        return "mask" in fn_sig.parameters
 
     fns = [
         (fn_name, fn)

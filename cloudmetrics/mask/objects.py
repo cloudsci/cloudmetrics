@@ -1,31 +1,36 @@
 """
-Routines for evaluating cloud object metrics directly from cloud masks
+Routines for evaluating (cloud) object metrics directly from (cloud) masks
 """
+import inspect
+
 from ..objects import label as label_objects
 from ..objects import metrics as obj_metrics
-from ..utils import make_periodic_cloud_mask, print_object_labels
+from ..utils import make_periodic_mask
 
 
-def _evaluate_metric(metric_name, cloud_mask, periodic_domain, object_connectivity=1):
+def _evaluate_metric(
+    metric_name, mask, periodic_domain, object_connectivity=1, **kwargs
+):
     """
-    Identify individual clouds in the cloud mask and return the number of
-    objects
+    Identify individual (cloud) objects in the (cloud) mask and compute a
+    specific metric on these objects
     """
     try:
         metric_function = getattr(obj_metrics, metric_name)
     except AttributeError:
         raise NotImplementedError(f"Object metric `{metric_name}` not implemented")
     if periodic_domain:
-        cloud_mask = make_periodic_cloud_mask(
-            field=cloud_mask, object_connectivity=object_connectivity
-        )
-        print_object_labels(cloud_mask)
+        mask = make_periodic_mask(mask=mask, object_connectivity=object_connectivity)
 
-    cloud_object_labels = label_objects(
-        cloud_mask=cloud_mask, connectivity=object_connectivity
-    )
+    object_labels = label_objects(mask=mask, connectivity=object_connectivity)
 
-    return metric_function(object_labels=cloud_object_labels)
+    metric_kwargs = dict(kwargs)
+    metric_kwargs["object_labels"] = object_labels
+    fn_sig = inspect.signature(metric_function)
+    if "periodic_domain" in fn_sig.parameters:
+        metric_kwargs["periodic_domain"] = periodic_domain
+
+    return metric_function(**metric_kwargs)
 
 
 def _make_mask_function_name(metric_name):
@@ -33,7 +38,7 @@ def _make_mask_function_name(metric_name):
     Generate a name for the metric function that applies directly to a mask
 
     The naming convention for object functions that apply directly to masks is
-        `{op}_{measure}` -> `{op}_cloud_{measure}`,
+        `{op}_{measure}` -> `{op}_object_{measure}`,
     e.g.
         `num_objects` -> `num_objects`
         `mean_perimeter_length` -> `mean_object_perimeter_length`
@@ -50,13 +55,14 @@ def _make_mask_function_name(metric_name):
 
 
 _OBJECT_FUNCTION_TEMPLATE = """
-def {function_name}(cloud_mask, periodic_domain, object_connectivity=1):
+def {function_name}(mask, periodic_domain, object_connectivity=1, **kwargs):
     '''{docstring}'''
     return _evaluate_metric(
         metric_name="{metric_name}",
-        cloud_mask=cloud_mask,
+        mask=mask,
         periodic_domain=periodic_domain,
         object_connectivity=object_connectivity,
+        **kwargs
     )
 """
 

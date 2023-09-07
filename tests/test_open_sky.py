@@ -36,8 +36,12 @@ EXAMPLE_MASK = _parse_example_mask(EXAMPLE_MASKS_STRING)
 
 @pytest.mark.parametrize("periodic_domain", [True, False])
 def test_open_sky(periodic_domain):
-    os_max, os_avg = cloudmetrics.mask.open_sky(
-        cloud_mask=EXAMPLE_MASK, periodic_domain=periodic_domain
+    os_max = cloudmetrics.mask.open_sky(
+        mask=EXAMPLE_MASK,
+        periodic_domain=periodic_domain,
+    )
+    os_avg = cloudmetrics.mask.open_sky(
+        mask=EXAMPLE_MASK, periodic_domain=periodic_domain, summary_measure="mean"
     )
 
     assert not np.isnan(os_max)
@@ -47,3 +51,24 @@ def test_open_sky(periodic_domain):
         np.testing.assert_allclose([os_max, os_avg], [0.855, 0.503], atol=0.01)
     else:
         np.testing.assert_allclose([os_max, os_avg], [0.720, 0.285], atol=0.01)
+
+
+@pytest.mark.parametrize("periodic_domain", [True, False])
+@pytest.mark.parametrize("op", ["mean", "max"])
+def test_open_sky_extremes(periodic_domain, op):
+    FULLY_CLOUDY_MASK = np.ones((10, 10))
+    FULLY_CLEAR_MASK = np.zeros((10, 10))
+
+    assert (
+        cloudmetrics.mask.open_sky(
+            mask=FULLY_CLEAR_MASK, periodic_domain=periodic_domain, summary_measure=op
+        )
+        == 1
+    )
+
+    assert (
+        cloudmetrics.mask.open_sky(
+            mask=FULLY_CLOUDY_MASK, periodic_domain=periodic_domain, summary_measure=op
+        )
+        == 0
+    )
