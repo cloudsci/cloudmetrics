@@ -1,0 +1,18 @@
+name: cloudmetrics
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.7
+  - docrep
+  - ipython
+  - matplotlib
+  - nbsphinx
+  - numpy
+  - numpydoc
+  - pytest
+  - sphinx
+  - cython
+  - sphinx-autosummary-accessors
+  - sphinx-copybutton
+  - pip
