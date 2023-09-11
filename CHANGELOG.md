@@ -18,6 +18,14 @@
 
 *maintenance*
 
+- removed caching of regionproperties for each image that is calculated, to
+  prevent memory accumulation
+  [\#73](https://github.com/cloudsci/cloudmetrics/pull/73) Martin Janssens
+- updated isort and removed nb-black to work with latest package versions
+  [\#71](https://github.com/cloudsci/cloudmetrics/pull/71) Martin Janssens
+- handle fully cloudy scenes in open-sky metric (previously broke, now returns
+  zero)
+  [\#67] (https://github.com/cloudsci/cloudmetrics/pull/67) Leif Denby
 - add zenodo DOI badge and citation information
   [\#66](https://github.com/cloudsci/cloudmetrics/pull/66) Leif Denby
   (@leifdenby)
