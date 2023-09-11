@@ -1,26 +1,8 @@
 import numpy as np
 from skimage.measure import regionprops
 
-# Legacy _get_regionprops, which used a cache that was i) not that big of a performance boost (regionprops is fast), ii) did not actually work when objects were computed from masks directly and iii) kept accumulating memory
-# from hashlib import sha1
-# _CACHED_VALUES = dict()
-#
-# def _get_regionprops(object_labels):
-#     # need a unique ID for each object-label array (for a poor-mans
-#     # caching to avoid recalculation of the object properties).
-#     # Can't use python's memory ID of the labels array because these can
-#     # sometimes get shared if numpy reuses the array memory, instead we compute
-#     # a hash
-#     array_id = sha1(object_labels)
-#     if array_id in _CACHED_VALUES:
-#         return _CACHED_VALUES[array_id]
-#
-#     regions = regionprops(label_image=object_labels)
-#     _CACHED_VALUES[array_id] = regions
-#     return regions
 
-
-# Now we just compute them every time
+# Compute regionprops for every image, for every metric, that is passed.
 def _get_regionprops(object_labels):
     return regionprops(label_image=object_labels)
 
