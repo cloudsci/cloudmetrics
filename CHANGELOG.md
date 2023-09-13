@@ -18,6 +18,9 @@
 
 *maintenance*
 
+- refactored `cloudmetrics.mask.open_sky` for better performance
+  [\72](https://github.com/cloudsci/cloudmetrics/pull/72) Hauke Schulz
+  (@observingClouds)
 - removed caching of regionproperties for each image that is calculated, to
   prevent memory accumulation
   [\#73](https://github.com/cloudsci/cloudmetrics/pull/73) Martin Janssens
