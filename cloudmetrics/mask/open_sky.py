@@ -102,8 +102,6 @@ def open_sky(mask, summary_measure="max", periodic_domain=False, debug=False):
     elif summary_measure == "mean":
         a_os_avg = a_os_avg / len(mask_0_indices[0]) / mask.size
         return a_os_avg
-    else:
-        raise NotImplementedError(f"Summary measure {summary_measure} not supported")
 
 
 def _debug_plot(mask, osc, wmax, nmax, emax, smax):
