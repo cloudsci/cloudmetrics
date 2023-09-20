@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from numba import jit, prange
 
 
+@jit(nopython=True, parallel=True)
 def open_sky(mask, summary_measure="max", periodic_domain=False, debug=False):
     """
     Compute "open sky" metric proposed by Antonissen (2018) for a single
@@ -42,76 +44,64 @@ def open_sky(mask, summary_measure="max", periodic_domain=False, debug=False):
         # no cloud mask is all open sky
         return 1.0
 
+    npx_rows, npx_cols = mask.shape
+    mask_0_indices = np.where(mask == 0)
+
     a_os_max = 0
     a_os_avg = 0
-    for i in range(mask.shape[0]):  # rows
-        cl_ew = np.where(mask[i, :] == 1)[0]  # pixels where mask=1
-        for j in range(mask.shape[1]):  # cols
+
+    for i in prange(npx_rows):
+        for j in range(npx_cols):
             if mask[i, j] != 1:
 
-                # FIXME for speed -> do this once and store
+                cl_ew = np.where(mask[i, :] == 1)[0]
                 cl_ns = np.where(mask[:, j] == 1)[0]
 
-                ws = np.where(cl_ew < j)[0]  # west side mask=1 pixels
-                es = np.where(cl_ew > j)[0]  # east side
-                ns = np.where(cl_ns < i)[0]  # north side
-                ss = np.where(cl_ns > i)[0]  # south side
+                ws = cl_ew[cl_ew < j]
+                es = cl_ew[cl_ew > j]
+                ns = cl_ns[cl_ns < i]
+                ss = cl_ns[cl_ns > i]
 
-                # West side
-                if ws.size == 0:  # if no pixels left of this pixel have mask=1
-                    if periodic_domain and es.size != 0:
-                        w = cl_ew[es[-1]] - mask.shape[1]
-                    else:
-                        w = 0
-                else:
-                    w = cl_ew[ws[-1]]
+                w = (
+                    ws[-1]
+                    if ws.size > 0
+                    else (es[-1] - npx_cols)
+                    if periodic_domain and es.size > 0
+                    else 0
+                )
+                e = (
+                    es[0] - 1
+                    if es.size > 0
+                    else ws[0] + npx_cols - 1
+                    if periodic_domain and ws.size > 0
+                    else npx_cols
+                )
+                n = (
+                    ns[-1]
+                    if ns.size > 0
+                    else (ss[-1] - npx_rows)
+                    if periodic_domain and ss.size > 0
+                    else 0
+                )
+                s = (
+                    ss[0] - 1
+                    if ss.size > 0
+                    else ns[0] + npx_rows - 1
+                    if periodic_domain and ns.size > 0
+                    else npx_rows
+                )
 
-                # East side
-                if es.size == 0:
-                    if periodic_domain and ws.size != 0:
-                        e = cl_ew[ws[0]] + mask.shape[1] - 1
-                    else:
-                        e = mask.shape[1]
-                else:
-                    e = cl_ew[es[0]] - 1
-
-                # North side
-                if ns.size == 0:
-                    if periodic_domain and ss.size != 0:
-                        n = cl_ns[ss[-1]] - mask.shape[0]
-                    else:
-                        n = 0
-                else:
-                    n = cl_ns[ns[-1]]
-
-                # South side
-                if ss.size == 0:
-                    if periodic_domain and ns.size != 0:
-                        s = cl_ns[ns[0]] + mask.shape[0] - 1
-                    else:
-                        s = mask.shape[0]
-                else:
-                    s = cl_ns[ss[0]] - 1
-
-                a_os = (e - w) * (s - n)  # Assuming rectangular reference form
-
+                a_os = (e - w) * (s - n)
                 a_os_avg += a_os
-                if a_os > a_os_max:
-                    a_os_max = a_os
-                    osc = [i, j]
-                    nmax, smax, emax, wmax = n, s, e, w
 
-    if debug:
-        _debug_plot(mask=mask, osc=osc, wmax=wmax, nmax=nmax, emax=emax, smax=smax)
+                a_os_max = max(a_os_max, a_os)
 
     if summary_measure == "max":
         os_max = a_os_max / mask.size
         return os_max
     elif summary_measure == "mean":
-        a_os_avg = a_os_avg / mask[mask == 0].size / mask.size
+        a_os_avg = a_os_avg / len(mask_0_indices[0]) / mask.size
         return a_os_avg
-    else:
-        raise NotImplementedError(summary_measure)
 
 
 def _debug_plot(mask, osc, wmax, nmax, emax, smax):
