@@ -2,6 +2,7 @@ import inspect
 import sys
 
 from .cop import cop  # noqa
+from .abcop import abcop  # noqa
 from .geometry import (  # noqa
     max_length_scale,
     mean_eccentricity,

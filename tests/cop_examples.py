@@ -60,7 +60,7 @@ EXAMPLES["4a"] = [
 00000000000000000000
 """
     ),
-    0.521721,  # White et al. (2018) report 0.517087, that seems wrong, given all other tests correspond.
+    0.521721,  # White et al. (2018) report 0.517087, that seems wrong, it is also confirmed by Jin et al. (2022).
 ]
 
 EXAMPLES["4b"] = [
