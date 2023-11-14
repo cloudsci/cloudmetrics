@@ -15,3 +15,10 @@ jobs:
       - name: Install package with pip
         run: |
           pip install .
+      - name: Install test dependencies with pip
+        run: |
+          pip install ".[test]"
+      - name: Test with pytest
+        shell: bash -l {0}
+        run: |
+          python -m pytest
