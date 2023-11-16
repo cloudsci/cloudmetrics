@@ -28,9 +28,13 @@
   [\#71](https://github.com/cloudsci/cloudmetrics/pull/71) Martin Janssens
 - handle fully cloudy scenes in open-sky metric (previously broke, now returns
   zero)
-  [\#67] (https://github.com/cloudsci/cloudmetrics/pull/67) Leif Denby
+  [\#67](https://github.com/cloudsci/cloudmetrics/pull/67) Leif Denby
 - add zenodo DOI badge and citation information
   [\#66](https://github.com/cloudsci/cloudmetrics/pull/66) Leif Denby
+  (@leifdenby)
+- fix ci/cd pre-commit setup by pinning to python 3.8 for linting step and
+  remove unused conda environment
+  [\#80](https://github.com/cloudsci/cloudmetrics/pull/80) Leif Denby
   (@leifdenby)
 
 

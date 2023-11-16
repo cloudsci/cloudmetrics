@@ -1,9 +1,0 @@
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - python>=3.5
-  - cython
-  - pyhdf>=0.10.1
-  - pip
-  - numba
