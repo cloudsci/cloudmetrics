@@ -1,6 +1,6 @@
 # cloudmetrics
 
-[![cloudmetrics](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-conda.yml) [![DOI](https://zenodo.org/badge/279602981.svg)](https://zenodo.org/badge/latestdoi/279602981)
+[![cloudmetrics (pip install)](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-pip.yml/badge.svg)](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-pip.yml) [![DOI](https://zenodo.org/badge/279602981.svg)](https://zenodo.org/badge/latestdoi/279602981)
 
 The `cloudmetrics` package contains python routines to compute metrics
 from 2D cloud fields to characterise cloud patterns in these fields. Most
