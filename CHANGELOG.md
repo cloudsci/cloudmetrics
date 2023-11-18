@@ -1,8 +1,8 @@
 # Changelog
 
-## [unreleased](https://github.com/cloudsci/cloudmetrics/tree/HEAD)
+## [v0.3.0](https://github.com/cloudsci/cloudmetrics/tree/v0.3.0)
 
-[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.2.0...HEAD)
+[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.2.0...v0.3.0)
 
 *new features*
 
