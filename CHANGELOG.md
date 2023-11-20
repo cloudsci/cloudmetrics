@@ -1,8 +1,8 @@
 # Changelog
 
-## [unreleased](https://github.com/cloudsci/cloudmetrics/tree/HEAD)
+## [v0.3.0](https://github.com/cloudsci/cloudmetrics/tree/v0.3.0)
 
-[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.2.0...HEAD)
+[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.2.0...v0.3.0)
 
 *new features*
 
@@ -28,9 +28,13 @@
   [\#71](https://github.com/cloudsci/cloudmetrics/pull/71) Martin Janssens
 - handle fully cloudy scenes in open-sky metric (previously broke, now returns
   zero)
-  [\#67] (https://github.com/cloudsci/cloudmetrics/pull/67) Leif Denby
+  [\#67](https://github.com/cloudsci/cloudmetrics/pull/67) Leif Denby
 - add zenodo DOI badge and citation information
   [\#66](https://github.com/cloudsci/cloudmetrics/pull/66) Leif Denby
+  (@leifdenby)
+- fix ci/cd pre-commit setup by pinning to python 3.8 for linting step and
+  remove unused conda environment
+  [\#80](https://github.com/cloudsci/cloudmetrics/pull/80) Leif Denby
   (@leifdenby)
 
 
