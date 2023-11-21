@@ -58,16 +58,14 @@ def abcop(object_labels, min_area=0, periodic_domain=False):
     else:
         dist = sd.pdist(pos)
 
-
-    Req   = np.sqrt(area) / np.sqrt(np.pi)          # equivalent radii
-    dij   = sd.squareform(dist)                     # Pairwise distance matrix
-    Rij   = ( Req[:, None] + Req[None, :] )         # Pairwise radii sum matrix
-    d2ij  = np.maximum(1, dij - Rij)                # proxy of edge distances
-    Aij   = 0.5 * ( area[:, None] + area[None, :] ) # Pairwise area sum matrix
-    Vij   = Aij / ( d2ij * object_labels.size**0.5) # Pairwise interaction pot.
+    Req = np.sqrt(area) / np.sqrt(np.pi)  # equivalent radii
+    dij = sd.squareform(dist)  # Pairwise distance matrix
+    Rij = Req[:, None] + Req[None, :]  # Pairwise radii sum matrix
+    d2ij = np.maximum(1, dij - Rij)  # proxy of edge distances
+    Aij = 0.5 * (area[:, None] + area[None, :])  # Pairwise area sum matrix
+    Vij = Aij / (d2ij * object_labels.size**0.5)  # Pairwise interaction pot.
     np.fill_diagonal(Vij, np.nan)
 
-    abcop = np.sum( np.nanmax(Vij, axis=0) )        # ABCOP
-
+    abcop = np.sum(np.nanmax(Vij, axis=0))  # ABCOP
 
     return abcop

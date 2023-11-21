@@ -192,7 +192,7 @@ EXAMPLES["3a"] = [
 0000000000000000000000000000000000000000
 """
     ),
-    1.000050, # Jin et al. (2022) report 0.94068 which corresponds to connectivity=2
+    1.000050,  # Jin et al. (2022) report 0.94068 which corresponds to connectivity=2
 ]
 
 EXAMPLES["3b"] = [
@@ -240,9 +240,8 @@ EXAMPLES["3b"] = [
 0000000000000000000000000000000000000000
 """
     ),
-    1.604657, # Jin et al. (2022) report 1.54376 which corresponds to connectivity=2
+    1.604657,  # Jin et al. (2022) report 1.54376 which corresponds to connectivity=2
 ]
-
 
 
 EXAMPLES["3c"] = [
@@ -290,6 +289,5 @@ EXAMPLES["3c"] = [
 0000000000000000000000000000000000000000
 """
     ),
-    1.6253829, # Jin et al. (2022) report 1.56449 which corresponds to connectivity=2
+    1.6253829,  # Jin et al. (2022) report 1.56449 which corresponds to connectivity=2
 ]
-
