@@ -1,5 +1,14 @@
 # Changelog
 
+## [unreleased](https://github.com/cloudsci/cloudmetrics/tree/HEAD)
+
+[Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.3.0...HEAD)
+
+*new features*
+
+- Area-Based Convective Organisation Potential (ABCOP) Jin et al. 2022 available as `objects.abcop`
+  [\#79](https://github.com/cloudsci/cloudmetrics/pull/79) By Giulio Mandorli (@gmandorl)
+
 ## [v0.3.0](https://github.com/cloudsci/cloudmetrics/tree/v0.3.0)
 
 [Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.2.0...v0.3.0)

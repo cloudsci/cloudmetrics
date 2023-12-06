@@ -35,7 +35,9 @@ The table below gives an overview over which metrics are avaiable in the
 | `mask.fractal_dimension`           | ✔️        |                 |                |
 | `mask.open_sky`                    | ✔️        |                 |                |
 | `mask.orientation`                 | ✔️        |                 |                |
+| `mask.mica`                        | ✔️        |                 |                |
 | `mask.network_nn_dist`             | TODO     |                 |                |
+| `mask.abcop`                       | ✔️†       | ✔️               |                |
 | `mask.cop`                         | ✔️†       | ✔️               |                |
 | `mask.csd`                         | TODO     | TODO            |                |
 | `objects.iorg`                     | ✔️†       | ✔️               |                |

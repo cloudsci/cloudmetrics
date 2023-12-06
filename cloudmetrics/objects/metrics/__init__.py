@@ -1,6 +1,7 @@
 import inspect
 import sys
 
+from .abcop import abcop  # noqa
 from .cop import cop  # noqa
 from .geometry import (  # noqa
     max_length_scale,
