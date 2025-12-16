@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+*maintenance*
+
+- update pre-commit hooks to latest versions
+  [\#86](https://github.com/cloudsci/cloudmetrics/pull/86) Hauke Schulz
+  (@observingClouds)
+
 ## [v0.3.0](https://github.com/cloudsci/cloudmetrics/tree/v0.3.0)
 
 [Full Changelog](https://github.com/cloudsci/cloudmetrics/compare/v0.2.0...v0.3.0)
