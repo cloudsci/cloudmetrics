@@ -4,7 +4,7 @@
 
 *maintenance*
 
-- update pre-commit hooks to latest versions
+- update pre-commit hooks and related github action to latest versions
   [\#86](https://github.com/cloudsci/cloudmetrics/pull/86) Hauke Schulz
   (@observingClouds)
 
