@@ -65,30 +65,30 @@ def open_sky(mask, summary_measure="max", periodic_domain=False, debug=False):
                 w = (
                     ws[-1]
                     if ws.size > 0
-                    else (es[-1] - npx_cols)
-                    if periodic_domain and es.size > 0
-                    else 0
+                    else (es[-1] - npx_cols) if periodic_domain and es.size > 0 else 0
                 )
                 e = (
                     es[0] - 1
                     if es.size > 0
-                    else ws[0] + npx_cols - 1
-                    if periodic_domain and ws.size > 0
-                    else npx_cols
+                    else (
+                        ws[0] + npx_cols - 1
+                        if periodic_domain and ws.size > 0
+                        else npx_cols
+                    )
                 )
                 n = (
                     ns[-1]
                     if ns.size > 0
-                    else (ss[-1] - npx_rows)
-                    if periodic_domain and ss.size > 0
-                    else 0
+                    else (ss[-1] - npx_rows) if periodic_domain and ss.size > 0 else 0
                 )
                 s = (
                     ss[0] - 1
                     if ss.size > 0
-                    else ns[0] + npx_rows - 1
-                    if periodic_domain and ns.size > 0
-                    else npx_rows
+                    else (
+                        ns[0] + npx_rows - 1
+                        if periodic_domain and ns.size > 0
+                        else npx_rows
+                    )
                 )
 
                 a_os = (e - w) * (s - n)

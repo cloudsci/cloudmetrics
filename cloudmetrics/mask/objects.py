@@ -1,6 +1,7 @@
 """
 Routines for evaluating (cloud) object metrics directly from (cloud) masks
 """
+
 import inspect
 
 from ..objects import label as label_objects
@@ -68,7 +69,7 @@ def {function_name}(mask, periodic_domain, object_connectivity=1, **kwargs):
 
 
 def _make_mask_function_strings():
-    for (metric_name, fn) in obj_metrics.ALL_METRIC_FUNCTIONS.items():
+    for metric_name, fn in obj_metrics.ALL_METRIC_FUNCTIONS.items():
         metric_docstring = fn.__doc__.strip()
         function_name = _make_mask_function_name(metric_name=metric_name)
         metric_docstring = metric_docstring[0].lower() + metric_docstring[1:]

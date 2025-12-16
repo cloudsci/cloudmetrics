@@ -47,6 +47,4 @@ def test_resolution_doubling():
     # at two different resolutions the value of SCAI will increase with dx^2.
     # To correct for this we here scale the SCAI values by 1/dx^2 for the
     # examples
-    np.testing.assert_almost_equal(
-        scai_value / dx**2.0, scai_value_halfdx / dx2**2.0
-    )
+    np.testing.assert_almost_equal(scai_value / dx**2.0, scai_value_halfdx / dx2**2.0)
