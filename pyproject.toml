@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cloudmetrics"
 dynamic = ["version"]
+requires-python = ">=3.10"
 description = "Cloud pattern metrics toolkit"
 readme = "README.md"
 authors = [
