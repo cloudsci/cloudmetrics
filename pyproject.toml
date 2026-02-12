@@ -8,8 +8,9 @@ dynamic = ["version"]
 description = "Cloud pattern metrics toolkit"
 readme = "README.md"
 authors = [
-    {name = "Leif Denby", email = "l.c.denby@leeds.ac.uk"},
-    {name = "Martin Janssens", email = "martin.janssens@wur.nl"}
+    {name = "Leif Denby", email = "lcd@dmi.dk"},
+    {name = "Martin Janssens", email = "martin.janssens@wur.nl"},
+    {name = "Hauke Schulz", email = "has@dmi.dk"}
 ]
 dependencies = [
     "scipy>=1.4.1",
