@@ -4,9 +4,8 @@
 
 *maintenance*
 
-- vectorised `cloudmetrics.mask.open_sky` with numpy cumulative min/max
-  operations (identical results, ~60x faster, no JIT compilation) and dropped
-  the now unused `numba` dependency Hauke Schulz (@observingClouds)
+- performance improvement: vectorised `cloudmetrics.mask.open_sky` operations
+  and dropped the now unused `numba` dependency Hauke Schulz (@observingClouds)
 - update pre-commit hooks and related github action to latest versions
   [\#86](https://github.com/cloudsci/cloudmetrics/pull/86) Hauke Schulz
   (@observingClouds)
