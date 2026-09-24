@@ -4,6 +4,10 @@
 
 *maintenance*
 
+- compute the raw image moments in `mask.orientation` with matrix-vector
+  products instead of full-size index arrays for performance reasons
+  [\#93](https://github.com/cloudsci/cloudmetrics/pull/93) Hauke Schulz
+  (@observingClouds)
 - update pre-commit hooks and related github action to latest versions
   [\#86](https://github.com/cloudsci/cloudmetrics/pull/86) Hauke Schulz
   (@observingClouds)
