@@ -8,3 +8,6 @@ __pycache__/
 cloudmetrics.egg-info/
 cloudmetrics/_version.py
 .benchmarks/
+.venv/
+build/
+dist/
