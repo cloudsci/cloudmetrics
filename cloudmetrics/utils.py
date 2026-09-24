@@ -2,6 +2,11 @@ import numpy as np
 from scipy.spatial import cKDTree
 from skimage.measure import label, regionprops
 
+try:
+    from numpy import trapezoid
+except ImportError:  # numpy < 2.0
+    from numpy import trapz as trapezoid  # noqa: F401
+
 
 def create_circular_mask(h, w):
     center = (int(w / 2), int(h / 2))

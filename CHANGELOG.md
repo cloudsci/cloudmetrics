@@ -7,6 +7,8 @@
 - update pre-commit hooks and related github action to latest versions
   [\#86](https://github.com/cloudsci/cloudmetrics/pull/86) Hauke Schulz
   (@observingClouds)
+- replace removed `np.trapz` with `np.trapezoid` (numpy>=2.4 compatibility)
+  Hauke Schulz (@observingClouds)
 
 ## [v0.3.0](https://github.com/cloudsci/cloudmetrics/tree/v0.3.0)
 

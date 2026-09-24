@@ -6,7 +6,7 @@ import numpy as np
 from scipy import fftpack, linalg, ndimage
 from scipy.optimize import curve_fit
 
-from ..utils import compute_r_squared
+from ..utils import compute_r_squared, trapezoid
 
 
 def _get_rad(data):
@@ -519,7 +519,7 @@ def spectral_length_moment(k1d, psd_1d_rad, order=1):
     """
 
     kmom = (
-        np.trapz(psd_1d_rad * k1d**order, k1d) / np.trapz(psd_1d_rad, k1d)
+        trapezoid(psd_1d_rad * k1d**order, k1d) / trapezoid(psd_1d_rad, k1d)
     ) ** 1 / order
     l_spec = 2 * np.pi / kmom
 

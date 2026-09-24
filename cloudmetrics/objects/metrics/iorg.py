@@ -7,7 +7,7 @@ Methods for computing iorg organisation index
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ...utils import find_nearest_neighbors
+from ...utils import find_nearest_neighbors, trapezoid
 from ._object_properties import _get_objects_property
 
 
@@ -110,7 +110,7 @@ def iorg(
     else:
         raise NotImplementedError(reference_dist)
 
-    iorg_value = np.trapz(nnd_cdf_scene, nnd_cdf_rand)
+    iorg_value = trapezoid(nnd_cdf_scene, nnd_cdf_rand)
 
     return iorg_value
 
