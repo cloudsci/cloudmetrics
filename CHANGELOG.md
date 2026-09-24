@@ -4,6 +4,11 @@
 
 *maintenance*
 
+- compute object `area`, `centroid` and `equivalent_diameter` (and the number
+  of objects) with `np.bincount` instead of `skimage.measure.regionprops`,
+  giving identical values but a >10x faster evaluation of these object
+  properties which are used by the length-scale, `iorg`, `cop`, `scai` and
+  `num_objects` metrics. Hauke Schulz (@observingClouds)
 - update pre-commit hooks and related github action to latest versions
   [\#86](https://github.com/cloudsci/cloudmetrics/pull/86) Hauke Schulz
   (@observingClouds)
