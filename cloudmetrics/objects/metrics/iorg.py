@@ -145,31 +145,12 @@ def _compute_inhibition_nearest_neighbour_distribution(
     """
     rng = np.random.default_rng(random_seed)
     # Attempt to randomly place all circles in scene without ovelapping
-    i = 0
-    placed_circles = []
-    place_count = 0
-    while i < len(object_radii) and place_count < max_iterations:
-        new = CloudCircle(object_radii[i], domain_shape, rng)
-        placeable = True
-
-        # If the circles overlap -> Place again
-        if _check_circle_overlap(new, placed_circles):
-            placeable = False
-            place_count += 1
-
-        if placeable:
-            placed_circles.append(new)
-            i += 1
-            place_count = 0
-
-    if place_count == max_iterations:
-        raise Exception("Unable to place circles in this image")
-
-    # Gather positions in array
-    pos_rand = np.zeros((len(placed_circles), 2))
-    for i, placed_circle in enumerate(placed_circles):
-        pos_rand[i, 0] = placed_circle.x
-        pos_rand[i, 1] = placed_circle.y
+    pos_rand = _place_circles_randomly(
+        object_radii=object_radii,
+        domain_shape=domain_shape,
+        rng=rng,
+        max_iterations=max_iterations,
+    )
 
     # If field has open bcs, do not compute nn distances using
     # periodic bcs
@@ -179,58 +160,67 @@ def _compute_inhibition_nearest_neighbour_distribution(
     return nnd_cdf_rand
 
 
-def _debug_plot_1(field, placed_circles):
-    plt.figure(figsize=(5, 5))
-    ax = plt.gca()
-    ax.set_xlim((0, field.shape[1]))
-    ax.set_ylim((0, field.shape[0]))
-    for i in range(len(placed_circles)):
-        circ = plt.Circle(
-            (placed_circles[i].xm, placed_circles[i].yp),
-            placed_circles[i].r,
-        )
-        ax.add_artist(circ)
-        circ = plt.Circle(
-            (placed_circles[i].x, placed_circles[i].yp),
-            placed_circles[i].r,
-        )
-        ax.add_artist(circ)
-        circ = plt.Circle(
-            (placed_circles[i].xp, placed_circles[i].yp),
-            placed_circles[i].r,
-        )
-        ax.add_artist(circ)
-        circ = plt.Circle(
-            (placed_circles[i].xm, placed_circles[i].y),
-            placed_circles[i].r,
-        )
-        ax.add_artist(circ)
-        circ = plt.Circle(
-            (placed_circles[i].x, placed_circles[i].y), placed_circles[i].r
-        )
-        ax.add_artist(circ)
-        circ = plt.Circle(
-            (placed_circles[i].xp, placed_circles[i].y),
-            placed_circles[i].r,
-        )
-        ax.add_artist(circ)
-        circ = plt.Circle(
-            (placed_circles[i].xm, placed_circles[i].ym),
-            placed_circles[i].r,
-        )
-        ax.add_artist(circ)
-        circ = plt.Circle(
-            (placed_circles[i].x, placed_circles[i].ym),
-            placed_circles[i].r,
-        )
-        ax.add_artist(circ)
-        circ = plt.Circle(
-            (placed_circles[i].xp, placed_circles[i].ym),
-            placed_circles[i].r,
-        )
-        ax.add_artist(circ)
-    ax.grid(which="both")
-    plt.show()
+def _place_circles_randomly(object_radii, domain_shape, rng, max_iterations=100):
+    """
+    Randomly place circles with the given radii one after the other in a
+    domain of shape `domain_shape`, such that no circle overlaps with an
+    already placed circle (or any of its periodic images). A circle that
+    overlaps is drawn again, up to `max_iterations` consecutive times, after
+    which an exception is raised.
+
+    The overlap test is vectorised over all previously placed circles, so
+    placing N circles requires O(N) vectorised numpy calls rather than O(N^2)
+    python-level iterations.
+
+    Parameters
+    ----------
+    object_radii:   numpy array of circle radii to place, in placement order
+    domain_shape:   (ny, nx) shape of the domain to place the circles in
+    rng:            numpy random Generator used to draw the circle positions
+    max_iterations: maximum number of consecutive failed placement attempts
+                    for a single circle before giving up
+
+    Returns
+    -------
+    pos_rand: numpy array of shape (len(object_radii), 2) with the (x, y)
+              positions of the placed circles
+    """
+    n_circles = len(object_radii)
+    ny, nx = domain_shape[0], domain_shape[1]
+
+    # positions and radii of the circles placed so far (first `i` entries)
+    xs = np.zeros(n_circles, dtype=np.int64)
+    ys = np.zeros(n_circles, dtype=np.int64)
+    rs = np.zeros(n_circles, dtype=np.float64)
+
+    i = 0
+    place_count = 0
+    while i < n_circles and place_count < max_iterations:
+        r = object_radii[i]
+        x = rng.integers(0, nx - 1)
+        y = rng.integers(0, ny - 1)
+
+        # If the circle overlaps with any placed circle -> Place again
+        if _check_circle_overlap(
+            x, y, r, xs[:i], ys[:i], rs[:i], domain_shape=(ny, nx)
+        ):
+            place_count += 1
+        else:
+            xs[i] = x
+            ys[i] = y
+            rs[i] = r
+            i += 1
+            place_count = 0
+
+    if place_count == max_iterations:
+        raise Exception("Unable to place circles in this image")
+
+    # Gather positions in array
+    pos_rand = np.zeros((n_circles, 2))
+    pos_rand[:, 0] = xs
+    pos_rand[:, 1] = ys
+
+    return pos_rand
 
 
 def _debug_plot_2(field, pos_scene, pos_rand, nnd_cdf_rand, nnd_cdf_scene, iOrg):
@@ -266,31 +256,17 @@ def _debug_plot_2(field, pos_scene, pos_rand, nnd_cdf_rand, nnd_cdf_scene, iOrg)
     plt.show()
 
 
-def _check_circle_overlap(new, placed_circles):
+def _check_circle_overlap(x, y, r, xs, ys, rs, domain_shape):
     """
-    check if the circle overlaps with any circle in placed_circles
-    or any of its periodic images
+    check if the circle at (x, y) with radius r overlaps with any of the
+    circles at (xs, ys) with radii rs or any of their periodic images
     """
-
-    # By Fredrik Jansson: Return as soon as overlap is found, handle all
-    # periodic images at once
-    for c in placed_circles:
-        dx = min(abs(c.x - new.x), abs(c.xm - new.x), abs(c.xp - new.x))
-        dy = min(abs(c.y - new.y), abs(c.ym - new.y), abs(c.yp - new.y))
-        if dx**2 + dy**2 <= (c.r + new.r) ** 2:
-            return True
-    return False
-
-
-class CloudCircle:
-    def __init__(self, r, sh, rng):
-        self.x = rng.integers(0, sh[1] - 1)
-        self.y = rng.integers(0, sh[0] - 1)
-
-        self.xp = self.x + sh[1]
-        self.yp = self.y + sh[0]
-
-        self.xm = self.x - sh[1]
-        self.ym = self.y - sh[0]
-
-        self.r = r
+    ny, nx = domain_shape
+    # By Fredrik Jansson: handle all periodic images at once. As all
+    # positions lie within [0, nx) x [0, ny) the minimum over the three
+    # images {c - L, c, c + L} of |c - p| is min(|c - p|, L - |c - p|)
+    dx = np.abs(xs - x)
+    dx = np.minimum(dx, nx - dx)
+    dy = np.abs(ys - y)
+    dy = np.minimum(dy, ny - dy)
+    return bool(np.any(dx**2 + dy**2 <= (rs + r) ** 2))
