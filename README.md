@@ -1,6 +1,6 @@
 # cloudmetrics
 
-[![cloudmetrics (pip install)](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-pip.yml/badge.svg)](https://github.com/cloudsci/cloudmetrics/actions/workflows/python-package-pip.yml) [![DOI](https://zenodo.org/badge/279602981.svg)](https://zenodo.org/badge/latestdoi/279602981)
+[![tests](https://github.com/cloudsci/cloudmetrics/actions/workflows/ci-tests.yml/badge.svg)](https://github.com/cloudsci/cloudmetrics/actions/workflows/ci-tests.yml) [![DOI](https://zenodo.org/badge/279602981.svg)](https://zenodo.org/badge/latestdoi/279602981)
 
 The `cloudmetrics` package contains python routines to compute metrics
 from 2D cloud fields to characterise cloud patterns in these fields. Most
@@ -84,9 +84,22 @@ $> pip install cloudmetrics
 ```
 
 If you plan to add/modify `cloudmetrics` (contribution via pull-requests are
-very welcome!) you should check out the [development
+very welcome!) the quickest way to get a development environment with all
+dependencies pinned to the versions used in CI (`uv.lock`) is with
+[uv](https://docs.astral.sh/uv/):
+
+```bash
+$> git clone https://github.com/cloudsci/cloudmetrics
+$> cd cloudmetrics
+$> uv sync --extra dev        # creates .venv with cloudmetrics + dev tools
+$> uv run pytest              # run the test-suite
+$> uvx pre-commit install     # run linting automatically on each git commit
+```
+
+Alternatively, install an editable copy with all development dependencies
+using `pip` (`python -m pip install -e ".[dev]"`). See the [development
 notes](https://github.com/cloudsci/cloudmetrics/blob/master/docs/developing.md)
-for how to get set up with a local copy of the codebase.
+for more details on working with a local copy of the codebase.
 Pull-requests are automatically checked for performance regressions of the
 metrics, see [`benchmarks/README.md`](benchmarks/README.md).
 

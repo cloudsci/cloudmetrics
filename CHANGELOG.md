@@ -12,6 +12,9 @@
   branch and fails on regressions Hauke Schulz (@observingClouds)
 - replace removed `np.trapz` with `np.trapezoid` (numpy>=2.4 compatibility)
   Hauke Schulz (@observingClouds)
+- switch CI to [uv](https://docs.astral.sh/uv/) with a committed `uv.lock`,
+  test on python 3.10-3.14 and add Dependabot config to keep the lockfile,
+  GitHub Actions and pre-commit hooks up to date Hauke Schulz (@observingClouds)
 
 ## [v0.3.0](https://github.com/cloudsci/cloudmetrics/tree/v0.3.0)
 
