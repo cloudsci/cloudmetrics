@@ -1,24 +1,11 @@
 #!/usr/bin/env python
 """
-Compare two pytest-benchmark JSON files (a "base" and a "head" run) and
-report which benchmarks got faster or slower.
-
-Only the python standard library is used so that this script can be run in
-any environment, e.g.
+Compare two pytest-benchmark JSON files (base and head) by the ratio of their
+median run-times and exit non-zero if a benchmark got slower than
+--max-slowdown or is missing on head. Uses only the standard library:
 
     python benchmarks/compare.py --base base.json --head head.json \
         --max-slowdown 1.5 --summary summary.md
-
-For every benchmark present in both files the ratio of the median run-times
-``head / base`` is computed. The script exits with a non-zero status if any
-ratio exceeds ``--max-slowdown`` or if a benchmark from the base run is
-missing (i.e. errored or was removed) in the head run. Benchmarks that only
-exist in the head run are reported for information only.
-
-A Markdown report (comparison table, verdict and the raw per-benchmark
-statistics of both runs) is written to ``--summary`` and the comparison table
-is also printed to stdout. Additional lines for the report header (e.g. the
-numpy version used) can be given with ``--note`` (repeatable).
 """
 
 import argparse
@@ -42,8 +29,7 @@ STATUS_MISSING_BASE = ":information_source: new (not on base)"
 
 def load_benchmarks(filename):
     """
-    Return a dict ``{fullname: benchmark}`` for the benchmarks stored in a
-    pytest-benchmark JSON file. Returns ``None`` if the file cannot be read.
+    Return ``{fullname: benchmark}``, or ``None`` if the file cannot be read.
     """
     try:
         with open(filename) as fh:
@@ -55,9 +41,6 @@ def load_benchmarks(filename):
 
 
 def format_time(seconds):
-    """
-    Human readable representation of a duration given in seconds.
-    """
     if seconds is None:
         return "-"
     for unit, factor in (("s", 1.0), ("ms", 1e-3), ("us", 1e-6)):
@@ -67,11 +50,6 @@ def format_time(seconds):
 
 
 def format_ratio(ratio):
-    """
-    Format the ``head / base`` ratio, e.g. ``0.02x`` for a 50x speed-up and
-    ``1.35x`` for a 35% slow-down. Ratios far below one are annotated with the
-    speed-up factor for readability.
-    """
     if ratio is None:
         return "-"
     if ratio < 0.5:
@@ -94,10 +72,6 @@ def classify(ratio, max_slowdown):
 
 
 def compare(base, head, max_slowdown):
-    """
-    Return a list of row-dicts, one per benchmark in either run, sorted by
-    benchmark name, and the exit code.
-    """
     rows = []
     exit_code = EXIT_OK
     for fullname in sorted(set(base) | set(head)):
@@ -160,10 +134,6 @@ def verdict(rows, exit_code, max_slowdown):
 
 
 def mask_description(benchmarks):
-    """
-    Describe the synthetic masks used, from the `extra_info` recorded by the
-    benchmark fixtures.
-    """
     masks = {}
     for b in benchmarks.values():
         info = b.get("extra_info", {})
@@ -188,9 +158,6 @@ def version_description(benchmarks):
 
 
 def raw_stats_section(label, benchmarks):
-    """
-    Collapsible Markdown section with the raw per-benchmark statistics.
-    """
     lines = [
         "<details>",
         f"<summary>Raw benchmark statistics: {label}</summary>",
@@ -241,7 +208,7 @@ def build_summary(args, base, head, rows, exit_code):
 
 
 def parse_args(argv):
-    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser = argparse.ArgumentParser(description=__doc__.split(":\n")[0])
     parser.add_argument("--base", required=True, help="pytest-benchmark JSON of base")
     parser.add_argument("--head", required=True, help="pytest-benchmark JSON of head")
     parser.add_argument(
@@ -257,8 +224,7 @@ def parse_args(argv):
         "--note",
         action="append",
         default=[],
-        help="additional line for the report header, may be given multiple "
-        "times (empty values are ignored)",
+        help="additional line for the report header (repeatable)",
     )
     args = parser.parse_args(argv)
     args.note = [note.strip() for note in args.note if note.strip()]

@@ -49,6 +49,5 @@ write_to = "cloudmetrics/_version.py"
 profile = "black"
 
 [tool.pytest.ini_options]
-# the performance benchmarks in `benchmarks/` are not part of the regular
-# test-suite, run them with `pytest benchmarks --benchmark-only`
+# benchmarks/ is run separately, see benchmarks/README.md
 testpaths = ["tests"]

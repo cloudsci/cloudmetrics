@@ -1,9 +1,6 @@
 """
-Shared fixtures for the cloudmetrics performance benchmarks.
-
-The benchmarks operate on deterministic synthetic cloud masks (thresholded,
-gaussian-smoothed white noise), so that the same input is used for every run
-and the timings of two different code versions can be compared.
+Shared fixtures for the cloudmetrics performance benchmarks, run on
+deterministic synthetic cloud masks.
 """
 
 import numpy as np
@@ -12,32 +9,56 @@ from scipy import ndimage
 
 import cloudmetrics
 
-# Mask specifications. `n_objects` is the number of 4-connected objects in the
-# mask and is asserted when the mask is created, so that a change in the mask
-# generation (e.g. a new numpy/scipy version) is noticed rather than silently
-# changing the benchmark workload.
-MASK_SPECS = {
-    "small": dict(shape=(256, 256), sigma=2.5, seed=0, n_objects=199),
-    "medium": dict(shape=(512, 512), sigma=2.5, seed=1, n_objects=686),
-}
-CLOUD_FRACTION = 0.3
 
-
-def make_cloud_mask(shape, sigma, seed, cloud_fraction=CLOUD_FRACTION):
+def noise_mask(shape, seed, sigma=2.5, cloud_fraction=0.3):
     """
-    Create a deterministic synthetic cloud mask by gaussian-smoothing white
-    noise and thresholding it so that `cloud_fraction` of the pixels are
-    cloudy.
+    Thresholded gaussian-smoothed white noise: many similar-sized objects,
+    evenly spread.
     """
     rng = np.random.default_rng(seed)
     field = ndimage.gaussian_filter(rng.standard_normal(shape), sigma)
     return field > np.quantile(field, 1.0 - cloud_fraction)
 
 
-def count_objects(mask):
-    # 4-connectivity, independent of cloudmetrics' own labelling
+def cumulus_mask(shape, seed, slope=1.8, clustering=1.0, cloud_fraction=0.15):
+    """
+    Cumulus-like mask: a power-law (k^-slope) random field plus a smooth
+    mesoscale field, giving clustered objects with a heavy-tailed size
+    distribution.
+    """
+    rng = np.random.default_rng(seed)
+    ky = np.fft.fftfreq(shape[0])[:, None]
+    kx = np.fft.rfftfreq(shape[1])[None, :]
+    k = np.hypot(ky, kx)
+    k[0, 0] = np.inf
+    noise = rng.standard_normal(k.shape) + 1j * rng.standard_normal(k.shape)
+    field = np.fft.irfft2(noise * k ** (-slope / 2), s=shape)
+    field = ndimage.gaussian_filter(field, 1.0, mode="wrap")
+    envelope = ndimage.gaussian_filter(
+        rng.standard_normal(shape), 0.03 * min(shape), mode="wrap"
+    )
+    field = field / field.std() + clustering * envelope / envelope.std()
+    return field > np.quantile(field, 1.0 - cloud_fraction)
+
+
+# `n_objects` (4-connected) is asserted, so that a change in the mask
+# generation (e.g. with a new numpy/scipy version) does not go unnoticed
+MASK_SPECS = {
+    "noise-small": dict(make=noise_mask, shape=(256, 256), seed=0, n_objects=199),
+    "noise-medium": dict(make=noise_mask, shape=(512, 512), seed=1, n_objects=686),
+    "cumulus-small": dict(make=cumulus_mask, shape=(256, 256), seed=0, n_objects=171),
+    "cumulus-medium": dict(make=cumulus_mask, shape=(512, 512), seed=1, n_objects=607),
+}
+
+
+def make_mask(name):
+    spec = MASK_SPECS[name]
+    mask = spec["make"](shape=spec["shape"], seed=spec["seed"])
     _, n_objects = ndimage.label(mask)
-    return n_objects
+    assert (
+        n_objects == spec["n_objects"]
+    ), f"mask '{name}' has {n_objects} objects, expected {spec['n_objects']}"
+    return mask
 
 
 def mask_id(name):
@@ -50,37 +71,25 @@ def mask_id(name):
     scope="session", params=list(MASK_SPECS), ids=[mask_id(n) for n in MASK_SPECS]
 )
 def cloud_mask(request):
-    """
-    Synthetic cloud mask, parametrised over all entries in `MASK_SPECS`.
-    """
-    spec = MASK_SPECS[request.param]
-    mask = make_cloud_mask(shape=spec["shape"], sigma=spec["sigma"], seed=spec["seed"])
-    n_objects = count_objects(mask)
-    assert n_objects == spec["n_objects"], (
-        f"mask '{request.param}' has {n_objects} objects, expected "
-        f"{spec['n_objects']} -- the synthetic mask generation changed"
-    )
-    return mask
+    return make_mask(request.param)
 
 
-@pytest.fixture(scope="session", params=["small"], ids=[mask_id("small")])
+SMALL_MASKS = [n for n in MASK_SPECS if n.endswith("-small")]
+
+
+@pytest.fixture(
+    scope="session", params=SMALL_MASKS, ids=[mask_id(n) for n in SMALL_MASKS]
+)
 def small_cloud_mask(request):
-    """
-    Only the small synthetic mask, for benchmarks that are expensive to run
-    (e.g. O(N^2) in the number of objects).
-    """
-    spec = MASK_SPECS[request.param]
-    mask = make_cloud_mask(shape=spec["shape"], sigma=spec["sigma"], seed=spec["seed"])
-    assert count_objects(mask) == spec["n_objects"]
-    return mask
+    # for benchmarks that are expensive to run
+    return make_mask(request.param)
 
 
 @pytest.fixture
 def bench(benchmark, request):
     """
-    Thin wrapper around the pytest-benchmark `benchmark` fixture that records
-    which cloudmetrics version was benchmarked and on which mask, and checks
-    that the metric returned a finite value.
+    `benchmark` fixture that records the mask and cloudmetrics version and
+    checks that the metric returned a finite value.
     """
     params = getattr(getattr(request.node, "callspec", None), "params", {})
     mask_name = params.get("cloud_mask", params.get("small_cloud_mask"))
@@ -107,10 +116,5 @@ def pytest_report_header(config):
         f"cloudmetrics: {getattr(cloudmetrics, '__version__', 'unknown')} "
         f"({cloudmetrics.__file__})",
     ]
-    for name, spec in MASK_SPECS.items():
-        ny, nx = spec["shape"]
-        lines.append(
-            f"benchmark mask '{name}': {ny}x{nx} px, {spec['n_objects']} objects, "
-            f"cloud fraction {CLOUD_FRACTION}"
-        )
+    lines += [f"benchmark mask: {mask_id(name)}" for name in MASK_SPECS]
     return lines

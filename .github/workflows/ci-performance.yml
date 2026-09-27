@@ -1,17 +1,7 @@
 name: performance benchmarks
 
-# Benchmarks the metrics on synthetic cloud masks for the pull-request head
-# and for its base branch (both on the same runner, in the same job) and fails
-# if any benchmark got slower than `max_slowdown` times the base. The
-# comparison table is written to the job's Summary tab and to the job log.
-# No PR comment is posted, since the GITHUB_TOKEN of pull-requests from forks
-# is not allowed to do that.
-#
-# The benchmark runs are skipped (and the job succeeds) when a pull-request
-# does not change the package code (`PACKAGE_PATHS` below), since base and
-# head would then run identical metric code. Manual runs (workflow_dispatch)
-# always benchmark and can compare two arbitrary refs via `base_ref` and
-# `head_ref`.
+# Benchmarks head and base on the same runner and fails if any benchmark got
+# slower than `max_slowdown` times the base. See benchmarks/README.md.
 
 on:
   pull_request:
@@ -23,9 +13,8 @@ on:
         default: "master"
       head_ref:
         description: >-
-          git ref (branch, tag or sha) to benchmark as "head"; empty = the ref
-          the workflow is run from. The benchmark files are always taken from
-          the ref the workflow is run from.
+          git ref (branch, tag or sha) to benchmark; empty = the ref the
+          workflow is run from
         required: false
         default: ""
       max_slowdown:
@@ -41,17 +30,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # single-threaded for more stable timings
   OMP_NUM_THREADS: 1
   NUMBA_NUM_THREADS: 1
   PYTHONHASHSEED: 0
-  # BASE_DIR, HEAD_WORKTREE and RESULTS_DIR (below $RUNNER_TEMP) are set in the
-  # first step: the `runner` context is not available in workflow-level `env`
-  # `inputs.*` is only set for workflow_dispatch, on pull_request the base of
-  # the PR is used
   BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || 'master' }}
   MAX_SLOWDOWN: ${{ inputs.max_slowdown || '1.5' }}
-  # paths whose change between base and head triggers the benchmark runs
+  # benchmarks only run if these differ between base and head
   PACKAGE_PATHS: cloudmetrics pyproject.toml
   PYTEST_BENCHMARK_ARGS: >-
     --benchmark-only
@@ -66,7 +50,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # full history so that the base commit is available locally
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -83,16 +66,12 @@ jobs:
 
       - name: Resolve base and head commits
         id: refs
-        # user-controlled values (branch names, inputs) are passed through the
-        # environment rather than expanded into the script
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           HEAD_REF: ${{ inputs.head_ref }}
         run: |
-          # resolve a branch name, tag or sha to a commit sha (fetching it if
-          # it is not available locally), preferring the branch at `origin`
           resolve() {
             if ! git rev-parse --verify --quiet "$1^{commit}" > /dev/null; then
               git fetch origin "$1"
@@ -103,8 +82,6 @@ jobs:
           base_sha=$(resolve "${BASE_REF}")
           echo "base ref: ${BASE_REF} -> ${base_sha}"
           if [ -n "${HEAD_REF}" ]; then
-            # manual A/B comparison: `head_ref` is checked out into a second
-            # worktree and benchmarked with the benchmark files of this checkout
             head_sha=$(resolve "${HEAD_REF}")
             head_dir=${HEAD_WORKTREE}
             head_label="\`${HEAD_REF}\` @ ${head_sha} (benchmark files from \`${GITHUB_REF_NAME}\` @ ${GITHUB_SHA})"
@@ -127,10 +104,6 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           mkdir -p "${RESULTS_DIR}"
 
-      # On a pull-request that only touches e.g. docs, CI or the benchmarks
-      # themselves, base and head would run identical metric code, so the
-      # benchmark runs are skipped. Manual runs are an explicit request and
-      # always benchmark.
       - name: Detect changes to the package code
         id: changes
         env:
@@ -186,43 +159,8 @@ jobs:
             git -C "${HEAD_DIR}" log --oneline -1
           fi
 
-      # `np.trapz` was removed in numpy 2.4 (replaced by `np.trapezoid`). If
-      # the installed numpy has no `trapz` but one side still calls it (e.g. a
-      # base commit older than the fix), `numpy<2.4` is installed before BOTH
-      # benchmark runs, so that the two sides are still measured against the
-      # same numpy version. The note ends up in the summary header.
-      - name: Check numpy compatibility of both sides
-        id: numpy
-        if: steps.changes.outputs.run_benchmarks == 'true'
-        env:
-          HEAD_DIR: ${{ steps.refs.outputs.head_dir }}
-        run: |
-          uses_trapz=""
-          for side in base head; do
-            dir=${BASE_DIR}; [ "${side}" = head ] && dir=${HEAD_DIR}
-            if git -C "${dir}" grep -q -F "np.trapz(" -- cloudmetrics; then
-              uses_trapz="${uses_trapz:+${uses_trapz} and }${side}"
-            fi
-          done
-          why=""
-          if [ -n "${uses_trapz}" ] && ! python -c "import numpy; numpy.trapz" 2> /dev/null; then
-            unpinned=$(python -c "import numpy; print(numpy.__version__)")
-            echo "::warning::the ${uses_trapz} code still uses np.trapz, which numpy ${unpinned} lacks -> installing numpy<2.4 for both benchmark runs"
-            pip install "numpy<2.4"
-            why=" (pinned to <2.4 for both runs: the ${uses_trapz} code still uses \`np.trapz\`, which numpy ${unpinned} lacks)"
-          fi
-          version=$(python -c "import numpy; print(numpy.__version__)")
-          echo "numpy ${version}${why}"
-          echo "note=numpy: ${version}${why}" >> "$GITHUB_OUTPUT"
-
-      # The base is installed into the same environment (rather than only put
-      # on PYTHONPATH) because the version file `cloudmetrics/_version.py` is
-      # generated by setuptools_scm at install time and does not exist in a
-      # bare checkout. `--no-deps` keeps the dependencies of the head install,
-      # so both sides run against identical versions of numpy, scipy, etc.
-      # The benchmark code of this checkout is used for both sides, run with
-      # the `pytest` entry point (not `python -m pytest`, which would put the
-      # current directory and thereby this source tree on `sys.path`).
+      # installed with --no-deps so that both sides use the same dependencies;
+      # `pytest` rather than `python -m pytest` to not import the source tree
       - name: Benchmark base
         if: steps.changes.outputs.run_benchmarks == 'true'
         run: |
@@ -244,7 +182,6 @@ jobs:
         env:
           BASE_LABEL: ${{ steps.refs.outputs.base_label }}
           HEAD_LABEL: ${{ steps.refs.outputs.head_label }}
-          NUMPY_NOTE: ${{ steps.numpy.outputs.note }}
           CHANGES_NOTE: ${{ steps.changes.outputs.note }}
         run: |
           python benchmarks/compare.py \
@@ -253,7 +190,6 @@ jobs:
             --max-slowdown "${MAX_SLOWDOWN}" \
             --base-label "${BASE_LABEL}" \
             --head-label "${HEAD_LABEL}" \
-            --note "${NUMPY_NOTE}" \
             --note "${CHANGES_NOTE}" \
             --summary "${RESULTS_DIR}/summary.md"
 
