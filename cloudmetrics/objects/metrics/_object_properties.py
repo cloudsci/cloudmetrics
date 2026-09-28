@@ -4,11 +4,6 @@ import numpy as np
 from skimage.measure import regionprops
 
 # Properties for which an exact, vectorised numpy implementation exists.
-# `skimage.measure.regionprops` is comparatively expensive (one python object
-# per labelled region and lazily-evaluated properties), and the object metrics
-# request these simple properties many times per scene. The functions below
-# reproduce the regionprops values bit-for-bit for these properties, all other
-# properties fall back to regionprops.
 _FAST_PROPERTIES = (
     "area",
     "centroid",
