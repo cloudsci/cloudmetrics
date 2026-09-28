@@ -72,3 +72,89 @@ def test_open_sky_extremes(periodic_domain, op):
         )
         == 0
     )
+
+
+def _all_measures(mask, periodic_domain):
+    return [
+        cloudmetrics.mask.open_sky(
+            mask=mask, periodic_domain=periodic_domain, summary_measure=op
+        )
+        for op in ["max", "mean"]
+    ]
+
+
+def test_open_sky_single_cloudy_pixel():
+    # 3x4 non-square mask with a single cloudy pixel at (1, 1). Rows/columns
+    # without any cloud span the full domain (12 px area) in both domain
+    # types. In row 1 and column 1 the areas are (non-periodic) 0, 9, 9 and
+    # 0, 8, and (periodic, wrapping around the domain) 9, 9, 9 and 8, 8.
+    mask = np.zeros((3, 4))
+    mask[1, 1] = 1
+
+    np.testing.assert_equal(
+        _all_measures(mask, periodic_domain=False), [1.0, 98 / 11 / 12]
+    )
+    np.testing.assert_equal(
+        _all_measures(mask, periodic_domain=True), [1.0, 115 / 11 / 12]
+    )
+
+
+def test_open_sky_diagonal_clouds():
+    # every row and column contains exactly one cloudy pixel. Without
+    # periodicity the largest area is found for the corner pixels, e.g. (0, 3)
+    # with w=0, e=4, n=0, s=2 -> 8 px; with periodicity every clear pixel spans
+    # 3x3 px (e.g. (0, 3): w=0, e=3, n=-1, s=2). Summed non-periodic areas:
+    # (4-i)*(j-1) for i<j and (i-1)*(4-j) for i>j, i.e. 25 + 25 = 50 px
+    mask = np.eye(4)
+
+    np.testing.assert_equal(
+        _all_measures(mask, periodic_domain=False), [8 / 16, 50 / 12 / 16]
+    )
+    np.testing.assert_equal(_all_measures(mask, periodic_domain=True), [9 / 16, 9 / 16])
+
+
+@pytest.mark.parametrize("periodic_domain", [True, False])
+def test_open_sky_isolated_clear_pixel(periodic_domain):
+    mask = np.ones((3, 4))
+    mask[1, 2] = 0
+
+    np.testing.assert_equal(
+        _all_measures(mask, periodic_domain=periodic_domain), [1 / 12, 1 / 12]
+    )
+
+
+@pytest.mark.parametrize("periodic_domain", [True, False])
+def test_open_sky_clear_row(periodic_domain):
+    mask = np.ones((3, 4))
+    mask[1, :] = 0
+
+    np.testing.assert_equal(
+        _all_measures(mask, periodic_domain=periodic_domain), [4 / 12, 4 / 12]
+    )
+
+
+@pytest.mark.parametrize("periodic_domain", [True, False])
+@pytest.mark.parametrize("dtype", [bool, int, float])
+def test_open_sky_mask_dtype(periodic_domain, dtype):
+    reference = _all_measures(EXAMPLE_MASK, periodic_domain=periodic_domain)
+    np.testing.assert_equal(
+        _all_measures(EXAMPLE_MASK.astype(dtype), periodic_domain=periodic_domain),
+        reference,
+    )
+
+
+@pytest.mark.parametrize("periodic_domain", [True, False])
+def test_open_sky_non_square(periodic_domain):
+    # transposing the mask must not change the metric
+    rng = np.random.default_rng(0)
+    mask = (rng.random((5, 40)) < 0.2).astype(float)
+
+    np.testing.assert_equal(
+        _all_measures(mask, periodic_domain=periodic_domain),
+        _all_measures(mask.T, periodic_domain=periodic_domain),
+    )
+
+
+def test_open_sky_unknown_summary_measure():
+    with pytest.raises(NotImplementedError):
+        cloudmetrics.mask.open_sky(mask=EXAMPLE_MASK, summary_measure="median")
