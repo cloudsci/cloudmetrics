@@ -87,6 +87,8 @@ If you plan to add/modify `cloudmetrics` (contribution via pull-requests are
 very welcome!) you should check out the [development
 notes](https://github.com/cloudsci/cloudmetrics/blob/master/docs/developing.md)
 for how to get set up with a local copy of the codebase.
+Pull-requests are automatically checked for performance regressions of the
+metrics, see [`benchmarks/README.md`](benchmarks/README.md).
 
 # Usage
 

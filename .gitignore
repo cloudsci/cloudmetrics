@@ -7,3 +7,4 @@ __pycache__/
 .*.sw*
 cloudmetrics.egg-info/
 cloudmetrics/_version.py
+.benchmarks/

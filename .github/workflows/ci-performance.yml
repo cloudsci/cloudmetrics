@@ -1,0 +1,225 @@
+name: performance benchmarks
+
+# Benchmarks head and base on the same runner and fails if any benchmark got
+# slower than `max_slowdown` times the base. See benchmarks/README.md.
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: "git ref (branch, tag or sha) to compare against"
+        required: false
+        default: "master"
+      head_ref:
+        description: >-
+          git ref (branch, tag or sha) to benchmark; empty = the ref the
+          workflow is run from
+        required: false
+        default: ""
+      max_slowdown:
+        description: "maximum allowed head/base ratio of the median run-time"
+        required: false
+        default: "1.5"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  OMP_NUM_THREADS: 1
+  NUMBA_NUM_THREADS: 1
+  PYTHONHASHSEED: 0
+  BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || 'master' }}
+  MAX_SLOWDOWN: ${{ inputs.max_slowdown || '1.5' }}
+  # benchmarks only run if these differ between base and head
+  PACKAGE_PATHS: cloudmetrics pyproject.toml
+  PYTEST_BENCHMARK_ARGS: >-
+    --benchmark-only
+    --benchmark-min-rounds=5
+    --benchmark-warmup=on
+    --benchmark-disable-gc
+
+jobs:
+  benchmark:
+    name: benchmark head vs base
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up working directories
+        run: |
+          {
+            echo "BASE_DIR=${RUNNER_TEMP}/cloudmetrics-base"
+            echo "HEAD_WORKTREE=${RUNNER_TEMP}/cloudmetrics-head"
+            echo "RESULTS_DIR=${RUNNER_TEMP}/benchmark-results"
+          } >> "$GITHUB_ENV"
+
+      - name: Resolve base and head commits
+        id: refs
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ inputs.head_ref }}
+        run: |
+          resolve() {
+            if ! git rev-parse --verify --quiet "$1^{commit}" > /dev/null; then
+              git fetch origin "$1"
+            fi
+            git rev-parse --verify --quiet "origin/$1^{commit}" \
+              || git rev-parse --verify "$1^{commit}"
+          }
+          base_sha=$(resolve "${BASE_REF}")
+          echo "base ref: ${BASE_REF} -> ${base_sha}"
+          if [ -n "${HEAD_REF}" ]; then
+            head_sha=$(resolve "${HEAD_REF}")
+            head_dir=${HEAD_WORKTREE}
+            head_label="\`${HEAD_REF}\` @ ${head_sha} (benchmark files from \`${GITHUB_REF_NAME}\` @ ${GITHUB_SHA})"
+          else
+            head_sha=${GITHUB_SHA}
+            head_dir=${GITHUB_WORKSPACE}
+            if [ -n "${PR_NUMBER}" ]; then
+              head_label="PR #${PR_NUMBER} \`${PR_HEAD_REF}\` @ ${PR_HEAD_SHA} (merge commit ${GITHUB_SHA})"
+            else
+              head_label="\`${GITHUB_REF_NAME}\` @ ${GITHUB_SHA}"
+            fi
+          fi
+          echo "head sha: ${head_sha} (installed from ${head_dir})"
+          {
+            echo "base_sha=${base_sha}"
+            echo "base_label=\`${BASE_REF}\` @ ${base_sha}"
+            echo "head_sha=${head_sha}"
+            echo "head_dir=${head_dir}"
+            echo "head_label=${head_label}"
+          } >> "$GITHUB_OUTPUT"
+          mkdir -p "${RESULTS_DIR}"
+
+      - name: Detect changes to the package code
+        id: changes
+        env:
+          BASE_SHA: ${{ steps.refs.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.refs.outputs.head_sha }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          # shellcheck disable=SC2086  # PACKAGE_PATHS is a list
+          if git diff --quiet "${BASE_SHA}" "${HEAD_SHA}" -- ${PACKAGE_PATHS}; then
+            changed=false
+          else
+            rc=$?
+            [ "${rc}" -eq 1 ] || exit "${rc}"
+            changed=true
+          fi
+          run_benchmarks=${changed}
+          note=""
+          if [ "${changed}" = false ]; then
+            echo "no changes under ${PACKAGE_PATHS} between ${BASE_SHA} and ${HEAD_SHA}"
+            if [ "${FORCE}" = true ]; then
+              echo "running the benchmarks anyway (manual run)"
+              run_benchmarks=true
+              note="the package code (${PACKAGE_PATHS}) is identical on base and head, the benchmarks were run anyway because the workflow was started manually"
+            else
+              echo "skipping the benchmark runs"
+            fi
+          else
+            git diff --stat "${BASE_SHA}" "${HEAD_SHA}" -- ${PACKAGE_PATHS}
+          fi
+          {
+            echo "package_changed=${changed}"
+            echo "run_benchmarks=${run_benchmarks}"
+            echo "note=${note}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Install package and benchmark dependencies
+        if: steps.changes.outputs.run_benchmarks == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[test]" pytest-benchmark
+
+      - name: Check out base (and head) commits
+        if: steps.changes.outputs.run_benchmarks == 'true'
+        env:
+          BASE_SHA: ${{ steps.refs.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.refs.outputs.head_sha }}
+          HEAD_DIR: ${{ steps.refs.outputs.head_dir }}
+        run: |
+          git worktree add --detach "${BASE_DIR}" "${BASE_SHA}"
+          git -C "${BASE_DIR}" log --oneline -1
+          if [ "${HEAD_DIR}" != "${GITHUB_WORKSPACE}" ]; then
+            git worktree add --detach "${HEAD_DIR}" "${HEAD_SHA}"
+            git -C "${HEAD_DIR}" log --oneline -1
+          fi
+
+      # installed with --no-deps so that both sides use the same dependencies;
+      # `pytest` rather than `python -m pytest` to not import the source tree
+      - name: Benchmark base
+        if: steps.changes.outputs.run_benchmarks == 'true'
+        run: |
+          pip install --no-deps --force-reinstall "${BASE_DIR}"
+          pytest benchmarks ${PYTEST_BENCHMARK_ARGS} \
+            --benchmark-json="${RESULTS_DIR}/base.json"
+
+      - name: Benchmark head
+        if: ${{ !cancelled() && steps.changes.outputs.run_benchmarks == 'true' }}
+        env:
+          HEAD_DIR: ${{ steps.refs.outputs.head_dir }}
+        run: |
+          pip install --no-deps --force-reinstall "${HEAD_DIR}"
+          pytest benchmarks ${PYTEST_BENCHMARK_ARGS} \
+            --benchmark-json="${RESULTS_DIR}/head.json"
+
+      - name: Compare head against base
+        if: ${{ always() && steps.changes.outputs.run_benchmarks == 'true' }}
+        env:
+          BASE_LABEL: ${{ steps.refs.outputs.base_label }}
+          HEAD_LABEL: ${{ steps.refs.outputs.head_label }}
+          CHANGES_NOTE: ${{ steps.changes.outputs.note }}
+        run: |
+          python benchmarks/compare.py \
+            --base "${RESULTS_DIR}/base.json" \
+            --head "${RESULTS_DIR}/head.json" \
+            --max-slowdown "${MAX_SLOWDOWN}" \
+            --base-label "${BASE_LABEL}" \
+            --head-label "${HEAD_LABEL}" \
+            --note "${CHANGES_NOTE}" \
+            --summary "${RESULTS_DIR}/summary.md"
+
+      - name: Write job summary
+        if: always()
+        env:
+          RUN_BENCHMARKS: ${{ steps.changes.outputs.run_benchmarks }}
+          BASE_LABEL: ${{ steps.refs.outputs.base_label }}
+          HEAD_LABEL: ${{ steps.refs.outputs.head_label }}
+        run: |
+          {
+            if [ "${RUN_BENCHMARKS}" = false ]; then
+              echo "## Performance benchmark comparison"
+              echo ""
+              echo "- base: ${BASE_LABEL}"
+              echo "- head: ${HEAD_LABEL}"
+              echo ""
+              echo "**SKIPPED**: the package code is unchanged between base and head," \
+                "both sides would run identical metric code. Paths considered:"
+              echo ""
+              for path in ${PACKAGE_PATHS}; do
+                echo "- \`${path}\`"
+              done
+              echo ""
+              echo "Start the workflow manually (workflow_dispatch) to run the benchmarks anyway."
+            elif [ -f "${RESULTS_DIR}/summary.md" ]; then
+              cat "${RESULTS_DIR}/summary.md"
+            else
+              echo "## Performance benchmark comparison"
+              echo ""
+              echo "No comparison summary was produced, see the job log."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

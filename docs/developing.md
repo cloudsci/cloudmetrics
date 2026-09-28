@@ -14,6 +14,11 @@ inside `setup.cfg` can be installed with pip by calling:
 python -m pip install -e ".[dev]"
 ```
 
+Performance benchmarks of the metrics reside in `benchmarks/` and are not run
+with the regular tests, but by a separate github action that compares the
+timings of a pull-request against its base branch. See
+[`benchmarks/README.md`](../benchmarks/README.md) for how to run them locally.
+
 Linting is done with [pre-commit](https://pre-commit.com/), run the following
 command to have linting run automatically for each git commit:
 
