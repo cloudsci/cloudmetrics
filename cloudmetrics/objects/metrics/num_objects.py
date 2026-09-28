@@ -1,4 +1,4 @@
-from ._object_properties import _get_regionprops
+from ._object_properties import _get_num_objects
 
 
 def num_objects(object_labels):
@@ -16,5 +16,4 @@ def num_objects(object_labels):
         Number of labelled objects.
 
     """
-    regions = _get_regionprops(object_labels=object_labels)
-    return len(regions)
+    return _get_num_objects(object_labels=object_labels)
