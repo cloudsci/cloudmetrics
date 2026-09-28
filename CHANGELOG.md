@@ -4,6 +4,12 @@
 
 *maintenance*
 
+- vectorise the circle-overlap test in the random circle placement of the
+  inhibition nearest-neighbour reference distribution of `iorg`
+  (`reference_dist="inhibition_nn"`) for performance reasons. Results are
+  unchanged for a given `random_seed`
+  [\#92](https://github.com/cloudsci/cloudmetrics/pull/92) Hauke Schulz
+  (@observingClouds)
 - update pre-commit hooks and related github action to latest versions
   [\#86](https://github.com/cloudsci/cloudmetrics/pull/86) Hauke Schulz
   (@observingClouds)
